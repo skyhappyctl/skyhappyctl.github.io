@@ -1,0 +1,14 @@
+# Generated preview/build files; do not upload them.
+_site/
+node_modules/
+.site-preview/
+private/
+originals/
+.env
+.env.*
+*.key
+*.pem
+*.log
+*.zip
+.DS_Store
+Thumbs.db

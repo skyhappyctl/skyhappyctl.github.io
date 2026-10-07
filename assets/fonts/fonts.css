@@ -1,0 +1,15 @@
+/* Self-hosted OFL fonts. Relative URLs resolve within assets/fonts/. */
+@font-face {
+  font-family: "Profile Sans SC";
+  src: url("profile-sans-sc.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Profile Serif SC";
+  src: url("profile-serif-sc.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+}

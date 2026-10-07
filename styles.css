@@ -1,0 +1,147 @@
+/* 简洁学者主页：日常改内容请打开 content.js。
+ * 改颜色、页面宽度、字号与间距，在下方对应注释处修改。 */
+/* 字体采用随网站打包的开源思源字体子集，不请求第三方字体服务。
+ * 标题：思源宋体；正文：思源黑体。修改字体入口是下面的两个变量。 */
+:root {
+  --font-body: "Profile Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-heading: "Profile Serif SC", "Noto Serif SC", "Songti SC", Georgia, serif;
+  --paper: #ffffff;
+  --text: #25282c;
+  --muted: #68727d;
+  --link: #17649b;
+  --link-hover: #0d416c;
+  --border: #e5e8eb;
+  --page-width: 860px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+body { margin: 0; color: var(--text); background: var(--paper); font-family: var(--font-body); font-size: 15px; font-weight: 400; line-height: 1.9; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+a { color: var(--link); text-decoration: none; text-underline-offset: 3px; }
+a:hover { color: var(--link-hover); text-decoration: underline; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--link); outline-offset: 4px; border-radius: 2px; }
+p { margin: 0 0 12px; }
+img { display: block; max-width: 100%; }
+button { font: inherit; }
+.container { width: calc(100% - 56px); max-width: var(--page-width); margin-inline: auto; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.skip-link { position: fixed; top: -80px; left: 16px; z-index: 10; padding: 8px 16px; background: white; border: 1px solid var(--link); }
+.skip-link:focus { top: 8px; }
+
+/* 顶部导航：普通文档式导航，不悬浮、不遮挡正文。 */
+.site-header { display: flex; align-items: center; gap: 28px; min-height: 70px; border-bottom: 1px solid var(--border); }
+.site-name { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.site-nav { display: flex; align-items: center; justify-content: flex-end; flex: 1; gap: 25px; }
+.site-nav a { display: inline-flex; align-items: center; font-size: 12px; min-height: 44px; white-space: nowrap; }
+#language-toggle { min-width: 44px; min-height: 44px; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; padding: 4px; }
+#language-toggle:hover { color: var(--link); }
+
+/* 首页：文字在左、照片在右。替换照片请编辑 content.js 的 portrait。 */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) 166px; grid-template-areas: "identity photo" "intro photo" "education photo" "links photo"; column-gap: 44px; align-items: start; padding-block: 42px 32px; }
+.hero-identity { grid-area: identity; }
+h1 { font-family: var(--font-heading); font-size: 36px; line-height: 1.4; font-weight: 500; letter-spacing: 0.02em; margin: 0 0 7px; }
+.english-name { font-family: var(--font-heading); font-size: 21px; font-weight: 400; color: var(--muted); display: inline-block; margin-left: 15px; letter-spacing: 0; }
+.affiliation { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+.portrait { grid-area: photo; width: 166px; height: 221px; object-fit: cover; border-radius: 3px; margin-top: 7px; }
+.intro { grid-area: intro; margin-bottom: 13px; }
+.education { grid-area: education; font-size: 12px; margin-bottom: 14px; }
+.education p { margin: 0; }
+.education strong { font-weight: 500; }
+.education .note { font-size: 11px; margin-top: 3px; }
+.hero-links { grid-area: links; display: flex; align-items: center; flex-wrap: wrap; gap: 5px 12px; font-size: 13px; }
+.hero-links > span { color: #a3abb3; }
+.file-type { font-size: 10px; color: var(--muted); }
+.hero.no-portrait { grid-template-columns: 1fr; grid-template-areas: "identity" "intro" "education" "links"; }
+
+/* 正文模块：完整阅读列，不使用左右大栏、卡片、筛选或展开按钮。 */
+.section { padding-block: 23px 25px; border-top: 1px solid var(--border); }
+h2 { font-family: var(--font-heading); font-size: 23px; font-weight: 500; line-height: 1.6; letter-spacing: 0.02em; margin: 0 0 17px; }
+h3 { font-size: 15px; font-weight: 600; line-height: 1.65; margin: 0 0 5px; }
+.section-content > :last-child { margin-bottom: 0; }
+.note { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.interests { color: var(--muted); font-size: 13px; }
+.interests span { padding-inline: 8px; }
+.plain-list { list-style: none; padding: 0; margin: 0; }
+
+/* 论文：左边为自己论文的可选缩略图，右边为标题、作者和链接。 */
+.publication.has-image { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 26px; align-items: start; }
+.publication + .publication { margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--border); }
+.paper-figure { margin: 4px 0 0; }
+.paper-figure img { width: 100%; height: auto; }
+.paper-figure figcaption { margin-top: 10px; color: var(--muted); font-size: 9px; line-height: 1.7; }
+.publication h3 { font-size: 16px; font-weight: 600; line-height: 1.55; margin-bottom: 8px; }
+.authors { font-size: 13px; margin-bottom: 8px; line-height: 1.7; }
+.authors strong { font-weight: 600; }
+.publication-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.paper-summary { font-size: 14px; line-height: 1.75; margin-bottom: 8px; }
+.paper-links { font-size: 12px; margin-bottom: 8px; }
+.paper-links span { color: var(--muted); padding-inline: 7px; }
+.paper-details > :last-child { margin-bottom: 0; }
+
+/* 项目：按 content.js 中的顺序，简短、直接地说明工作。 */
+.project + .project { margin-top: 20px; }
+.project p { font-size: 14px; margin-bottom: 4px; }
+.project .project-tags { font-size: 11px; color: var(--muted); }
+.project .note { font-size: 11px; margin-top: 4px; }
+
+/* 技能、获奖、其他经历与联系。 */
+.skill-list { margin: 0; font-size: 13px; }
+.skill-row { display: grid; grid-template-columns: 145px minmax(0, 1fr); gap: 20px; }
+.skill-row + .skill-row { margin-top: 9px; }
+.skill-row dt { font-weight: 500; }
+.skill-row dd { margin: 0; color: var(--muted); }
+.honor { display: grid; grid-template-columns: 67px minmax(0, 1fr); gap: 16px; font-size: 12px; }
+.honor + .honor { margin-top: 12px; }
+.honor-year { color: var(--muted); padding-top: 1px; }
+.honor h3 { font-size: 12px; font-weight: 500; margin-bottom: 1px; }
+.honor p { color: var(--muted); font-size: 11px; margin: 0; }
+.beyond-text { font-size: 14px; margin-top: 19px; }
+#contact p { font-size: 14px; }
+.email-link { overflow-wrap: anywhere; }
+.site-footer { border-top: 1px solid var(--border); padding-block: 20px 30px; }
+.footer-line { display: flex; align-items: center; justify-content: space-between; gap: 18px; font-size: 11px; color: var(--muted); }
+.site-footer > p { font-size: 10px; line-height: 1.8; color: var(--muted); margin: 10px 0 0; }
+.no-script { max-width: 860px; margin: 60px auto; padding: 24px; }
+
+/* 移动端：保持导航可见，缩略图和论文文字上下排列。 */
+@media (max-width: 760px) {
+  .site-header { gap: 14px; }
+  .site-nav { gap: 18px; }
+  .hero { column-gap: 28px; grid-template-columns: minmax(0, 1fr) 140px; }
+  .portrait { width: 140px; height: 187px; }
+  .english-name { display: block; margin: 5px 0 0; font-size: 18px; }
+  .publication.has-image { grid-template-columns: 155px minmax(0, 1fr); gap: 21px; }
+}
+@media (max-width: 600px) {
+  .container { width: calc(100% - 40px); }
+  .site-header { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 0; padding-top: 6px; }
+  .site-name { grid-column: 1; grid-row: 1; }
+  #language-toggle { grid-column: 2; grid-row: 1; }
+  .site-nav { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; gap: 8px; padding-bottom: 4px; }
+  .site-nav a { font-size: 11px; white-space: normal; line-height: 1.4; text-align: center; justify-content: center; flex: 1; min-width: 0; }
+  .hero { grid-template-columns: minmax(0, 1fr) 96px; grid-template-areas: "identity photo" "intro intro" "education education" "links links"; gap: 0 20px; padding-block: 28px; }
+  h1 { font-size: 32px; }
+  .english-name { font-size: 17px; margin-top: 5px; }
+  .affiliation { font-size: 11px; margin-top: 10px; margin-bottom: 0; }
+  .portrait { width: 96px; height: 128px; margin: 0; }
+  .intro { font-size: 14px; margin-top: 21px; }
+  .education { font-size: 11px; }
+  .hero-links { font-size: 12px; gap: 4px 10px; }
+  .section { padding-block: 23px; }
+  h2 { font-size: 21px; margin-bottom: 15px; }
+  .section-content { font-size: 14px; }
+  .publication.has-image { display: block; }
+  .paper-figure { width: 190px; margin: 0 0 16px; }
+  .paper-figure figcaption { font-size: 9px; }
+  .publication h3 { font-size: 16px; }
+  .skill-row { grid-template-columns: 1fr; gap: 1px; }
+  .honor { grid-template-columns: 55px minmax(0, 1fr); gap: 12px; }
+  .hero.no-portrait .intro { margin-top: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media print {
+  .site-header, .hero-links, .back-top, .skip-link { display: none; }
+  .container { width: 100%; }
+  .hero { padding-block: 15px 20px; }
+  .section { padding-block: 18px; }
+  .project, .publication, .honor { break-inside: avoid; }
+}

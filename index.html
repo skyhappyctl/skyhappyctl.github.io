@@ -1,0 +1,40 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="author" content="Tianle Chen">
+  <meta name="description" content="陈天乐的个人主页：集成电路设计、光计算、科研与工程项目。Tianle Chen — integrated circuits, photonic computing, and engineering projects.">
+  <title>陈天乐 Tianle Chen · 个人主页</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <script>
+    // Direct file previews use system fallbacks; HTTP(S) previews load the bundled fonts.
+    // This avoids browser file:// font restrictions without third-party services.
+    if (location.protocol !== "file:") {
+      const sheet = document.createElement("link");
+      sheet.rel = "stylesheet";
+      sheet.href = "assets/fonts/fonts.css";
+      document.head.appendChild(sheet);
+      for (const font of ["profile-sans-sc.woff2", "profile-serif-sc.woff2"]) {
+        const preload = document.createElement("link");
+        preload.rel = "preload";
+        preload.as = "font";
+        preload.type = "font/woff2";
+        preload.crossOrigin = "anonymous";
+        preload.href = "assets/fonts/" + font;
+        document.head.appendChild(preload);
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="content.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳转到主要内容 / Skip to content</a>
+  <div id="app"></div>
+  <noscript><main class="no-script"><h1>陈天乐 · Tianle Chen</h1><p>集成电路设计与光计算。请启用 JavaScript 以浏览完整主页。</p><p>Integrated circuit design and photonic computing. Enable JavaScript to view the full site.</p><a href="resume.html">查看简历 / View résumé</a><p><a href="mailto:ctl22@mails.tsinghua.edu.cn">ctl22@mails.tsinghua.edu.cn</a></p></main></noscript>
+</body>
+</html>
+
