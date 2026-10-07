@@ -1,7 +1,9 @@
 # 公开资源来源
 
-- `portrait.webp`：陈天乐提供的本人照片，来自用户本地毕业照；不使用参考学者的照片。
-- `Tianle-Chen-CV.pdf`：由用户提供的简历和项目材料整理的公开版简历；省略手机号、证件号码等敏感信息。
+- `portrait-2026.webp`：由用户提供的 `证件照.png` 缩放并转换为 WebP，保留本人照片内容；作为当前主页头像。原始 PNG 未修改。
+- `个人简历-陈天乐.pdf`：用户上传的 2026 年 9 月版简历原件；当前下载链接使用此文件。文件含手机号，网页正文不展示手机号，但下载者仍可读取原件。
+- `portrait.webp`（旧版，不再由当前页面引用）：陈天乐提供的本人照片，来自用户本地毕业照；不使用参考学者的照片。
+- `Tianle-Chen-CV.pdf`（旧版，不再由当前页面引用）：由用户提供的简历和项目材料整理的公开版简历；省略手机号、证件号码等敏感信息。
 - `photonic-embedding.webp`：Yuyao Huang, Wencan Liu, Run Sun, Peng Meng Chan, Yutong He, Tianle Chen, Sigang Yang, Tingzhao Fu & Hongwei Chen, *Photonic embedding learning with high energy efficiency exceeding 100 GOPS/W/mm²*, Research Square (2025), Figure 1(b)。
   - 来源：https://doi.org/10.21203/rs.3.rs-5901611/v1
   - 原文许可：[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)

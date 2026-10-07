@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -15,25 +15,110 @@
   </script>
   <link rel="stylesheet" href="styles.css">
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f6f5ef;color:#26372d;font:13px/1.85 var(--font-body)}.toolbar{max-width:850px;margin:24px auto;display:flex;justify-content:space-between;gap:20px;padding:0 24px;align-items:center;font-size:12px}.toolbar a{color:#254f40;text-decoration:none}.toolbar button{background:#254f40;color:white;border:0;padding:12px 20px;border-radius:4px;cursor:pointer;font:inherit}.toolbar button:focus-visible,.toolbar a:focus-visible{outline:3px solid #738966;outline-offset:4px}.resume{max-width:850px;background:#fffefa;margin:0 auto 40px;padding:48px 58px;box-shadow:0 5px 30px #2535280a}h1{font-family:var(--font-heading);font:500 38px/1.4 var(--font-heading);letter-spacing:-1px;margin:0 0 6px}h1 span{font-size:24px;margin-left:18px;color:#5b6b58}.headline{color:#677561;font-size:12px;margin:0}.email{display:inline-block;color:#254f40;margin:10px 0 0;text-decoration:none;font-size:12px}h2{font-family:var(--font-heading);font-size:14px;font-weight:600;border-bottom:1px solid #e5e8eb;padding-bottom:5px;margin:22px 0 10px;color:#254f40}h2 span{font-size:10px;font-weight:400;letter-spacing:1px;margin-left:12px}h3{font-size:12px;margin:11px 0 3px}p{margin:4px 0}ul{padding-left:18px;margin:4px 0}li{margin:2px 0;font-size:11px}.detail{font-size:11px;color:#5b6955}.publication-title{font-family:Georgia,serif;font-size:13px}.doi{color:#254f40;overflow-wrap:anywhere;font-size:10px}.skills{font-size:11px}.note{font-size:10px;color:#68727d;border-top:1px solid #e5e8eb;padding-top:10px;margin-top:22px}.columns{display:grid;grid-template-columns:1fr 1fr;gap:25px}@media(max-width:600px){.resume{padding:30px 24px;margin:0 16px 30px}.toolbar{padding:0 18px;flex-wrap:wrap}h1{font-family:var(--font-heading);font-size:30px}h1 span{display:block;margin:8px 0;font-size:22px}.columns{grid-template-columns:1fr;gap:0}}@page{size:A4;margin:14mm}@media print{body{background:white;font-size:10px;line-height:1.5}.toolbar{display:none}.resume{max-width:none;background:white;margin:0;padding:0;box-shadow:none}h1{font-family:var(--font-heading);font-size:29px}h1 span{font-size:20px}.headline,.email{font-size:10px}h2{font-family:var(--font-heading);font-size:12px;margin:14px 0 6px}h3{font-size:10.5px;margin:8px 0 2px}li,.skills,.detail{font-size:9.5px}.publication-title{font-size:11px}.doi,.note{font-size:9px}.note{margin-top:14px}.columns{gap:22px}section{break-inside:avoid}a{color:inherit;text-decoration:none}}
+    body { background: #f7f9fb; }
+    .toolbar { max-width: 900px; margin: 22px auto; padding: 0 26px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; font-size: 12px; }
+    .toolbar button { border: 1px solid var(--border); background: white; color: var(--link); border-radius: 3px; padding: 8px 13px; cursor: pointer; }
+    .resume { max-width: 900px; margin: 0 auto 40px; padding: 42px 52px; background: white; }
+    .resume h1 { font-size: 32px; margin-bottom: 8px; }
+    .resume .second-name { font-size: 22px; color: var(--muted); margin-left: 16px; }
+    .resume .affiliation { margin-bottom: 6px; }
+    .resume .summary { font-size: 13px; margin-top: 14px; }
+    .resume section { margin-top: 24px; }
+    .resume h2 { font-size: 19px; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 12px; }
+    .resume h3 { font-size: 13px; margin-bottom: 3px; }
+    .resume p, .resume li, .resume .skill-list { font-size: 12px; line-height: 1.8; }
+    .resume .entry + .entry { margin-top: 14px; }
+    .resume .entry p { margin-bottom: 4px; }
+    .resume .entry-meta { font-size: 11px; color: var(--muted); }
+    .resume .course-list, .resume .note { font-size: 10px; color: var(--muted); }
+    .resume .honor { font-size: 11px; }
+    .resume .honor h3, .resume .honor p { font-size: 11px; }
+    .resume .note { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 24px; }
+    @media (max-width: 600px) {
+      .resume { margin: 0 12px 25px; padding: 26px 20px; }
+      .resume .second-name { display: block; margin: 6px 0 0; font-size: 19px; }
+      .toolbar { padding: 0 22px; }
+    }
+    @page { size: A4; margin: 14mm; }
+    @media print {
+      body { background: white; }
+      .toolbar { display: none; }
+      .resume { max-width: none; margin: 0; padding: 0; }
+      .resume h1 { font-size: 25px; }
+      .resume .second-name { font-size: 18px; }
+      .resume .summary { font-size: 10px; line-height: 1.65; }
+      .resume section { margin-top: 15px; }
+      .resume h2 { font-size: 13px; margin-bottom: 8px; break-after: avoid; }
+      .resume h3 { font-size: 10px; }
+      .resume p, .resume li, .resume .skill-list { font-size: 9px; line-height: 1.6; }
+      .resume .entry-meta, .resume .honor h3, .resume .honor p { font-size: 8.5px; }
+      .resume .entry + .entry { margin-top: 9px; }
+      .resume .entry, .resume .honor, .resume .skill-row { break-inside: avoid; }
+      .resume .course-list, .resume .note { font-size: 8px; }
+      .resume a { color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+    }
   </style>
 </head>
 <body>
-  <div class="toolbar"><a href="index.html">← 返回个人主页 / Back to home</a><a href="assets/Tianle-Chen-CV.pdf" download="Tianle-Chen-CV.pdf">下载 PDF / Download PDF</a><button type="button" onclick="window.print()">打印 / 保存为 PDF</button></div>
-  <main class="resume">
-    <header><h1>陈天乐 <span>Tianle Chen</span></h1><p class="headline">集成电路设计 · 光计算 · 数字与模拟系统 / IC Design · Photonic Computing</p><a class="email" href="mailto:ctl22@mails.tsinghua.edu.cn">ctl22@mails.tsinghua.edu.cn</a></header>
-    <section><h2>教育背景 <span>EDUCATION</span></h2><h3>清华大学 · 电子工程系</h3><p class="detail">2022 级因材施教集成电路班 · 当前去向待更新</p><p class="detail">相关课程：现代计算机体系架构、数字系统设计、数字信号处理、操作系统、集成电路芯片设计全流程实践。</p></section>
-    <section><h2>研究与工程项目 <span>RESEARCH & PROJECTS</span></h2>
-      <h3>硅基光神经网络 / Silicon photonic neural networks</h3><ul><li>编写 Lumerical 脚本自动运行多波长仿真、整理仿真数据并构建数据集。</li><li>训练全连接神经网络，验证多波长与透射率之间的关系；参与光子嵌入学习研究，为论文共同作者。</li></ul>
-      <h3>低功耗乘加电路 / Low-power multiply–accumulate circuits</h3><ul><li>面向 CNN 的乘加单元，探索 Booth 乘法器与 Huffman 加法树设计。</li><li>实现原码输入、补码输出的乘法电路，以降低动态翻转能耗为设计目标。</li></ul>
-      <h3>芯片设计全流程 / End-to-end chip design practice</h3><ul><li>数字部分：CPU + 8 点 FFT 加速核，覆盖从前仿到后仿的实践流程。</li><li>模拟部分：五管 OTA 放大器，覆盖电路仿真、版图与后仿验证。</li></ul>
-      <h3>算法可重构 DAC / Algorithmically reconfigurable DAC</h3><ul><li>参与使用 SRAM 替代传统编解码结构的 DAC 设计探索，涉及电路与版图工作。</li><li>项目记录来自 2025 年；后续进展与流片结果待补充确认。</li></ul>
-    </section>
-    <section><h2>研究成果 <span>PUBLICATION</span></h2><p class="publication-title">Photonic embedding learning with high energy efficiency exceeding 100 GOPS/W/mm²</p><p class="detail">Yuyao Huang, Wencan Liu, Run Sun, Peng Meng Chan, Yutong He, <strong>Tianle Chen</strong>, Sigang Yang, Tingzhao Fu & Hongwei Chen</p><p class="detail">Research Square 预印本 · 2025-01-29 · 正式期刊版本待确认</p><a class="doi" href="https://doi.org/10.21203/rs.3.rs-5901611/v1">https://doi.org/10.21203/rs.3.rs-5901611/v1</a></section>
-    <section><h2>技术工具 <span>TECHNICAL TOOLKIT</span></h2><p class="skills"><strong>编程与 HDL：</strong>Python、C/C++、Verilog、MATLAB</p><p class="skills"><strong>设计与仿真：</strong>Cadence、Lumerical、Vivado、VCS-SIM、Gem5</p><p class="skills"><strong>其他：</strong>Unix/Linux、LaTeX、Unity</p></section>
-    <div class="columns"><section><h2>获奖经历 <span>HONORS</span></h2><ul><li>电子系第七届「拓竹杯」软件设计大赛决赛三等奖（2024）</li><li>清华大学文艺优秀奖学金（2023）、社工优秀奖学金（2023、2024）</li><li>工物系新生 C 语言大赛决赛第四名（2023）</li><li>新生创意设计大赛信息技术赛道三等奖、最佳人气奖（2022）</li></ul></section><section><h2>协作与兴趣 <span>BEYOND THE LAB</span></h2><ul><li>曾参与电子系学生会与清华大学交响乐团学生工作。</li><li>项目协作：游戏界面与 UI 功能实现、仿真实验自动化。</li><li>兴趣：小提琴、摄影、旅行。</li></ul></section></div>
-    <p class="note">公开版简历：基于已有简历与项目资料（2025）整理，省略手机号、证件号码等敏感信息。教育现状、项目进展与正式发表信息须在投递或上线前确认更新。</p>
-  </main>
+  <nav class="toolbar" aria-label="简历操作 / Résumé controls">
+    <a href="index.html" id="resume-back">← 返回个人主页</a>
+    <a href="assets/个人简历-陈天乐.pdf" download id="resume-download">下载原版 PDF</a>
+    <button type="button" id="resume-print">打印 / 保存为 PDF</button>
+    <button type="button" id="resume-language" aria-label="Switch to English">EN</button>
+  </nav>
+  <main class="resume" id="resume-content"></main>
+  <noscript><main class="no-script"><h1>陈天乐 · Tianle Chen</h1><p>请启用 JavaScript 查看与主页同步的简历，或下载上方 PDF 原件。Enable JavaScript to view the résumé or download the original PDF above.</p></main></noscript>
+  <!-- 简历正文与主页共用 content.js，无需重复修改文字。PDF 原件仍单独维护。 -->
+  <script src="content.js"></script>
+  <script>
+    (() => {
+      "use strict";
+      const p = window.PROFILE;
+      let lang = "zh";
+      try { if (localStorage.getItem("tianle-language") === "en") lang = "en"; } catch { /* 默认中文。 */ }
+      const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+      const raw = value => value && typeof value === "object" ? value[lang] ?? value.zh ?? value.en ?? "" : value ?? "";
+      const text = value => escape(raw(value));
+      const safeURL = value => {
+        const url = String(value ?? "").trim();
+        if (!url || /[\u0000-\u0020\u007f\\]/.test(url) || url.startsWith("//")) return "";
+        if (/^[a-z][a-z\d+.-]*:/i.test(url) && !/^(https?:\/\/|mailto:)/i.test(url)) return "";
+        return url;
+      };
+      const link = (href, title) => safeURL(href) ? `<a href="${escape(safeURL(href))}" target="_blank" rel="noopener noreferrer">${title}</a>` : title;
+      const section = (key, body) => p.sections[key] === false ? "" : `<section><h2>${text(p.sectionTitles[key])}</h2>${body}</section>`;
+      const entries = (items, isInternship = false) => `<ul class="plain-list">${items.map(item => `<li class="entry"><h3>${text(item.title)}</h3><p class="entry-meta">${[isInternship ? item.company : null,item.date].filter(Boolean).map(text).join(" · ")}</p><p>${text(item.description)}</p>${item.note ? `<p class="entry-meta">${text(item.note)}</p>` : ""}</li>`).join("")}</ul>`;
+      function render() {
+        document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+        document.title = `${raw(p.name)} · ${lang === "zh" ? "公开简历" : "Résumé"}`;
+        document.getElementById("resume-back").textContent = lang === "zh" ? "← 返回个人主页" : "← Back to home";
+        const download = document.getElementById("resume-download");
+        const pdf = safeURL(p.resume.pdf);
+        if (pdf) download.setAttribute("href",pdf); else download.removeAttribute("href");
+        download.textContent = lang === "zh" ? "下载原版 PDF" : "Download original PDF";
+        document.getElementById("resume-print").textContent = lang === "zh" ? "打印 / 保存为 PDF" : "Print / Save as PDF";
+        const toggle = document.getElementById("resume-language");
+        toggle.textContent = lang === "zh" ? "EN" : "中文";
+        toggle.setAttribute("aria-label",lang === "zh" ? "Switch to English" : "切换到中文");
+        const papers = p.publications.map(item => {
+          const meta = [item.venue,item.status,item.date].filter(value => raw(value)).map(text).join(" · ");
+          return `<li class="entry"><h3>${link(item.doi,text(item.title))}</h3>${item.authors ? `<p>${escape(item.authors)}</p>` : ""}${meta ? `<p class="entry-meta">${meta}</p>` : ""}${item.summary ? `<p>${text(item.summary)}</p>` : ""}${item.note ? `<p class="entry-meta">${text(item.note)}</p>` : ""}</li>`;
+        }).join("");
+        const skills = `<dl class="skill-list">${p.skills.map(item => `<div class="skill-row"><dt>${text(item.title)}</dt><dd>${item.items.map(escape).join(" · ")}</dd></div>`).join("")}</dl>`;
+        const honors = `<ul class="plain-list honors">${p.honors.map(item => `<li class="honor"><span class="honor-year">${escape(item.year)}</span><div><h3>${text(item.title)}</h3><p>${text(item.detail)}</p></div></li>`).join("")}</ul>`;
+        document.getElementById("resume-content").innerHTML = `<header><h1>${text(p.name)}<span class="second-name">${escape(p.name[lang === "zh" ? "en" : "zh"])}</span></h1><p class="affiliation">${text(p.affiliation)}</p>${link(`mailto:${p.email}`,escape(p.email))}<p class="summary">${text(p.intro)}</p></header>
+          <section><h2>${text(p.labels.education)}</h2>${entries(p.education.entries)}<p>${text(p.education.gpa)}</p><p class="course-list">${text(p.labels.courses)}：${(p.education.courses || []).map(text).join(" · ")}</p></section>
+          ${section("projects",entries(p.projects))}${section("internships",entries(p.internships || [],true))}${section("publications",`<ul class="plain-list">${papers}</ul>`)}${section("skills",skills)}${section("beyond",honors)}${section("service",entries(p.service || []))}
+          <p class="note">${text(p.footerNote)} ${lang === "zh" ? "此网页简历不展示手机号；可下载的原版 PDF 保持你上传的内容。" : "This web résumé omits the phone number. The downloadable original PDF retains your uploaded content."}</p>`;
+      }
+      document.getElementById("resume-language").addEventListener("click",() => {
+        lang = lang === "zh" ? "en" : "zh";
+        try { localStorage.setItem("tianle-language",lang); } catch { /* 仍可切换。 */ }
+        render();
+      });
+      document.getElementById("resume-print").addEventListener("click",() => window.print());
+      render();
+    })();
+  </script>
 </body>
 </html>
-

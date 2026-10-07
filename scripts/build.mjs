@@ -28,7 +28,7 @@ if (!profile || !Array.isArray(profile.publications) || !Array.isArray(profile.p
 function addAsset(url, allowedExtensions, externalAllowed = false) {
   if (!url) return;
   if (/^https?:\/\//i.test(url) && externalAllowed) return;
-  if (typeof url !== "string" || !/^assets\/[a-z0-9_./-]+$/i.test(url) || url.split("/").includes("..")) {
+  if (typeof url !== "string" || !/^assets\/[\p{L}\p{N}_./-]+$/u.test(url) || url.split("/").includes("..")) {
     throw new Error(`Public assets must be local files under assets/: ${url}`);
   }
   if (!allowedExtensions.includes(extname(url).toLowerCase())) {
