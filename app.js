@@ -48,12 +48,17 @@
     }).join("");
     return section("publications", `<ul class="plain-list publications">${items}</ul>`);
   }
+  function experienceHighlights(entry) {
+    const points = Array.isArray(entry.highlights) ? entry.highlights.filter(point => point && rawText(point.text)) : [];
+    if (!points.length) return "";
+    return `<ul class="experience-points">${points.map(point => `<li>${rawText(point.label) ? `<strong>${text(point.label)}${language === "zh" ? "：" : ": "}</strong>` : ""}${text(point.text)}</li>`).join("")}</ul>`;
+  }
   function projects() {
-    const items = profile.projects.map(project => `<li class="project"><h3>${text(project.title)}</h3>${project.date ? `<p class="experience-meta">${text(project.date)}</p>` : ""}<p>${text(project.description)}</p><p class="project-tags"><span class="sr-only">${label("technology")}：</span>${(project.tags || []).map(escape).join(" / ")}${project.url ? ` · ${link(project.url, label("projectLink"), "", true)}` : ""}</p>${project.note ? `<p class="note">${text(project.note)}</p>` : ""}</li>`).join("");
+    const items = profile.projects.map(project => `<li class="project"><h3>${text(project.title)}</h3>${project.date ? `<p class="experience-meta">${text(project.date)}</p>` : ""}<p>${text(project.description)}</p>${experienceHighlights(project)}<p class="project-tags"><span class="sr-only">${label("technology")}：</span>${(project.tags || []).map(escape).join(" / ")}${project.url ? ` · ${link(project.url, label("projectLink"), "", true)}` : ""}</p>${project.note ? `<p class="note">${text(project.note)}</p>` : ""}</li>`).join("");
     return section("projects", `<ul class="plain-list projects">${items}</ul>`);
   }
   function internships() {
-    const items = (profile.internships || []).map(entry => `<li class="internship"><h3>${text(entry.title)}</h3><p class="experience-meta">${[entry.company, entry.date].filter(Boolean).map(text).join(" · ")}</p><p>${text(entry.description)}</p></li>`).join("");
+    const items = (profile.internships || []).map(entry => `<li class="internship"><h3>${text(entry.title)}</h3><p class="experience-meta">${[entry.company, entry.date].filter(Boolean).map(text).join(" · ")}</p><p>${text(entry.description)}</p>${experienceHighlights(entry)}${(entry.tags || []).length ? `<p class="experience-tags"><span class="sr-only">${label("technology")}：</span>${entry.tags.map(escape).join(" / ")}</p>` : ""}</li>`).join("");
     return section("internships", `<ul class="plain-list internships">${items}</ul>`);
   }
   function skills() {

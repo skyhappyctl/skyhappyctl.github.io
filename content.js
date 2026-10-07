@@ -25,7 +25,7 @@ window.PROFILE = {
 
   // 02 首页简介：中英文介绍与研究方向
   intro: {
-    "zh": "我是陈天乐，本科毕业于清华大学电子工程系，现于清华大学集成电路学院尹首一—胡杨课题组攻读电子信息硕士（集成电路工程）。我的研究聚焦大模型训练系统与 AI Infra，围绕晶圆级芯片系统开展混合并行映射、自动映射算法、片上容错路由与仿真器开发。",
+    "zh": "我是陈天乐，本科毕业于清华大学电子工程系，现于清华大学集成电路学院尹首一—胡杨课题组攻读集成电路工程硕士。我的研究聚焦晶圆级芯片大模型训推系统与 AI Infra，围绕晶圆级芯片系统开展混合并行映射、自动映射算法、片上容错路由与仿真器开发。",
     "en": "I'm Tianle Chen, a master's student in Electronic Information (Integrated Circuit Engineering) at Tsinghua University's School of Integrated Circuits, in the group of Shouyi Yin and Yang Hu. I received my undergraduate degree from Tsinghua's Department of Electronic Engineering. My research focuses on large-model training systems and AI infrastructure, including hybrid-parallel mapping, automated mapping algorithms, on-chip fault-tolerant routing, and simulation for wafer-scale chip systems."
   },
 
@@ -42,11 +42,11 @@ window.PROFILE = {
           "en": "Tsinghua University · School of Integrated Circuits"
         },
         "date": {
-          "zh": "2026.09 – 2028.09（预计）",
-          "en": "Sep 2026 – Sep 2028 (expected)"
+          "zh": "2026.09 – 2028.09",
+          "en": "Sep 2026 – Sep 2028"
         },
         "description": {
-          "zh": "电子信息硕士（集成电路工程） · 尹首一—胡杨课题组",
+          "zh": "集成电路工程硕士 · 尹首一—胡杨课题组",
           "en": "Master’s in Electronic Information (Integrated Circuit Engineering) · Shouyi Yin–Yang Hu group"
         }
       },
@@ -202,7 +202,7 @@ window.PROFILE = {
     }
   ],
 
-  // 05 科研经历：标题、日期、描述和技术标签
+  // 05 科研经历：标题、日期、description（概述）、highlights（分项贡献）与 tags（技术）
   projects: [
     {
       "title": {
@@ -214,14 +214,56 @@ window.PROFILE = {
         "en": "Sep 2025 – present"
       },
       "description": {
-        "zh": "研究混合并行映射策略与自动映射算法；设计适用于 2D-Torus 和 2D-Mesh 的弧增强型确定性路径容错路由算法（ADPR）；基于 SimuMax 开源仿真器开发晶圆级芯片系统的 PUE 仿真器，并开展不同并行策略与网络拓扑下训练时间的 breakdown 实验。",
-        "en": "Study hybrid-parallel mapping strategies and automated mapping algorithms; design arc-enhanced deterministic path routing (ADPR) for fault tolerance in 2D-Torus and 2D-Mesh topologies; develop a PUE simulator for wafer-scale chip systems based on SimuMax; and analyze training-time breakdowns across parallel strategies and network topologies."
+        "zh": "面向晶圆级芯片上的大模型训练，围绕并行策略映射、片上网络容错与系统仿真展开研究，关注计算与通信开销对训练效率的影响。",
+        "en": "Investigate large-model training on wafer-scale chip systems through parallel-strategy mapping, on-chip network fault tolerance, and system simulation, with a focus on how computation and communication overhead affect training efficiency."
       },
       "tags": [
         "Hybrid Parallelism",
         "2D-Mesh / Torus",
         "ADPR",
         "SimuMax"
+      ],
+      "highlights": [
+        {
+          "label": {
+            "zh": "混合并行与自动映射",
+            "en": "Hybrid parallelism and automated mapping"
+          },
+          "text": {
+            "zh": "研究晶圆级芯片系统的混合并行映射策略与自动映射算法，探索模型并行方案与芯片系统之间的映射关系。",
+            "en": "Study hybrid-parallel mapping strategies and automated mapping algorithms, exploring how model parallelization schemes map onto wafer-scale chip systems."
+          }
+        },
+        {
+          "label": {
+            "zh": "片上容错路由",
+            "en": "Fault-tolerant on-chip routing"
+          },
+          "text": {
+            "zh": "针对 2D-Torus 与 2D-Mesh 拓扑，设计弧增强型确定性路径路由算法（ADPR），研究片上通信中的容错路由问题。",
+            "en": "Design arc-enhanced deterministic path routing (ADPR) for 2D-Torus and 2D-Mesh topologies to investigate fault-tolerant communication within the chip network."
+          }
+        },
+        {
+          "label": {
+            "zh": "系统级仿真",
+            "en": "System-level simulation"
+          },
+          "text": {
+            "zh": "基于 SimuMax 开源仿真器开发晶圆级芯片系统的 PUE 仿真器，用于开展训练系统与并行方案的仿真研究。",
+            "en": "Develop a PUE simulator for wafer-scale chip systems based on the open-source SimuMax simulator to support simulation studies of training systems and parallelization schemes."
+          }
+        },
+        {
+          "label": {
+            "zh": "训练时间分析",
+            "en": "Training-time breakdowns"
+          },
+          "text": {
+            "zh": "开展不同并行策略与网络拓扑下的训练时间 breakdown 实验，通过分项分析比较不同系统配置对训练时间的影响。",
+            "en": "Run training-time breakdown experiments across parallel strategies and network topologies, using component-level analysis to compare how system configurations affect training time."
+          }
+        }
       ]
     },
     {
@@ -234,13 +276,45 @@ window.PROFILE = {
         "en": "Sep 2024 – Oct 2025"
       },
       "description": {
-        "zh": "研究无源片上衍射光神经网络（DONN）及多波长光源的影响；编写 Lumerical 脚本、搭建简易 demo，并构建仿真结果数据集。",
-        "en": "Study passive on-chip diffractive optical neural networks (DONNs) and the effects of multi-wavelength sources; write Lumerical scripts, build a simple demo, and construct simulation datasets."
+        "zh": "探索无界硅板平面波导上的光子嵌入单元与无源片上衍射光神经网络（DONN），结合光学仿真与数据集构建开展研究。",
+        "en": "Explore photonic embedding units on unbounded silicon slab waveguides and passive on-chip diffractive optical neural networks (DONNs), combining optical simulation with dataset construction."
       },
       "tags": [
         "Lumerical",
         "DONN",
         "Multi-wavelength Simulation"
+      ],
+      "highlights": [
+        {
+          "label": {
+            "zh": "无源片上光神经网络",
+            "en": "Passive on-chip optical neural networks"
+          },
+          "text": {
+            "zh": "围绕光子嵌入单元开展无源片上 DONN 研究，探索衍射光学与神经网络计算相结合的实现形式。",
+            "en": "Study passive on-chip DONNs in the context of photonic embedding units, exploring implementations that connect diffractive optics with neural-network computation."
+          }
+        },
+        {
+          "label": {
+            "zh": "多波长光源",
+            "en": "Multi-wavelength sources"
+          },
+          "text": {
+            "zh": "研究多波长光源对衍射光神经网络的影响，围绕不同光源设置开展仿真研究。",
+            "en": "Investigate the effects of multi-wavelength sources on diffractive optical neural networks through simulation studies of different source configurations."
+          }
+        },
+        {
+          "label": {
+            "zh": "仿真脚本与数据集",
+            "en": "Simulation scripts and datasets"
+          },
+          "text": {
+            "zh": "编写 Lumerical 脚本、搭建简易演示 demo，并整理仿真结果、构建数据集，为后续分析提供数据基础。",
+            "en": "Write Lumerical scripts, build a simple demonstration, and organize simulation outputs into datasets for subsequent analysis."
+          }
+        }
       ]
     },
     {
@@ -253,13 +327,45 @@ window.PROFILE = {
         "en": "Oct 2024 – Feb 2026"
       },
       "description": {
-        "zh": "基于 Booth 乘法器和 Huffman 树加法器设计原码乘法器；面向 CNN 的 MAC 单元，复现双树结构并设计单树结构。",
-        "en": "Design a sign-magnitude multiplier based on a Booth multiplier and a Huffman-tree adder; reproduce a dual-tree MAC architecture and design a single-tree architecture for CNNs."
+        "zh": "面向卷积神经网络的乘加运算，开展原码乘法器与 MAC 单元的结构设计，关注算术运算在数字硬件中的实现。",
+        "en": "Investigate sign-magnitude multipliers and multiply–accumulate (MAC) architectures for convolutional neural networks, focusing on the digital-hardware implementation of arithmetic operations."
       },
       "tags": [
         "Booth Multiplier",
         "Huffman Tree",
         "CNN MAC"
+      ],
+      "highlights": [
+        {
+          "label": {
+            "zh": "原码乘法器设计",
+            "en": "Sign-magnitude multiplier design"
+          },
+          "text": {
+            "zh": "结合 Booth 乘法器与 Huffman 树加法器，开展原码乘法器设计，研究乘法与加法运算的硬件结构。",
+            "en": "Design a sign-magnitude multiplier based on a Booth multiplier and a Huffman-tree adder, studying the hardware organization of multiplication and addition."
+          }
+        },
+        {
+          "label": {
+            "zh": "双树结构复现",
+            "en": "Dual-tree architecture reproduction"
+          },
+          "text": {
+            "zh": "复现 CNN MAC 单元的双树结构，梳理乘加运算的组织方式，为后续结构设计研究提供参考。",
+            "en": "Reproduce a dual-tree CNN MAC architecture and examine its organization of multiply–accumulate operations as a reference for further architectural design."
+          }
+        },
+        {
+          "label": {
+            "zh": "单树结构设计",
+            "en": "Single-tree architecture design"
+          },
+          "text": {
+            "zh": "设计面向 CNN 的单树 MAC 结构，与双树结构复现工作共同构成对乘加数据通路组织方式的研究。",
+            "en": "Design a single-tree MAC architecture for CNNs, complementing the dual-tree reproduction work with an investigation of alternative multiply–accumulate datapath organization."
+          }
+        }
       ]
     },
     {
@@ -272,8 +378,8 @@ window.PROFILE = {
         "en": "Dec 2024 – Feb 2026"
       },
       "description": {
-        "zh": "以 16 bit、10 GHz 为设计目标，使用 SRAM 替代传统编码器／解码器结构，开展电路设计与版图绘制，涉及时钟分配、电流偏置、SerDes、CTLE 等模块。",
-        "en": "Work toward a 16-bit, 10 GHz DAC design using SRAM in place of conventional encoder/decoder structures; contribute to circuit design and layout for clock distribution, current bias, SerDes, and CTLE modules."
+        "zh": "面向算法可重构 DAC，探索以 SRAM 替代传统编码器／解码器的电路方案，并参与相关模块的电路设计与版图绘制。",
+        "en": "Explore an algorithmically reconfigurable DAC architecture that replaces conventional encoder/decoder structures with SRAM, contributing to circuit design and layout for related modules."
       },
       "tags": [
         "SRAM",
@@ -284,11 +390,43 @@ window.PROFILE = {
       "note": {
         "zh": "16 bit、10 GHz 为简历列出的项目设计目标，不表示已验证的实测性能。",
         "en": "16-bit and 10 GHz are the project design targets listed in the CV, not verified measured performance."
-      }
+      },
+      "highlights": [
+        {
+          "label": {
+            "zh": "架构与设计目标",
+            "en": "Architecture and design targets"
+          },
+          "text": {
+            "zh": "以 16 bit、10 GHz 为项目设计目标，使用 SRAM 替代传统编码器／解码器结构，探索可重构数模转换电路的实现方案。",
+            "en": "Work toward the project targets of 16-bit resolution and 10 GHz operation, using SRAM instead of conventional encoder/decoder structures to explore a reconfigurable DAC implementation."
+          }
+        },
+        {
+          "label": {
+            "zh": "时钟分配与电流偏置",
+            "en": "Clock distribution and current bias"
+          },
+          "text": {
+            "zh": "开展时钟分配（clock distribution）与电流偏置（current bias）等模块的电路设计及版图绘制。",
+            "en": "Contribute to circuit design and layout for modules including clock distribution and current bias."
+          }
+        },
+        {
+          "label": {
+            "zh": "高速接口相关模块",
+            "en": "High-speed interface modules"
+          },
+          "text": {
+            "zh": "参与 SerDes（串并转换）与 CTLE（连续时间线性均衡器）相关模块的电路与版图设计，积累高速接口电路的实践经验。",
+            "en": "Contribute to circuit and layout design for SerDes and continuous-time linear equalizer (CTLE) modules, gaining practical experience with high-speed interface circuits."
+          }
+        }
+      ]
     }
   ],
 
-  // 06 实习经历：公司、日期、项目和职责
+  // 06 实习经历：公司、日期、description（概述）、highlights（分项贡献）与 tags（技术）
   internships: [
     {
       "title": {
@@ -300,13 +438,51 @@ window.PROFILE = {
         "en": "Jul – Sep 2026"
       },
       "description": {
-        "zh": "探索 DeepSeek V4、Kimi K3、Loop Transformer 等前沿模型算法与架构；针对 Block Attention Residual 开展 AF 分离异构集群拓扑与计算框架优化；搭建端到端 AI4RTL Benchmark 工作框架。",
-        "en": "Explore frontier model algorithms and architectures, including DeepSeek V4, Kimi K3, and Loop Transformer; optimize AF-separated heterogeneous-cluster topology and compute frameworks for Block Attention Residual; and build an end-to-end AI4RTL benchmark workflow."
+        "zh": "围绕前沿模型与计算架构开展探索，将模型算法研究与异构集群计算框架、AI4RTL 评测工作相结合。",
+        "en": "Explore frontier models and computing architectures, connecting model-algorithm research with heterogeneous-cluster computing frameworks and AI4RTL evaluation workflows."
       },
       "company": {
         "zh": "杭州市芯感未来科技有限公司",
         "en": "杭州市芯感未来科技有限公司"
-      }
+      },
+      "highlights": [
+        {
+          "label": {
+            "zh": "模型算法与架构",
+            "en": "Model algorithms and architectures"
+          },
+          "text": {
+            "zh": "探索 DeepSeek V4、Kimi K3、Loop Transformer 等模型算法与架构，关注前沿模型设计与计算系统实现之间的联系。",
+            "en": "Explore model algorithms and architectures including DeepSeek V4, Kimi K3, and Loop Transformer, with attention to the relationship between model design and computing-system implementation."
+          }
+        },
+        {
+          "label": {
+            "zh": "异构集群与计算框架",
+            "en": "Heterogeneous clusters and compute frameworks"
+          },
+          "text": {
+            "zh": "针对 Block Attention Residual，开展 AF 分离异构集群的拓扑与计算框架优化工作，围绕模型计算特点探索系统层面的组织方式。",
+            "en": "Work on topology and compute-framework optimization for AF-separated heterogeneous clusters in the context of Block Attention Residual, exploring system organization around the model computation."
+          }
+        },
+        {
+          "label": {
+            "zh": "AI4RTL 评测框架",
+            "en": "AI4RTL evaluation framework"
+          },
+          "text": {
+            "zh": "搭建端到端 AI4RTL Benchmark 工作框架，面向 AI 辅助 RTL 设计的实验与评测，组织相关工作流程。",
+            "en": "Build an end-to-end AI4RTL benchmark framework, organizing workflows for experiments and evaluation in AI-assisted RTL design."
+          }
+        }
+      ],
+      "tags": [
+        "AI Infra",
+        "Loop Transformer",
+        "Block Attention Residual",
+        "AI4RTL"
+      ]
     },
     {
       "title": {
@@ -318,13 +494,51 @@ window.PROFILE = {
         "en": "Jun – Aug 2025"
       },
       "description": {
-        "zh": "参与 PPG 阵列与 PCB 板设计；基于 STFT + ResNet 分类网络开展 PPG 信号质量评估；采集带运动伪影的 PPG 信号并搭建数据库。",
-        "en": "Contribute to PPG-array and PCB design; evaluate PPG signal quality with an STFT + ResNet classification network; and collect motion-artifact PPG signals and build a database."
+        "zh": "参与基于光电容积脉搏波（PPG）的健康检测指环研发，工作覆盖传感硬件、信号质量评估与运动伪影数据采集。",
+        "en": "Contribute to a photoplethysmography (PPG)-based health-monitoring ring, with work spanning sensor hardware, signal-quality assessment, and motion-artifact data collection."
       },
       "company": {
         "zh": "深圳市韶音科技有限公司",
         "en": "深圳市韶音科技有限公司"
-      }
+      },
+      "highlights": [
+        {
+          "label": {
+            "zh": "传感硬件设计",
+            "en": "Sensor hardware design"
+          },
+          "text": {
+            "zh": "参与 PPG 阵列与 PCB 板设计，从传感硬件层面支持健康检测指环的研发工作。",
+            "en": "Contribute to PPG-array and PCB design, supporting the health-monitoring ring project at the sensor-hardware level."
+          }
+        },
+        {
+          "label": {
+            "zh": "信号质量评估",
+            "en": "Signal-quality assessment"
+          },
+          "text": {
+            "zh": "开展基于短时傅里叶变换（STFT）与 ResNet 分类网络的 PPG 信号质量评估，将时频分析与深度学习分类结合用于信号质量判断。",
+            "en": "Work on PPG signal-quality assessment using a short-time Fourier transform (STFT) and a ResNet classification network, combining time–frequency analysis with deep-learning classification."
+          }
+        },
+        {
+          "label": {
+            "zh": "运动伪影与数据库",
+            "en": "Motion artifacts and database construction"
+          },
+          "text": {
+            "zh": "采集带有运动伪影的 PPG 信号并搭建数据库，为信号质量分析与相关算法研究整理数据资源。",
+            "en": "Collect PPG signals containing motion artifacts and construct a database, organizing data resources for signal-quality analysis and related algorithm research."
+          }
+        }
+      ],
+      "tags": [
+        "PPG",
+        "PCB",
+        "STFT",
+        "ResNet"
+      ]
     }
   ],
 

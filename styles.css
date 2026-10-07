@@ -77,8 +77,8 @@ h3 { font-size: 15px; font-weight: 600; line-height: 1.65; margin: 0 0 5px; }
 .paper-links span { color: var(--muted); padding-inline: 7px; }
 .paper-details > :last-child { margin-bottom: 0; }
 
-/* 项目：按 content.js 中的顺序，简短、直接地说明工作。 */
-.project + .project { margin-top: 20px; }
+/* 科研与实习：项目概述 + 分项工作，保持简洁的单栏列表。 */
+.project + .project { margin-top: 26px; }
 .project p { font-size: 14px; margin-bottom: 4px; }
 .project .project-tags { font-size: 11px; color: var(--muted); }
 .project .note { font-size: 11px; margin-top: 4px; }
@@ -151,7 +151,14 @@ h3 { font-size: 15px; font-weight: 600; line-height: 1.65; margin: 0 0 5px; }
 .education-date { color: var(--muted); margin-left: 7px; }
 .project .experience-meta, .experience-meta { color: var(--muted); font-size: 12px; line-height: 1.7; margin-bottom: 7px; }
 .internship + .internship { margin-top: 24px; }
-.internship > p:last-child { font-size: 14px; margin-bottom: 0; }
+.internship > p:not(.experience-meta):not(.experience-tags) { font-size: 14px; margin-bottom: 4px; }
+.experience-points { padding-left: 1.3em; margin: 9px 0 8px; font-size: 14px; line-height: 1.8; }
+.experience-points li + li { margin-top: 6px; }
+.experience-points li { overflow-wrap: anywhere; }
+.experience-points li::marker { color: var(--muted); }
+.experience-points strong { font-weight: 500; }
+.project .project-tags, .internship .experience-tags { margin-top: 8px; font-size: 11px; color: var(--muted); }
+.internship .experience-tags { margin-bottom: 0; overflow-wrap: anywhere; }
 .course-details, .service-details { font-size: 13px; }
 .course-details summary, .service-details summary { color: var(--link); cursor: pointer; padding-block: 6px; }
 .course-details summary:focus-visible, .service-details summary:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
