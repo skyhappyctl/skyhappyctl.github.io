@@ -1,0 +1,383 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{《集成电路设计工程》第一次作业}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+
+\section{基于TSMC65nm工艺的NMOS晶体管直流特性仿真}
+该仿真testbench的setup和仿真setup如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/testbench.png}
+    \caption{testbench原理图}
+\end{figure}
+
+对于24um/60nm，设定的nch参数为：L=60n，w=300n,finger=10，multiplier=8\\
+
+对于48um/60nm，设定的nch参数为：L=60n，w=300n,finger=10，multiplier=16\\
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/sim_setup.png}
+    \caption{仿真setup}
+\end{figure}
+
+\subsection{转移特性仿真与参数提取($V_{DS}$固定)}
+
+
+\subsubsection{漏极电流$I_D$随$V_{GS}$的变化曲线}
+固定$V_{DS}=1V$，扫描$V_{GS}$，观察$I_D$随其的变化曲线如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/id.png}
+    \caption{24um/60nm 的$I_D$ vs $V_{GS}$}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/48um_60nm/id.png}
+    \caption{48um/60nm 的$I_D$ vs $V_{GS}$}
+\end{figure}
+
+
+
+
+\subsubsection{小信号跨导增益$g_m=\frac{d I_D}{d V_{GS}}$随$V_{GS}$的变化曲线}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/gm.png}
+    \caption{24um/60nm 的$g_m$ vs $V_{GS}$}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/48um_60nm/gm.png}
+    \caption{48um/60nm 的$g_m$ vs $V_{GS}$}
+\end{figure}
+
+
+\newpage
+\subsubsection{使用“最大斜率法（最大跨导外推法）”来确定$V_{th}$}
+最大斜率法是在$g_m$vs$V_{GS}$图上找到$g_m$导数的峰值点，过此点作切线，该切线与$V_{GS}$轴的交点即为$V_{th}$。因为在cadence里做切线不方便，我将其最大斜率处的值记录下来，
+在外部用计算器计算。仿真曲线如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/阈值电压.png}
+    \caption{24um/60nm 的最大斜率法确定阈值电压}
+\end{figure}
+
+根据图中数据，解出其阈值电压$V_{th}=\frac{-17.32593}{121.4718}+0.4=0.2574V$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/48um_60nm/vth.png}
+    \caption{48um/60nm 的最大斜率法确定阈值电压}
+\end{figure}
+
+根据图中数据，解出其阈值电压$V_{th}=\frac{-34.65185}{242.9435}+0.4=0.2574V$
+
+
+\subsubsection{提取亚阈值摆幅：绘制$\log ⁡(I_D)$ vs. $V_{GS}$曲线}
+
+将Y轴电流设置为对数坐标。在曲线的亚阈值区且电流呈线性对数增长的区域，估算斜率。亚阈值摆幅的计算公式为：$S=\frac{d V_{GS}}{d(\log_{10} (I_D))}$
+
+仿真曲线如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/亚阈值摆幅.png}
+    \caption{24um/60nm 的亚阈值摆幅}
+\end{figure}
+
+根据图中数据，解出其亚阈值摆幅$S=\frac{244.752-50.0}{2}=98.5102 mV/decade$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/48um_60nm/亚阈值斜率.png}
+    \caption{48um/60nm 的亚阈值摆幅}
+\end{figure}
+
+根据图中数据，解出其亚阈值摆幅$S=\frac{212.212-18.6614}{2}=96.7753 mV/decade$
+
+
+\newpage
+\subsubsection{计算单位宽度饱和跨导}
+
+在$g_m$ vs $V_{GS}$的图中找到最大跨导值，并计算$\frac{g_m}{W}$。仿真曲线如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/单位宽度饱和跨导.png}
+    \caption{24um/60nm 的单位宽度饱和跨导}
+\end{figure}
+
+根据图中数据，解出其单位宽度饱和跨导$\frac{g_m}{W}=\frac{36.8415}{24}=1.535 mS/\mu m$
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/48um_60nm/单位宽度饱和跨导.png}
+    \caption{48um/60nm 的单位宽度饱和跨导}
+\end{figure}
+
+根据图中数据，解出其单位宽度饱和跨导$\frac{g_m}{W}=\frac{75.4372}{48}=1.572 mS/\mu m$
+
+\newpage
+
+\subsubsection{跨导效率曲线: 绘制$g_m / I_D$ vs. $V_{GS}$}
+
+仿真曲线如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/gm_id.png}
+    \caption{24um/60nm 的跨导效率曲线}
+\end{figure}
+
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/48um_60nm/gm_id.png}
+    \caption{48um/60nm 的跨导效率曲线}
+\end{figure}
+
+
+\newpage
+\subsection{输出特性仿真与参数提取($V_{DS}$ 变化)}
+testbench搭建和仿真setup和前一问一致。
+\subsubsection{输出特性曲线: 绘制$I_D$ vs. $V_{DS}$的曲线族}
+设置$V_{GS}$从0到1V，步长为0.2V，共有5条曲线。仿真得到的曲线簇如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/id_vds.png}
+    \caption{24um/60nm 的输出特性曲线}
+\end{figure}
+
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/48um_60nm/Id_vds.png}
+    \caption{48um/60nm 的输出特性曲线}
+\end{figure}
+
+
+\newpage
+
+\subsubsection{输出电阻曲线: 绘制输出电阻$r_o=(\frac{d I_D}{d V_{DS}})^{-1} $vs. $I_D$的曲线}
+固定$V_{GS}=0.5V$进行仿真，仿真曲线如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/ro.png}
+    \caption{24um/60nm 的输出电阻曲线}
+\end{figure}
+
+在$I_D=2.0mA$时，输出电阻$r_o=373.4319k\Omega$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/48um_60nm/ro.png}
+    \caption{48um/60nm 的输出电阻曲线}
+\end{figure}
+
+
+在$I_D=5.0mA$时，输出电阻$r_o=214.9673k\Omega$
+
+
+\newpage
+\subsubsection{本征电压增益曲线: 绘制晶体管的本征增益$A_{vi}$ vs. $I_D$的曲线}
+固定$V_{GS}=0.5V$进行仿真，仿真曲线如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/24um_60nm/gmro.png}
+    \caption{24um/60nm 的本征电压增益曲线}
+\end{figure}
+
+在$I_D=2.0mA$时，本征增益$A_{vi}=7.0523$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第一部分/48um_60nm/gmro.png}
+    \caption{48um/60nm 的本征电压增益曲线}
+\end{figure}
+
+
+在$I_D=5.0mA$时，本征增益$A_{vi}=9.43155$
+
+
+\subsection{参数汇总}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+        \textbf{$V_{th}$} & \textbf{亚阈值摆幅S (mV/dec)} & \textbf{$\frac{g_{m,sat}}{W}$ (mS/um)} & \textbf{$\frac{g_m}{I_D}$ (S/A)} & \textbf{$r_o$（k$\Omega$)} & \textbf{$A_{vi}$} \\ \hline
+        0.2574 & 98.5102 & 1.535 & 9.443 & 373.4319 & 7.0523 \\ \hline
+    \end{tabular}
+    \caption{24um/60nm 参数汇总@$I_D=2.0mA$}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+        \textbf{$V_{th}$} & \textbf{亚阈值摆幅S (mV/dec)} & \textbf{$\frac{g_{m,sat}}{W}$ (mS/um)} & \textbf{$\frac{g_m}{I_D}$ (S/A)} & \textbf{$r_o$（k$\Omega$)} & \textbf{$A_{vi}$} \\ \hline
+        0.2574 & 96.7753 & 1.572 & 8.775 &214.9673  & 9.43155 \\ \hline
+    \end{tabular}
+    \caption{48um/60nm 参数汇总@$I_D=5.0mA$}
+\end{table}
+
+
+
+\subsection{对比和讨论}
+
+可以看出，两种尺寸的晶体管的阈值电压大致是不变的。同时，48um/60nm的晶体管因为宽长比更大，饱和区电流更大，是24um/60nm的两倍；
+同时，跨导增益也是24um/60nm的两倍，符合理论公式，但是归一化后单位宽度饱和跨导是大致相等的；饱和区的输出电阻约为24um/60nm的一半，这是因为尺寸倍增导致$I_D$倍增的原因。
+
+对于跨导效率曲线，在弱反型区时我们可以看到其值是很高的，因为此时电流随栅压指数变化，跨导与电流的比值很高；向强反型区过渡时逐渐降低，最后趋于不变。
+
+对于本征增益曲线，在弱反型区，$I_D$近似指数变化，这个时候$g_m$的增加贡献超过了$r_o$的减小，因此其随$I_D$快速增加；然后到达饱和区后缓慢增加，我猜测其是因为随着$I_D$增大后，沟道长度调制效应逐渐增强，因此$r_o$随着
+$I_D$的增大而快速下降，因此$g_m$的增大有很大一部分被$r_o$的降低而抵消掉了。
+\newpage
+\section{反相器链瞬时仿真}
+
+首先，仿真测量出INV1单独驱动电容C的延迟。INV1是标准反相器，其尺寸为:
+
+\begin{center}
+pch:W=450n L=60n    
+
+nch:W=200n L=60n
+\end{center}
+
+testbench如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第二部分/单级setup.png}
+    \caption{单级驱动testbench}
+\end{figure}
+
+
+仿真选择trans，setup如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第二部分/sim_setup.png}
+    \caption{仿真setup}
+\end{figure}
+
+仿真结果如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第二部分/单级.png}
+    \caption{单级驱动延迟}
+\end{figure}
+
+从图中可以看出，单级INV驱动512fF的电容的延时为1.95389ns
+\subsection{设计INV2和INV3的尺寸，使得传输延迟达到最小}
+要解决反相器链的最小延迟设计问题，我们基于最优尺寸缩放原理。相邻反相器的尺寸应满足几何级数缩放，缩放因子$f$满足：
+
+$$
+f=^n\sqrt{\frac{C_{load}}{C_{in}}}
+$$
+
+所以该设计中，级数$n=3$，而$C_{load}=512fF$,$C_{in}=1fF$,计算可得缩放因子$f=8$。故INV2为INV1尺寸的8倍，INV3为INV1尺寸的64倍。通过调整INV模块的finger数即可达到要求。
+
+testbench如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第二部分/三级setup.png}
+    \caption{三级驱动testbench}
+\end{figure}
+
+仿真结果如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第二部分/三级.png}
+    \caption{三级驱动延迟}
+\end{figure}
+从图中可以看出，三级反相器链驱动512fF的电容的延时为0.17608ns，相较于单级驱动降低很多。
+
+
+\subsection{设计一个反相器链去驱动512fF的电容C}
+
+在我的设计中，我令级数$n=9$，这样一来缩放因子$f=2$，因此反相器的尺寸逐渐倍增。testbench如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第二部分/九级setup.png}
+    \caption{九级驱动testbench}
+\end{figure}
+
+仿真结果如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW1/第二部分/九级.png}
+    \caption{九级驱动延迟}
+\end{figure}
+从图中可以看出，九级反相器链驱动512fF的电容的延时为0.12973ns，相较于三级驱动有所降低。但是我们多使用了六级驱动，值降低了0.05ns，这明显是不划算的。
+
+
+\subsection{思考题}
+
+在优化延迟时，我们牺牲了晶体管个数和尺寸面积，反相器尺寸呈几何级数增大，导致芯片面积大幅增加。同时大尺寸晶体管的寄生电容和驱动电流更大，导致功耗也会上升。因此我们在设计的过程中，需要对
+面积、功耗与速度的权衡。设计时需根据电路需求选择合适的级数和缩放因子，并非级数越多、尺寸越大就一定最优，需通过仿真验证不同方案的延迟、面积、功耗综合表现。
+
+\section{实验总结}
+本次实验中我通过对晶体管的基本参数提取、反相器链的延时优化设计熟悉了cadence仿真工具的使用，并且尝试利用自己学过的理论知识去解释实验中遇到的现象。助教和老师的ppt非常详细，感谢助教们和老师的
+辛苦准备和悉心指导！
+
+\end{document}

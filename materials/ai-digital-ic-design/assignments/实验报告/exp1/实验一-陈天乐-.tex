@@ -1,0 +1,1013 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{markdown}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{人工智能赋能的数字集成电路设计 作业一}}
+\author{陈天乐\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{One Shot Prompt}
+
+我在原本的prompt基础上添加了几个Tips，并且加入了Simulation Result， Last RTL， Last TestBench，分别是上一次代码的仿真结果、生成的rtl代码
+和testbench代码。
+
+\begin{lstlisting}[frame=shadowbox]
+Below is a template for the problem input and response. You should reference this response format.
+
+---
+
+Here is an examplaray prompt input:
+Please help me generate a FIFO, including RTL code and TestBench.
+
+## Problem Description
+
+ModelName: FIFO
+
+InputNode:
+
+- clk: Clock signal (rising edge effective).
+- rst_n: Active-low reset signal.
+- data_in: 32-bit input data.
+- wr_en: Write enable signal, high effective.
+- rd_en: Read enable signal, high effective.
+
+OutputNode:
+
+- data_out: 32-bit output data.
+- full: FIFO full signal, high effective.
+- empty: FIFO empty signal, high effective.
+
+Specification:
+
+- FIFO Size: 16 entries, each entry is 32 bits wide.
+- Behavior:
+  - When wr_en is high and full is low, the input data data_in is written into the FIFO.
+  - When rd_en is high and empty is low, the oldest data in the FIFO is read out as data_out.
+  - If wr_en is high and full is high, the write operation is ignored.
+  - If rd_en is high and empty is high, the data_out remains unchanged.
+- TestBench should contain the following test conditions:
+  - Basic Write and Read Operations: Write a few data entries and read them back in sequence.
+  - Concurrent Write and Read: Write and read data simultaneously to test FIFO behavior.
+  - FIFO Full Condition: Write data continuously until the FIFO is full, then attempt to write more data.
+  - FIFO Empty Condition: Read data continuously until the FIFO is empty, then attempt to read more data.
+  - Mixed Write and Read Patterns: Write and read data in various patterns to test FIFO robustness.
+  - Edge Cases: Write maximum number of entries and then read them back; read all entries and then write again.
+  - Reset Behavior: Test FIFO behavior after a reset signal is asserted.
+
+
+Here is an examplaray prompt output:
+
+### RTL
+
+```verilog
+module FIFO (
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in,
+    input wire wr_en,
+    input wire rd_en,
+    output reg [31:0] data_out,
+    output wire full,
+    output wire empty
+);
+
+    // FIFO parameters
+    parameter DEPTH = 16;
+    parameter WIDTH = 32;
+    
+    // Internal memory
+    reg [WIDTH-1:0] memory [0:DEPTH-1];
+    
+    // Pointers
+    reg [3:0] wr_ptr;
+    reg [3:0] rd_ptr;
+    reg [4:0] count;  // Need 5 bits to count 0-16
+    
+    // Full and empty flags
+    assign full = (count == DEPTH);
+    assign empty = (count == 0);
+    
+    // FIFO control logic
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            // Reset all pointers and memory
+            wr_ptr <= 0;
+            rd_ptr <= 0;
+            count <= 0;
+            data_out <= 0;
+            
+            // Optional: Clear memory on reset
+            for (integer i = 0; i < DEPTH; i = i + 1) begin
+                memory[i] <= 0;
+            end
+        end else begin
+            // Write operation
+            if (wr_en && !full) begin
+                memory[wr_ptr] <= data_in;
+                wr_ptr <= wr_ptr + 1;
+                if (wr_ptr == DEPTH-1) wr_ptr <= 0;
+            end
+            
+            // Read operation
+            if (rd_en && !empty) begin
+                data_out <= memory[rd_ptr];
+                rd_ptr <= rd_ptr + 1;
+                if (rd_ptr == DEPTH-1) rd_ptr <= 0;
+            end
+            
+            // Update count
+            case ({wr_en && !full, rd_en && !empty})
+                2'b00: count <= count;  // No operation
+                2'b01: count <= count - 1;  // Read only
+                2'b10: count <= count + 1;  // Write only
+                2'b11: count <= count;  // Simultaneous read and write
+            endcase
+        end
+    end
+
+endmodule
+```
+
+### TestBench
+
+```systemverilog
+module FIFO_tb;
+    // Parameters
+    parameter CLK_PERIOD = 10;
+    parameter DEPTH = 16;
+    
+    // Signals
+    reg clk;
+    reg rst_n;
+    reg [31:0] data_in;
+    reg wr_en;
+    reg rd_en;
+    wire [31:0] data_out;
+    wire full;
+    wire empty;
+    
+    // Test variables
+    reg [31:0] expected_data;
+    integer error_count;
+    integer test_case;
+    
+    // Instantiate DUT
+    FIFO dut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .data_in(data_in),
+        .wr_en(wr_en),
+        .rd_en(rd_en),
+        .data_out(data_out),
+        .full(full),
+        .empty(empty)
+    );
+    
+    // Clock generation
+    always #(CLK_PERIOD/2) clk = ~clk;
+    
+    // Waveform dumping
+    initial begin
+        $dumpfile("Out/wave.vcd");
+        $dumpvars(0, FIFO_tb);
+    end
+    
+    // Test tasks
+    task write_data(input [31:0] data);
+        begin
+            data_in = data;
+            wr_en = 1;
+            @(posedge clk);
+            wr_en = 0;
+        end
+    endtask
+    
+    task read_data(output [31:0] data);
+        begin
+            rd_en = 1;
+            @(posedge clk);
+            rd_en = 0;
+            data = data_out;
+        end
+    endtask
+    
+    task reset_fifo;
+        begin
+            rst_n = 0;
+            wr_en = 0;
+            rd_en = 0;
+            data_in = 0;
+            @(posedge clk);
+            @(posedge clk);
+            rst_n = 1;
+            @(posedge clk);
+        end
+    endtask
+    
+    task check_result(input [31:0] actual, input [31:0] expected, input string test_name);
+        begin
+            if (actual !== expected) begin
+                $display("ERROR: %s - Expected: %h, Got: %h", test_name, expected, actual);
+                error_count = error_count + 1;
+            end
+        end
+    endtask
+    
+    // Main test sequence
+    initial begin
+        // Initialize
+        clk = 0;
+        error_count = 0;
+        test_case = 0;
+        
+        // Test 1: Reset behavior
+        test_case = 1;
+        $display("Test %0d: Reset Behavior", test_case);
+        reset_fifo();
+        check_result(data_out, 32'h0, "Reset data_out");
+        check_result(empty, 1'b1, "Reset empty flag");
+        check_result(full, 1'b0, "Reset full flag");
+        
+        // Test 2: Basic write and read operations
+        test_case = 2;
+        $display("Test %0d: Basic Write and Read Operations", test_case);
+        reset_fifo();
+        
+        // Write 4 data items
+        write_data(32'h12345678);
+        write_data(32'hABCDEF01);
+        write_data(32'hDEADBEEF);
+        write_data(32'hCAFEBABE);
+        
+        // Read them back
+        read_data(expected_data);
+        check_result(expected_data, 32'h12345678, "First read");
+        read_data(expected_data);
+        check_result(expected_data, 32'hABCDEF01, "Second read");
+        read_data(expected_data);
+        check_result(expected_data, 32'hDEADBEEF, "Third read");
+        read_data(expected_data);
+        check_result(expected_data, 32'hCAFEBABE, "Fourth read");
+        
+        // Test 3: Concurrent write and read
+        test_case = 3;
+        $display("Test %0d: Concurrent Write and Read", test_case);
+        reset_fifo();
+        
+        fork
+            begin
+                for (integer i = 0; i < 8; i = i + 1) begin
+                    write_data(32'h1000 + i);
+                end
+            end
+            begin
+                for (integer i = 0; i < 8; i = i + 1) begin
+                    read_data(expected_data);
+                    check_result(expected_data, 32'h1000 + i, $sformatf("Concurrent read %0d", i));
+                end
+            end
+        join
+        
+        // Test 4: FIFO full condition
+        test_case = 4;
+        $display("Test %0d: FIFO Full Condition", test_case);
+        reset_fifo();
+        
+        // Fill the FIFO
+        for (integer i = 0; i < DEPTH; i = i + 1) begin
+            write_data(32'h2000 + i);
+            if (i == DEPTH-1) begin
+                check_result(full, 1'b1, "FIFO should be full");
+            end
+        end
+        
+        // Try to write when full (should be ignored)
+        data_in = 32'hBAD0BAD0;
+        wr_en = 1;
+        @(posedge clk);
+        wr_en = 0;
+        @(posedge clk);
+        check_result(full, 1'b1, "FIFO should remain full");
+        
+        // Test 5: FIFO empty condition
+        test_case = 5;
+        $display("Test %0d: FIFO Empty Condition", test_case);
+        
+        // Empty the FIFO
+        for (integer i = 0; i < DEPTH; i = i + 1) begin
+            read_data(expected_data);
+            check_result(expected_data, 32'h2000 + i, $sformatf("Emptying read %0d", i));
+            if (i == DEPTH-1) begin
+                check_result(empty, 1'b1, "FIFO should be empty");
+            end
+        end
+        
+        // Try to read when empty
+        rd_en = 1;
+        @(posedge clk);
+        rd_en = 0;
+        @(posedge clk);
+        check_result(empty, 1'b1, "FIFO should remain empty");
+        
+        // Test 6: Mixed write and read patterns
+        test_case = 6;
+        $display("Test %0d: Mixed Write and Read Patterns", test_case);
+        reset_fifo();
+        
+        // Pattern 1: Write 3, read 2, write 2, read 3
+        write_data(32'h3001); write_data(32'h3002); write_data(32'h3003);
+        read_data(expected_data); check_result(expected_data, 32'h3001, "Mixed pattern 1a");
+        read_data(expected_data); check_result(expected_data, 32'h3002, "Mixed pattern 1b");
+        write_data(32'h3004); write_data(32'h3005);
+        read_data(expected_data); check_result(expected_data, 32'h3003, "Mixed pattern 1c");
+        read_data(expected_data); check_result(expected_data, 32'h3004, "Mixed pattern 1d");
+        read_data(expected_data); check_result(expected_data, 32'h3005, "Mixed pattern 1e");
+        
+        // Test 7: Edge cases
+        test_case = 7;
+        $display("Test %0d: Edge Cases", test_case);
+        reset_fifo();
+        
+        // Write maximum entries and read them back
+        for (integer i = 0; i < DEPTH; i = i + 1) begin
+            write_data(32'h4000 + i);
+        end
+        check_result(full, 1'b1, "Edge case - full");
+        
+        for (integer i = 0; i < DEPTH; i = i + 1) begin
+            read_data(expected_data);
+            check_result(expected_data, 32'h4000 + i, $sformatf("Edge case read %0d", i));
+        end
+        check_result(empty, 1'b1, "Edge case - empty");
+        
+        // Write again after reading all
+        write_data(32'h5001);
+        read_data(expected_data);
+        check_result(expected_data, 32'h5001, "Write after complete read");
+        
+        // Final result
+        if (error_count == 0) begin
+            $display("TestSuccessed: All tests passed!");
+        end else begin
+            $display("TestFailed: %0d errors found", error_count);
+        end
+        
+        $finish;
+    end
+
+endmodule
+```
+
+---
+
+Here is the real input prompt
+
+Please help me generate [ModelName], including RTL code and TestBench.
+
+## Problem Description
+
+ModelName: [ModelName]
+
+InputNode: [InputNode]
+
+OutputNode: [OutputNode]
+
+Specification: [Specification]
+
+TestBench: [TestSpec]
+
+Last_RTL: [LastRTL]
+
+Last_TestBench: [LastTestBench]
+
+SimulationResult: [SimulationResult]
+
+
+### Tips
+
+Here is some tips that you need to follow:
+
+1. Use Verilog for RTL and SystemVerilog for TestBench.
+2. We use the -g2005sv specification supported by iverilog for compilation. Please make sure that the verilog used can be supported. Please ensure that the system functions are supported by the -g2005sv. Some functions like $sformatf() will arise error.
+3. Unpacked structs not supported in iverilog, do not use typedef struct.
+4. When using the $bitstoreal function, please make sure that the parameter is 64bit.
+5. Save the simulated waveform diagram with $dumpfile and $dumpvars instructions. Save the vcd file as Out/wave.vcd
+6. In Testbench, please verify whether the function is correct. If you pass all the tests, please output TestSuccessed, otherwise you will output TestFailed.
+7. In Verilog, for loops cannot be used to initialize arrays within always blocks for sequential logic that are triggered by a clock.
+8. In Verilog, earlier versions (such as those prior to Verilog-2001) do not support directly declaring loop variables in the initialization section of a for loop. This is an vital part, so you should pay attention to this point. Otherwise the simulator will call error: name is not a valid net. You can define it previously.
+9. Last_RTL, Last_TestBench, and SimulationResult refer to the previously generated RTL code, TestBench code, and the error results from the simulator. Please adjust the newly generated code by incorporating these, and make every effort to eliminate the errors.
+10. When executing the Testbench, first print out the line: "### SimulationResult\n '''markdown\n" in testbench.
+
+
+\end{lstlisting}
+
+\section{Async FIFO Specification}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{spec1.png}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{spec2.png}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{spec3.png}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{spec4.png}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{spec5.png}
+\end{figure}
+
+\section{RTL and TestBench}
+
+\begin{lstlisting}[frame=shadowbox,language=verilog,caption=async\_fifo.v]
+module async_fifo (
+    input wire wr_clk,
+    input wire rd_clk,
+    input wire rst_n,
+    input wire wr_en,
+    input wire rd_en,
+    input wire [15:0] data_in,
+    output reg [15:0] data_out,
+    output wire full,
+    output wire empty,
+    output wire almost_full,
+    output wire almost_empty
+);
+
+    // Parameters
+    parameter DEPTH = 16;
+    parameter WIDTH = 16;
+    parameter ALMOST_FULL_THRESHOLD = 14;
+    parameter ALMOST_EMPTY_THRESHOLD = 2;
+    
+    // Internal memory
+    reg [WIDTH-1:0] memory [0:DEPTH-1];
+    
+    // Pointers (5 bits for depth 16)
+    reg [4:0] wr_ptr_bin;
+    reg [4:0] rd_ptr_bin;
+    wire [4:0] wr_ptr_gray;
+    wire [4:0] rd_ptr_gray;
+    
+    // Synchronized pointers
+    reg [4:0] wr_ptr_gray_sync1, wr_ptr_gray_sync2;
+    reg [4:0] rd_ptr_gray_sync1, rd_ptr_gray_sync2;
+    
+    // Binary synchronized pointers
+    reg [4:0] wr_ptr_bin_sync;
+    reg [4:0] rd_ptr_bin_sync;
+    
+    // FIFO counts
+    reg [4:0] fifo_count_wr_domain;
+    reg [4:0] fifo_count_rd_domain;
+    
+    // Convert binary to Gray code
+    assign wr_ptr_gray = wr_ptr_bin ^ (wr_ptr_bin >> 1);
+    assign rd_ptr_gray = rd_ptr_bin ^ (rd_ptr_bin >> 1);
+    
+    // Convert Gray code to binary
+    function [4:0] gray2bin;
+        input [4:0] gray;
+        begin
+            gray2bin[4] = gray[4];
+            gray2bin[3] = gray[4] ^ gray[3];
+            gray2bin[2] = gray[4] ^ gray[3] ^ gray[2];
+            gray2bin[1] = gray[4] ^ gray[3] ^ gray[2] ^ gray[1];
+            gray2bin[0] = gray[4] ^ gray[3] ^ gray[2] ^ gray[1] ^ gray[0];
+        end
+    endfunction
+    
+    // Write pointer synchronization (to read clock domain)
+    always @(posedge rd_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            wr_ptr_gray_sync1 <= 0;
+            wr_ptr_gray_sync2 <= 0;
+            wr_ptr_bin_sync <= 0;
+        end else begin
+            wr_ptr_gray_sync1 <= wr_ptr_gray;
+            wr_ptr_gray_sync2 <= wr_ptr_gray_sync1;
+            wr_ptr_bin_sync <= gray2bin(wr_ptr_gray_sync2);
+        end
+    end
+    
+    // Read pointer synchronization (to write clock domain)
+    always @(posedge wr_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            rd_ptr_gray_sync1 <= 0;
+            rd_ptr_gray_sync2 <= 0;
+            rd_ptr_bin_sync <= 0;
+        end else begin
+            rd_ptr_gray_sync1 <= rd_ptr_gray;
+            rd_ptr_gray_sync2 <= rd_ptr_gray_sync1;
+            rd_ptr_bin_sync <= gray2bin(rd_ptr_gray_sync2);
+        end
+    end
+    
+    // Calculate FIFO count in write domain
+    always @(*) begin
+        if (wr_ptr_bin[4] == rd_ptr_bin_sync[4]) begin
+            fifo_count_wr_domain = wr_ptr_bin[3:0] - rd_ptr_bin_sync[3:0];
+        end else begin
+            fifo_count_wr_domain = DEPTH - rd_ptr_bin_sync[3:0] + wr_ptr_bin[3:0];
+        end
+    end
+    
+    // Calculate FIFO count in read domain
+    always @(*) begin
+        if (wr_ptr_bin_sync[4] == rd_ptr_bin[4]) begin
+            fifo_count_rd_domain = wr_ptr_bin_sync[3:0] - rd_ptr_bin[3:0];
+        end else begin
+            fifo_count_rd_domain = DEPTH - rd_ptr_bin[3:0] + wr_ptr_bin_sync[3:0];
+        end
+    end
+    
+    // Generate flags
+    assign full = (fifo_count_wr_domain == DEPTH);
+    assign empty = (fifo_count_rd_domain == 0);
+    assign almost_full = (fifo_count_wr_domain >= ALMOST_FULL_THRESHOLD);
+    assign almost_empty = (fifo_count_rd_domain <= ALMOST_EMPTY_THRESHOLD);
+    
+    // Write control logic
+    always @(posedge wr_clk or negedge rst_n) begin
+        integer i;
+        if (!rst_n) begin
+            wr_ptr_bin <= 0;
+        end else begin
+            if (wr_en && !full) begin
+                memory[wr_ptr_bin[3:0]] <= data_in;
+                wr_ptr_bin <= wr_ptr_bin + 1;
+            end
+        end
+    end
+    
+    // Read control logic
+    always @(posedge rd_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            rd_ptr_bin <= 0;
+            data_out <= 0;
+        end else begin
+            if (rd_en && !empty) begin
+                data_out <= memory[rd_ptr_bin[3:0]];
+                rd_ptr_bin <= rd_ptr_bin + 1;
+            end
+        end
+    end
+    
+    // Initialize memory (for simulation only)
+    integer init_i;
+    initial begin
+        for (init_i = 0; init_i < DEPTH; init_i = init_i + 1) begin
+            memory[init_i] = 0;
+        end
+    end
+
+endmodule
+\end{lstlisting}
+
+\begin{lstlisting}[frame=shadowbox, language=verilog, caption=tb\_async\_fifo.sv]
+module async_fifo_tb;
+    // Parameters
+    parameter WR_CLK_PERIOD = 10; // 100MHz
+    parameter RD_CLK_PERIOD = 20; // 50MHz
+    parameter DEPTH = 16;
+    
+    // Signals
+    reg wr_clk;
+    reg rd_clk;
+    reg rst_n;
+    reg wr_en;
+    reg rd_en;
+    reg [15:0] data_in;
+    wire [15:0] data_out;
+    wire full;
+    wire empty;
+    wire almost_full;
+    wire almost_empty;
+    
+    // Test variables
+    reg [15:0] expected_data;
+    integer error_count;
+    integer test_case;
+    integer i;
+    
+    // Instantiate DUT
+    async_fifo dut (
+        .wr_clk(wr_clk),
+        .rd_clk(rd_clk),
+        .rst_n(rst_n),
+        .wr_en(wr_en),
+        .rd_en(rd_en),
+        .data_in(data_in),
+        .data_out(data_out),
+        .full(full),
+        .empty(empty),
+        .almost_full(almost_full),
+        .almost_empty(almost_empty)
+    );
+    
+    // Clock generation
+    always #(WR_CLK_PERIOD/2) wr_clk = ~wr_clk;
+    always #(RD_CLK_PERIOD/2) rd_clk = ~rd_clk;
+    
+    // Waveform dumping
+    initial begin
+        $dumpfile("Out/wave.vcd");
+        $dumpvars(0, async_fifo_tb);
+    end
+    
+    // Test tasks
+    task write_data(input [15:0] data);
+        begin
+            data_in = data;
+            wr_en = 1;
+            @(negedge wr_clk); // Ensure wr_en setup time
+            @(posedge wr_clk);
+            wr_en = 0;
+        end
+    endtask
+    
+    task read_data(output [15:0] data);
+        begin
+            rd_en = 1;
+            @(posedge rd_clk);
+            rd_en = 0;
+            data = data_out;
+        end
+    endtask
+    
+    task reset_fifo;
+        begin
+            rst_n = 0;
+            wr_en = 0;
+            rd_en = 0;
+            data_in = 0;
+            @(posedge wr_clk);
+            @(posedge rd_clk);
+            @(posedge wr_clk);
+            @(posedge rd_clk);
+            rst_n = 1;
+            @(posedge wr_clk);
+            @(posedge rd_clk);
+        end
+    endtask
+    
+    task check_result(input actual, input expected, input string test_name);
+        begin
+            if (actual !== expected) begin
+                $display("ERROR: %s - Expected: %b, Got: %b", test_name, expected, actual);
+                error_count = error_count + 1;
+            end
+        end
+    endtask
+    
+    task check_data_result(input [15:0] actual, input [15:0] expected, input string test_name);
+        begin
+            if (actual !== expected) begin
+                $display("ERROR: %s - Expected: %h, Got: %h", test_name, expected, actual);
+                error_count = error_count + 1;
+            end
+        end
+    endtask
+    
+    // Main test sequence
+    initial begin
+        // Initialize
+        wr_clk = 0;
+        rd_clk = 0;
+        error_count = 0;
+        test_case = 0;
+        
+        $display("### SimulationResult");
+        $display("'''markdown");
+        
+        // Test 1: Reset behavior
+        test_case = 1;
+        $display("Test %0d: Reset Behavior", test_case);
+        reset_fifo();
+        check_data_result(data_out, 16'h0, "Reset data_out");
+        check_result(empty, 1'b1, "Reset empty flag");
+        check_result(full, 1'b0, "Reset full flag");
+        check_result(almost_empty, 1'b1, "Reset almost_empty flag");
+        check_result(almost_full, 1'b0, "Reset almost_full flag");
+        if (error_count == 0) begin
+            $display("Test %0d: Reset Behavior - PASSED", test_case);
+        end
+        
+        // Test 2: Basic write and read operations
+        test_case = 2;
+        $display("Test %0d: Basic Write and Read Operations", test_case);
+        reset_fifo();
+        
+        // Write 4 data items
+        write_data(16'h1234);
+        write_data(16'hABCD);
+        write_data(16'h5678);
+        write_data(16'hEF01);
+        
+        // Add sufficient delay for synchronization (more cycles for async FIFO)
+        repeat(8) @(posedge rd_clk);
+        
+        // Read them back
+        read_data(expected_data);
+        check_data_result(expected_data, 16'h1234, "First read");
+        read_data(expected_data);
+        check_data_result(expected_data, 16'hABCD, "Second read");
+        read_data(expected_data);
+        check_data_result(expected_data, 16'h5678, "Third read");
+        read_data(expected_data);
+        check_data_result(expected_data, 16'hEF01, "Fourth read");
+        if (error_count == 0) begin
+            $display("Test %0d: Basic Write and Read Operations - PASSED", test_case);
+        end
+        
+        // Test 3: Asynchronous clock test
+        test_case = 3;
+        $display("Test %0d: Asynchronous Clock Test", test_case);
+        reset_fifo();
+        
+        fork
+            begin
+                for (i = 0; i < 8; i = i + 1) begin
+                    write_data(16'h1000 + i);
+                end
+            end
+            begin
+                // Add more delay to ensure first data is written and synchronized
+                repeat(10) @(posedge rd_clk);
+                for (i = 0; i < 8; i = i + 1) begin
+                    read_data(expected_data);
+                    check_data_result(expected_data, 16'h1000 + i, "Async read");
+                end
+            end
+        join
+        if (error_count == 0) begin
+            $display("Test %0d: Asynchronous Clock Test - PASSED", test_case);
+        end
+        
+        // Test 4: FIFO full condition
+        test_case = 4;
+        $display("Test %0d: FIFO Full Condition", test_case);
+        reset_fifo();
+        
+        // Fill the FIFO
+        for (i = 0; i < DEPTH; i = i + 1) begin
+            write_data(16'h2000 + i);
+            if (i == DEPTH-1) begin
+                check_result(full, 1'b1, "FIFO should be full");
+                check_result(almost_full, 1'b1, "FIFO should be almost full");
+            end
+        end
+        
+        // Try to write when full (should be ignored)
+        data_in = 16'hBAD0;
+        wr_en = 1;
+        @(negedge wr_clk);
+        @(posedge wr_clk);
+        wr_en = 0;
+        @(posedge wr_clk);
+        check_result(full, 1'b1, "FIFO should remain full");
+        if (error_count == 0) begin
+            $display("Test %0d: FIFO Full Condition - PASSED", test_case);
+        end
+        
+        // Test 5: FIFO empty condition
+        test_case = 5;
+        $display("Test %0d: FIFO Empty Condition", test_case);
+        reset_fifo();
+        
+        // Fill the FIFO first
+        for (i = 0; i < DEPTH; i = i + 1) begin
+            write_data(16'h2000 + i);
+        end
+        
+        // Add delay for synchronization
+        repeat(8) @(posedge rd_clk);
+        
+        // Empty the FIFO
+        for (i = 0; i < DEPTH; i = i + 1) begin
+            read_data(expected_data);
+            check_data_result(expected_data, 16'h2000 + i, "Emptying read");
+            if (i == DEPTH-1) begin
+                check_result(empty, 1'b1, "FIFO should be empty");
+                check_result(almost_empty, 1'b1, "FIFO should be almost empty");
+            end
+        end
+        
+        // Try to read when empty
+        rd_en = 1;
+        @(posedge rd_clk);
+        rd_en = 0;
+        @(posedge rd_clk);
+        check_result(empty, 1'b1, "FIFO should remain empty");
+        if (error_count == 0) begin
+            $display("Test %0d: FIFO Empty Condition - PASSED", test_case);
+        end
+        
+        // Test 6: Almost-full/almost-empty threshold test
+        test_case = 6;
+        $display("Test %0d: Almost-Full/Almost-Empty Threshold Test", test_case);
+        reset_fifo();
+        
+        // Write until almost full threshold (14)
+        for (i = 0; i < 13; i = i + 1) begin
+            write_data(16'h3000 + i);
+        end
+        check_result(almost_full, 1'b0, "Should not be almost full yet");
+        write_data(16'h3000 + 13);
+        check_result(almost_full, 1'b1, "Should be almost full at 14 entries");
+        check_result(full, 1'b0, "Should not be full yet");
+        
+        // Add delay for synchronization
+        repeat(8) @(posedge rd_clk);
+        
+        // Read until almost empty threshold (2)
+        for (i = 0; i < 12; i = i + 1) begin
+            read_data(expected_data);
+            check_data_result(expected_data, 16'h3000 + i, "Threshold read");
+        end
+        // After reading 12 from 14, we have 2 left - should be almost empty
+        check_result(almost_empty, 1'b1, "Should be almost empty at 2 entries");
+        check_result(empty, 1'b0, "Should not be empty yet");
+        
+        read_data(expected_data);
+        check_result(almost_empty, 1'b1, "Should still be almost empty at 1 entry");
+        check_result(empty, 1'b0, "Should not be empty yet");
+        
+        if (error_count == 0) begin
+            $display("Test %0d: Almost-Full/Almost-Empty Threshold Test - PASSED", test_case);
+        end
+        
+        // Test 7: Concurrent read-write test
+        test_case = 7;
+        $display("Test %0d: Concurrent Read-Write Test", test_case);
+        reset_fifo();
+        
+        fork
+            begin
+                for (i = 0; i < 10; i = i + 1) begin
+                    write_data(16'h4000 + i);
+                end
+            end
+            begin
+                // Add more delay to ensure first data is written and synchronized
+                repeat(12) @(posedge rd_clk);
+                for (i = 0; i < 10; i = i + 1) begin
+                    read_data(expected_data);
+                    check_data_result(expected_data, 16'h4000 + i, "Concurrent read");
+                end
+            end
+        join
+        if (error_count == 0) begin
+            $display("Test %0d: Concurrent Read-Write Test - PASSED", test_case);
+        end
+        
+        // Test 8: Edge case test
+        test_case = 8;
+        $display("Test %0d: Edge Case Test", test_case);
+        reset_fifo();
+        
+        // Write 15 entries (one before full)
+        for (i = 0; i < 15; i = i + 1) begin
+            write_data(16'h5000 + i);
+        end
+        check_result(full, 1'b0, "Should not be full at 15 entries");
+        check_result(almost_full, 1'b1, "Should be almost full at 15 entries");
+        
+        // Write 16th entry (full)
+        write_data(16'h5000 + 15);
+        check_result(full, 1'b1, "Should be full at 16 entries");
+        
+        // Add delay for synchronization
+        repeat(8) @(posedge rd_clk);
+        
+        // Read 14 entries - should have 2 left (almost empty)
+        for (i = 0; i < 14; i = i + 1) begin
+            read_data(expected_data);
+            check_data_result(expected_data, 16'h5000 + i, "Edge case read");
+        end
+        check_result(almost_empty, 1'b1, "Should be almost empty at 2 entries");
+        
+        // Read 1 more entry - should have 1 left (still almost empty)
+        read_data(expected_data);
+        check_result(almost_empty, 1'b1, "Should still be almost empty at 1 entry");
+        
+        // Read last entry - should be empty
+        read_data(expected_data);
+        check_result(empty, 1'b1, "Should be empty after reading all");
+        check_result(almost_empty, 1'b1, "Should be almost empty at 0 entries");
+        
+        if (error_count == 0) begin
+            $display("Test %0d: Edge Case Test - PASSED", test_case);
+        end
+        
+        // Final result
+        if (error_count == 0) begin
+            $display("TestSuccessed: All tests passed!");
+        end else begin
+            $display("TestFailed: %0d errors found", error_count);
+        end
+        
+        $display("'''");
+        $finish;
+    end
+
+endmodule
+\end{lstlisting}
+
+\section{Simulation Result}
+一开始没有将上次生成的代码和仿真报错结果写进prompt里，导致模型会一直重复在几个错误版本之间反复跳跃，而不会有实质性的改进。在让模型有记忆性后，得到的仿真结果如下：
+
+\begin{lstlisting}[frame=shadowbox]
+Test 1: Reset Behavior
+Test 1: Reset Behavior - PASSED
+Test 2: Basic write and Read operations 
+Test 2: Basic write and Read operations - PASSED
+Test 3: Asynchronous clock Test
+Test 3: Asynchronous clock Test - PASSED
+Test 4: FIF0 Full condition
+Test 4: FIF0 Full condition - PASSED
+Test 5: FIFO Empty condition
+Test S: FIFO Empty condition -PASSED
+Test 6: Almost-Full/Almost-Empty Threshold Test
+Test 6: Almost-Full/Almost-Empty Threshold Test - PASSED
+Test 7: Concurrent Read-write Test
+Test 7:concurrent Read-write Test - PASSED
+Test 8: Edge case Test
+Test 8: Edge case Test - PASSED
+Testsuccessed: All tests passed!
+\end{lstlisting}
+
+现在的模型可以一次性生成可以运行且通过了所有测试点的异步FIFO代码了。仿真波形图如下：
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{sim.png}
+	\caption{仿真结果和波形图}
+\end{figure}
+
+\end{document}

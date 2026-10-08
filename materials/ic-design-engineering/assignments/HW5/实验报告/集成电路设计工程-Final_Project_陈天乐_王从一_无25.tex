@@ -1,0 +1,584 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{《集成电路设计工程》Final Project}}
+\author{陈天乐\ \ 王从一\ \ 无25}
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+
+\section{SRAM单元设计原理图、版图DRC、LVS Clean}
+
+\subsection{基础逻辑单元}
+\subsubsection{反相器INV}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/INV.png}
+\caption{反相器原理图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/INV_size.png}
+\caption{反相器尺寸}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/INV_layout.png}
+\caption{反相器版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/INV_DRC.png}
+\caption{反相器DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/INV_LVS.png}
+\caption{反相器LVS clean}
+\end{figure}
+
+
+
+\subsubsection{四输入与门AND4}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/AND4.png}
+\caption{四输入与门原理图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/AND4_size.png}
+\caption{四输入与门尺寸}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/AND4_layout.png}
+\caption{四输入与门版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/AND4_DRC.png}
+\caption{四输入与门DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/AND4_LVS.png}
+\caption{四输入与门LVS clean}
+\end{figure}
+
+
+\subsubsection{传输门TG}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/TG.png}
+\caption{传输门原理图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/TG_size.png}
+\caption{传输门尺寸}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/TG_layout.png}
+\caption{传输门版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/TG_DRC.png}
+\caption{传输门DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Basic/TG_LVS.png}
+\caption{传输门LVS clean}
+\end{figure}
+
+
+\subsection{6T SRAM Cell}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram.png}
+\caption{SRAM Cell原理图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_size.png}
+\caption{SRAM Cell尺寸}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_layout.png}
+\caption{SRAM Cell版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_DRC.png}
+\caption{SRAM Cell DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_LVS.png}
+\caption{SRAM Cell LVS clean}
+\end{figure}
+
+
+\subsection{8×8 SRAM ARRAY}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_array.png}
+\caption{SRAM ARRAY原理图}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_array_layout.png}
+\caption{SRAM ARRAY版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_array_DRC.png}
+\caption{SRAM ARRAY DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_array_LVS.png}
+\caption{SRAM ARRAY LVS clean}
+\end{figure}
+
+
+\subsection{三八译码器}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/38decoder/38decoder.png}
+\caption{三八译码器原理图}
+\end{figure}
+
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/38decoder/38decoder_layout.png}
+\caption{三八译码器版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/38decoder/38decoder_DRC.png}
+\caption{三八译码器DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/38decoder/38decoder_LVS.png}
+\caption{三八译码器LVS clean}
+\end{figure}
+
+\subsection{列选择器}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Col_Mux/col_mux.png}
+\caption{列选择器原理图}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Col_Mux/col_mux_layout.png}
+\caption{列选择器版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Col_Mux/col_mux_DRC.png}
+\caption{列选择器DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Col_Mux/col_mux_LVS.png}
+\caption{列选择器LVS clean}
+\end{figure}
+
+\subsection{输入buffer}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Buffer/buffer.png}
+\caption{输入buffer原理图}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Buffer/buffer_layout.png}
+\caption{输入buffer版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Buffer/buffer_DRC.png}
+\caption{输入buffer DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Col_Mux/col_mux_LVS.png}
+\caption{输入buffer LVS clean}
+\end{figure}
+
+
+\subsection{灵敏放大器}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/VMSA/VMSA.png}
+\caption{灵敏放大器原理图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/VMSA/VMSA_size.png}
+\caption{灵敏放大器尺寸}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/VMSA/VMSA_layout.png}
+\caption{灵敏放大器版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/VMSA/VMSA_DRC.png}
+\caption{灵敏放大器 DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/VMSA/VMSA_LVS.png}
+\caption{灵敏放大器 LVS clean}
+\end{figure}
+
+
+
+\subsection{控制信号产生器}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Control_Signal/control_signal.png}
+\caption{控制信号产生器原理图}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Control_Signal/control_signal_layout.png}
+\caption{控制信号产生器版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Control_Signal/control_signal_DRC.png}
+\caption{控制信号产生器DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Control_Signal/control_signal_LVS.png}
+\caption{控制信号产生器LVS clean}
+\end{figure}
+
+
+
+
+\subsection{预充电电路}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/PreCharge/precharge.png}
+\caption{预充电电路原理图}
+\end{figure}
+
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/PreCharge/precharge_layout.png}
+\caption{预充电电路版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/PreCharge/precharge_DRC.png}
+\caption{预充电电路DRC clean}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/PreCharge/precharge_LVS.png}
+\caption{预充电电路LVS clean}
+\end{figure}
+
+
+
+\section{单元模块设计功能仿真（tb、前仿、后仿、激励信号说明）}
+
+
+\subsection{SRAM Cell设计功能仿真}
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_cell_write_tb.png}
+\caption{SRAM Cell写功能testbench}
+\end{figure}
+
+写功能仿真结果如下：
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_cell_write_res.png}
+\caption{SRAM Cell写功能仿真结果}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_cell_read_tb.png}
+\caption{SRAM Cell读功能testbench}
+\end{figure}
+
+读功能仿真结果如下：
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_cell_read_res.png}
+\caption{SRAM Cell读功能仿真结果}
+\end{figure}
+
+
+\subsection{三八译码器设计功能仿真}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/38decoder/38decoder_tb.png}
+\caption{三八译码器功能测试testbench}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/38decoder/前仿.png}
+\caption{三八译码器功能测试前仿结果}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/38decoder/后仿.png}
+\caption{三八译码器功能测试后仿结果}
+\end{figure}
+
+可以看到，三八译码器前后仿真的结果几乎无区别，只有在后仿时会有一些小毛刺出现，整体功能是正确的。
+
+\subsection{灵敏放大器设计功能仿真}
+
+灵敏放大器SA的作用是通过正反馈将BL\_OUT与BLB\_OUT的电平在刚刚区分开一点的时候就能将两者分别快速正反馈到0和1，不需要等待SRAM单元通过晶体管的慢速充放电，从而加快电平的识别。在设计testbench时，会有两种情况。第一种情况是BL比BLB略高了50mV，而第二种情况是BL比BLB略低了50mV。在这两种
+情况下，SA应该能很快地将BL和BLB拉至对应满摆幅的情况。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/VMSA/VMSA_tb.png}
+\caption{灵敏放大器功能测试testbench}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/VMSA/前后仿.png}
+\caption{灵敏放大器功能测试前、后仿结果}
+\end{figure}
+
+
+可以看到，灵敏放大器的前仿结果是正确的，但是后仿结果在后面一种情况时和前仿出现了完全相反的现象。我们认为这可能是因为这个设计里的交叉互锁结构的驱动力太强，导致
+其在写入数据以后会影响到下一次的放大结果。
+
+
+\subsection{input buffer设计功能仿真}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Buffer/buffer_tb.png}
+\caption{input buffer功能测试testbench}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/Buffer/buffer_tb_res.png}
+\caption{input buffer功能测试前仿结果}
+\end{figure}
+
+
+
+
+\section{SRAM单元的SNM仿真（前仿、后仿、激励信号说明）}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/SNM11.png}
+\caption{SRAM单元的SNM前仿}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/SNM22.png}
+\caption{SRAM单元的SNM后仿}
+\end{figure}
+
+\section{SRAM整体版图}
+
+很抱歉由于时间原因，我们小组未能完成SRAM顶层模块版图的布线连接，这里展示了一个大体的顶层模块布局和面积估计（在这里我们粗略地估计面积是这个矩形面积的3/4）：
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_top_layout.png}
+\caption{SRAM整体版图}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_area.png}
+\caption{SRAM整体面积}
+\end{figure}
+
+\section{SRAM整体电路功能仿真（前仿、后仿、激励信号说明）}
+由于顶层模块版图布线未完成，因此只能进行前仿测试。
+
+
+\subsection{写功能前仿}
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_top_write_tb.png}
+\caption{SRAM顶层模块写功能testbench}
+\end{figure}
+
+仿真结果如下：
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_top_write_res.png}
+\caption{SRAM顶层模块写功能仿真结果}
+\end{figure}
+
+可以看到EN信号为1时，SEL<n>根据y<0:2>的取值变化，对应的BL<n>和BLB<n>在SEL<n>为1时跟随DATA\_IN变化。SEL<n>为0后BL<n>和BLB<n>有掉电现象，但SRAM内部节点的电平此时已经锁存，所以是正常的，因此写功能完全正确。
+
+\subsection{读功能前仿}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_top_read_tb.png}
+\caption{SRAM顶层模块读功能testbench}
+\end{figure}
+
+仿真结果如下：
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/sram_top_read_res.png}
+\caption{SRAM顶层模块读功能仿真结果}
+\end{figure}
+
+分别选择两个初始状态不同的SRAM单元，可以通过输出的波形看到两次读操作均成功，因此读功能完全正确。
+
+\subsection{读写综合测试}
+按照设计要求，需要给SRAM整体模块先按顺序写入11000101，然后从中读出：
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW5/SRAM/require.png}
+\caption{SRAM顶层模块读写综合仿真测试结果}
+\end{figure}
+
+可以看到，前仿的结果是完全正确的。
+
+
+\section{实验总结}
+本次实验，我们完成了SRAM前仿、后仿的全流程实验。整个项目中我们学习到了很多除了电路设计以外的知识。以前在理论课上只对SRAM cell结构
+做过分析，但是在这门课后我才知道SRAM的外围电路同样非常重要。非常抱歉的是因为时间原因，我们并没有完成指定的所有任务，也没有完成最终模块的版图绘制。
+但是收获与心得仍然很多：
+
+\begin{description}
+    \item[1.] 设计电路前应该对单元模块有个清晰的定性分析，而不能光靠跑仿真扫描参数
+    \item[2.]   在进行testbench搭建时应该对各种情况进行验证，保证模块的鲁棒性
+    \item[3.] 在绘制前应该预先想好每个模块的金属走线、线宽以及引出的pin角，方便每个模块对接
+    \item[4.] 最好做几步关键走线就做一次DRC，以免出现布线后因为修正DRC而产生的牵连
+\end{description}
+
+最后，也感谢老师一学期以来的授课和助教们的辛勤付出！
+
+\end{document}

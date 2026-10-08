@@ -1,0 +1,485 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{电磁场与微波第一次实验}}
+\author{陈天乐\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{实验目的}
+\begin{description}
+    \item[1.] 了解电磁波综合测试仪的结构，掌握其工作原理。
+    \item[2.] 在学习均匀平面电磁波特性的基础上，观察与研究电磁波传播特性。
+    \item[3.] 熟悉并利用相干波原理，测量自由空间内电磁波波长，并确定相位常数。
+    \item[4.] 研究电磁波再矩形波导种的截止特性。
+    \item[5.] 了解波导测量线系统，掌握微波信号源、驻波测量线及各类微波元器件的工作原理和使用方法。
+    \item[6.] 掌握用测量线测量波长的方法。
+    \item[7.] 掌握用测量线测量阻抗及电压驻波比的原理和方法。
+\end{description}
+
+\section{实验原理}
+\subsection{自由空间电磁波波长的测量}
+两路等幅、同频率的均匀平面电磁波，在自由空间中同向或反向传播时，由于初始相位不同而发生干涉，在传播路径上可形成驻波场分布。
+
+本实验正是利用这一相干波原理，测量自由空间中的电磁波波长$\lambda$，再由下式得到电磁波的传播常数：
+
+$$
+K=\frac{2\pi}{\lambda}
+$$
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{0.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth,height=0.22\textheight]{侧视图.png}
+        \caption{自由空间电磁波波长测试装置侧视图}
+	\end{minipage}
+	\begin{minipage}{0.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth,height=0.22\textheight]{俯视图.png}
+        \caption{自由空间电磁波波长测试装置俯视图}
+	\end{minipage}
+\end{figure}
+
+该装置由发射喇叭$P_T$、接受喇叭$P_R$、固定金属反射板A、可移动金属反射板B和介质板C组成。两喇叭在同一水平面上互成90°夹角，反射板A
+与反射板B在同一水平面上互成90°夹角。反射板A与接受喇叭$P_R$口面平行，反射板B与接受喇叭$P_T$口面平行，介质板发现与反射板A法线成45°夹角。
+
+设入射波为：
+$$
+\vec{E}_t=\vec{E}_{0i}e^{-j\phi}
+$$
+
+
+当入射波以45°入射角向介质板入射时，分界面上会产生反射波$\vec{E_r}$和折射波$\vec{E_t}$。在一次近似的条件下，接收喇叭$P_R$处的两路电磁波可分别表示为
+
+$$
+\vec{E}_{r1}=-RT_0T_c\vec{E}_{0i}e^{-j\phi_1},\quad\phi_1=KL_1
+$$
+$$
+\vec{E}_{r2}=-RT_0T_c\vec{E}_{0i}e^{-j\phi_2},\quad\phi_2=KL_2
+$$
+
+其中，$L_1$和$L_2$分别是电磁波$\vec{E}_{r1}$和$\vec{E}_{r2}$的传播路径，$R$为介质板的反射系数，$T_0$为由空气进入介质板的折射系数，$T_c$为由介质
+板进入空气的折射系数，可动板$B$和固定板$A$都是金属板，反射系数为-1.
+
+若两路电磁波传播的路程差
+
+$$
+\Delta L=\left|L_1-L_2\right|=n\lambda,\quad n=0,1,2,...
+$$
+
+则同相干涉增强，接收指示为最大值。
+
+若路程差
+
+$$
+\Delta L=\left|L_1-L_2\right|=\frac{2n+1}{2}\lambda,\quad n=0,1,2,...
+$$
+
+则反相干涉相消，接收指示值为0。
+
+当持续沿同一方向移动可动板B，改变两路电磁波的传播路程差$\Delta L$时，接收最大值和零值会周期性交替出现，每移动B板$\lambda$的距离就会出现一个
+接收零值。
+
+一般在移动B板时，由于设备限制，不会出现无数个接收零值，一般测量3$\sim$4个。设出现第一个零值B板位置刻度为$d_1$，出现第四个零值B板位置刻度为$d_4$，则被测电磁波波长的平均值为：
+
+$$
+\lambda=\frac{2(d_4-d_1)}{3}
+$$
+
+为了减小实验测量误差，在测量接收零值的位置刻度时，采用两点法确定波节点位置，示意图如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{两点法.png}
+    \caption{两点法确定波节点位置示意图}
+\end{figure}
+
+测量波节点附近两边指示电表读数相等的两点$T_1$和$T_2$，由下式计算出波节点位置：
+$$
+T_{min}=\frac{T_1+T_2}{2}
+$$
+
+
+\subsection{矩形波导的截止特性}
+在波导种可以存在多种模式，但并不是所有模式都能在其种传播，是有具体要求的：
+\begin{description}
+    \item[1.] 电磁波的激励方式
+    \item[2.] 工作波长
+    \item[3.] 波导尺寸 
+\end{description}
+
+
+电波在传输线的纵向上都有传播因子$e^{-jk_zz}$。若$k_z>0$，表示波可以在z方向上传播，且$k_z=\sqrt{k^2-k_c^2}$。
+\begin{description}
+    \item[1.] 若$k>k_c$，则电磁波传输。
+    \item[2.] 若$k=k_c$，则波处于波临界截止点。$\lambda=\frac{2\pi}{\sqrt{(\frac{m\pi}{a})^2+(\frac{n\pi}{b})^2}}=\lambda_c$。
+    \item[3.] 若$k<k_c$，此时电磁波截止。 
+\end{description}
+
+将发射喇叭与接收喇叭调整到同一轴线上，并与金属板法线一致，此时对于电磁波来说，开缝金属板相当于多个矩形波导并列的口面。
+设缝宽为a，相当于波导的宽边，电场方向平行于缝隙的开缝方向，则根据波导理论，对于矩形波导的基模$TE_{10}$而言，$m=1,n=0$，$\lambda_c=2a$。因此当满足$\lambda<2a$时，波能通过缝隙传播，
+当$\lambda>2a$时，出现截止衰减，电磁波被反射。类似地，对于开孔金属板，当孔径$a$满足$a<\lambda/2$时，不同极化方向的电磁波截止衰减，被反射。
+开缝金属板和开孔金属板的示意图如下：
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{金属板.png}
+    \caption{开缝金属板和开孔金属板}
+\end{figure}
+
+实验中通过观察不同尺寸、不同方向的开缝金属板以及开孔金属板对电磁波的反射和透射效果，掌握波导中电磁波的截止特性。
+
+
+
+\subsection{测量波导波长}
+为了测量波导波长，首先要在波导测量线上测量两个相邻波节点的位置$T_{min}$和$T’_{min}$，由两点法原理得到：
+$$
+\lambda_g=2\left|T’_{min}-T_{min}\right|
+$$
+
+矩形波导中的$TE_{10}$波，自由波长$\lambda_o$和波导波长$\lambda_g$之间满足：
+$$
+\lambda_g =\frac{\lambda_o}{\sqrt{1-(\frac{\lambda_o}{2a})^2}}
+$$
+
+对于同轴传输线，传输的模式为TEM波，自由波长和导波波长相等。
+
+\subsection{测量电压驻波系数}
+
+电压驻波系数即波导中电场最大值和最小值之比。本实验测量驻波系数采用直接法，测量驻波腹点和节点处场强。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{驻波系数.png}
+    \caption{沿线驻波场分布图}
+\end{figure}
+
+若波腹点和节点处电表读数分别为$I_{max}$和$I_{min}$，由于是小信号工作，晶体检波律n=2，则驻波系数为：
+
+$$
+\rho=\sqrt{\frac{I_{max}}{I_{min}}}
+$$
+
+当$1.05<\rho<1.5$时，驻波的最大值与最小值相差不大，此时为了提高测量准确度，可以移动探针到多个波腹波节点处记录数据，
+然后求平均值:
+$$
+\rho=\sqrt{\frac{I_{max1}+I_{max2}+...+I_{maxN}}{I_{min1}+I_{min2}+...+I_{minN}}}
+$$
+
+
+当$1.5<\rho<5$时，直接读出$I_{max}$、$I_{min}$即可。
+
+\subsubsection{测量阻抗}
+
+由传输线理论可知，传输线上任一参考面的归一化输入阻抗$\bar{z}_{in}$与其归一化终端负载阻抗$\bar{z}_L$的关系为：
+
+$$
+{\bar{z}}_{in}=\frac{{\bar{z}}_L+jtg\beta l}{1+j{\bar{z}}_Ltg\beta l}
+$$
+
+设传输线上第一个电压驻波最小点离终端负载的距离$l_{min}$，电压驻波最小点处的归一化输入阻抗在数值上等于$\frac{1}{\rho}$，即
+
+$$
+\left.{\bar{z}}_{in}\right|_{l_{min}}=\frac{1}{\rho}
+$$
+
+将$l=l_{min}$和$\bar{z}_{in}=\frac{1}{\rho}$带入上面的关系式整理可得
+
+$$
+{\bar{z}}_L=\frac{1-j\rho tg\beta l_{min}}{\rho-jtg\beta l_{min}}
+$$
+
+因此，测量负载阻抗实际上归结为测量电压驻波系数$\rho$与驻波相位$l_{min}$。当测出这两个值后，由上式即可得到归一化负载阻抗$\bar{z}_L$。
+但在工程中一般选择直接通过史密斯圆图读出对应的阻抗或者导纳。
+
+由于测量线结构的限制，直接测量$l_{min}$较为困难。实际测量时采用“等效截面法“：先将终端短路，此时终端为一波节点，测量另一波节点位置$D_T$。
+然后撤掉短路片，改接被测负载，此时再测量$D_T$背离负载方向上最近的一个波节点$D_A$，则有：
+
+$$
+l_{min}=\left|D_T-D_A\right|
+$$
+
+测出$\rho$与$l_{min}$后再利用史密斯圆图找到对应点读出$\bar{z}_L$即可。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{smith.png}
+    \caption{Smith圆图}
+\end{figure}
+
+
+\section{实验内容与数据分析}
+本实验的实验条件设置如下：
+\begin{description}
+    \item[1.] 信号源设置
+    
+    设置载波频率9.37GHz，功率0dBm；调制方式设置为AM，1kHz方波调制，调制深度$=90\%$
+    
+    \item[2.] 选频放大器设置
+    
+    选频放大器设置在40dB左右。
+    
+\end{description}
+
+\subsection{自由空间电磁场波长的测量}
+由于设备距离不够，测量不到第四组零值位置（在设备长度的边缘处）。因此只测量了3组数据，记录如下：
+\begin{table}[H]
+    \renewcommand{\arraystretch}{1.5}
+    \centering
+    \caption{测量自由空间内电磁波波长(单位：mm)}
+    \begin{tabular}{|c|p{3cm}<{\centering}|p{3cm}<{\centering}|p{3cm}<{\centering}|}\hline
+        \diagbox{零值位置}{实验次数}&1&2&3\\\hline
+        $d_1(mm)$&51.94&52.48&52.05\\\hline
+        $d_2(mm)$&36.60&36.26&35.98\\\hline
+        $d_3(mm)$&19.67&20.59&19.82\\\hline
+        $\lambda=d_1-d_3$(mm)&32.27&31.89&32.23\\\hline
+        $\lambda_{\mbox{平均值}}$(mm)&\multicolumn{3}{c|}{32.13}\\\hline
+    \end{tabular}
+\end{table}
+计算可得传播常数为：
+
+$$
+K=\frac{2\pi}{\lambda}=195.6 m^{-1}
+$$
+
+
+用频谱仪和线天线测量电磁波频率$f_0=9.37GHz$，那么$\lambda_0=\frac{c}{f_0}=32.02mm$。
+若以$\lambda_0$为基准，则本次实验测量误差为：
+
+$$
+\eta = \frac{|32.02-32.13|}{32.02}\times 100\%\approx 0.344\%
+$$
+
+在本实验中，误差主要来自测量仪器中的角度误差，如反射板之间不一定垂直、介质板角度不一定是45度等。微安表灵敏度不足及读数也是误差来源的重要部分。此外，
+实验室中电磁场环境较为复杂，也无法满足“自由空间”的条件，同样会引入一定误差。
+
+\subsection{矩形波导的截止特性研究}
+将实验装置调整后，分别安装宽缝和窄缝金属板，得到的实验数据如下表:
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{检波指示器示数(单位：uA)}
+    %\begin{tabular}{|p{2.5cm}<{\centering}|p{2.7cm}<{\centering}|p{2.5cm}<{\centering}|p{2.7cm}<{\centering}|p{2.5cm}<{\centering}|}\hline
+    \begin{tabular}{|c|c|c|}\hline
+        直接接收示数&\multicolumn{2}{c|}{92}\\\hline
+        \multirow{2}*{放置宽缝金属板时接收示数($\mu A$)}&宽缝纵向放置(开缝垂直地面)&42\\
+        
+        \cline{2-3}
+        ~&宽缝横向放置(开缝平行地面)&80\\\hline
+        \multirow{2}*{放置窄缝金属板时接收示数($\mu A$)}&窄缝纵向放置(开缝垂直地面)&0\\
+        \cline{2-3}
+        ~&窄缝横向放置(开缝平行地面)&57\\\hline
+        放置开孔金属板时接收示数($\mu A$)&\multicolumn{2}{c|}{0}\\\hline
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+
+    \caption{反射角为$30°$检波指示器示数}
+    \begin{tabular}{|c|c|c|}\hline
+        入射角$\theta_i=30°$&入射功率$I_i$(接收示数)/uA&反射功率$I_r$(接收示数)/uA\\\hline
+        纵向放置窄缝金属板&82&87\\\hline
+        放置小孔金属板&88&76\\\hline
+    \end{tabular}
+\end{table}
+
+在直接放置金属板进行测量时，可以观察到检波器示数变化情况与预期相符：当纵向放置窄缝金属板和开孔金属板时，等效为电磁波在波导中发生衰减，在接收端电磁波功率为0；其他几种情形下会由于等效波导的尺寸不同而发生不同程度的衰减。
+
+在入射角为30°时，会发现放置窄缝金属板时入射功率接收示数会小于反射功率的接收示数，这个原因很有可能是因为由于实验室中的多径效应：直接测量入射功率时，发射端和接收端之间并没有传输线相连，
+实际上接收到的只有直射路径上的一部分能量，而在加入金属反射板后，原本没有被接收端接收到的部分能量由于多径效应进入到了接收端，
+使得此时测量得到的值大于直接测得的发射功率。
+
+\subsection{测量波长}
+实验测量数据记录如下表：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+
+    \caption{测量信号波长(单位：mm)}
+    \begin{tabular}{|c|p{2cm}<{\centering}|p{2cm}<{\centering}|}\hline
+        \diagbox{物理量}{实验次数}&1&2\\\hline
+        $T_1$&97.0&97.0\\\hline
+        $T_2$&101.7&101.7\\\hline
+        $T_{min}=\frac{T_1+T_2}{2}$&99.35&99.35\\\hline
+        $T'_1$&116.9&116.9\\\hline
+        $T'_2$&121.7&121.7\\\hline
+        $T'_{min}=\frac{T'_1+T'_2}{2}$&119.3&119.3\\\hline
+        $\lambda_g=2\left|T'_{min}-T_{min}\right|$&39.9&39.9\\\hline
+        自由波长$\lambda_0=\frac{\lambda_g}{\sqrt{1+(\frac{\lambda_g}{2a})^2}}$&\multicolumn{2}{c|}{30.06}\\\hline
+    \end{tabular}
+\end{table}
+
+
+\subsubsection{电压驻波系数的测量}
+实验测量数据记录如下表：
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{2}
+
+    \caption{测量电压驻波系数}
+    \begin{tabular}{|c|p{2cm}<{\centering}|p{2cm}<{\centering}|p{2cm}<{\centering}|p{2cm}<{\centering}|}\hline
+        \diagbox{物理量（mV)}{测量次数}&1&2&3&均值\\\hline
+        $I_{max}$&480&479&479&479.33\\\hline
+        $I_{min}$&26&26&26&26.00\\\hline
+        $\rho=\sqrt{\frac{I_{max1}+I_{max2}+I_{max3}}{I_{min1}+I_{min2}+I_{min3}}}$&\multicolumn{4}{c|}{4.294}\\\hline
+    \end{tabular}
+\end{table}
+
+从实验测量数据和计算结果来看，电压驻波系数$1.5<\rho<5$，因此可以直接读出$I_{max}$和$I_{min}$。
+
+\subsubsection{阻抗测量}
+
+实验所用的史密斯圆图如下所示：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{smith1.png}
+    \caption{史密斯圆图}
+\end{figure}
+
+实验记录数据如下表所示：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+
+    \caption{测量阻抗}
+    \begin{tabular}{|c|p{3cm}<{\centering}|}\hline
+        物理量&实验结果\\\hline
+        $D_T$&119.3mm\\\hline
+        $D_A$&120.0mm\\\hline
+        $l_{min}$&0.7mm\\\hline
+        $l_{min}/\lambda_g$&0.0175\\\hline
+        用史密斯圆图测得的归一化阻抗$\bar{z}_L$&0.23-0.115j\\\hline
+        实际阻抗值$z_L$&(11.5-5.75j)$\Omega$\\\hline
+    \end{tabular}
+\end{table}
+
+\section{思考题}
+
+\question{1.}{\textbf{用相干波侧电磁波波长时，介质板放置位置若转90°，将出现什么现象？这时能否测准$\lambda$？为什么？}}
+
+在这个装置中，发射喇叭发出的电磁波到达介质板C后，将被分成两部分：一部分直接反射到达接收喇叭；另一部分先经过投透到达金属板B，再被B反射后到达介质板，其
+中一部分再被介质板反射到金属板A，再由A反射到介质板经过折射通过介质板到达接收喇叭，相当于经历了两次透射和两次反射。
+
+这种情况下，上述第二部分电磁波的路径衰减较第一部分大很多，在接收喇叭处会因为两部分的电磁波幅度相差较大，难以形成明显的干涉效应，此时相消干涉的叠加的最小值不为0，此时理论上
+还可以测量$\lambda$，只需要找到场强最小值即可，但是在实际测量中这个值很有可能无法准确找到，因此无法测准$\lambda$。\\
+
+\question{2.}{\textbf{如何根据天线反射面的开缝方向判断其发射的电磁波的极化方向？}}
+
+可以将开缝方向类比于平行于该方向的一个矩形波导，当电场方向与开缝长边方向平行时，相当于缝宽很小，此时相当于矩形波导$\lambda>2a$，出现截止衰减，
+    电磁波被反射。同理，当电场方向与开缝短边方向平行时，相当于矩形波导的缝宽比较大，此时反射作用较弱，电磁波可以通过矩形波导传输过去，透射电磁波较强。
+
+    据此，在开缝板后放置接收装置，旋转反射面开缝方向，观察在不同方向下电磁波的穿透情况即可判断电磁波的极化方向。\\
+
+
+\question{3.}{\textbf{分析实验中开缝板的缝宽和信号频率的关系。}}
+
+本实验中反射板的开缝可近似等效为矩形波导，而矩形波导的截止波长为：
+$$
+\lambda_c=\frac{2\pi}{\sqrt{(\frac{m}{a})^2+(\frac{n}{b})^2}}
+$$
+
+可计算矩形波导中各模式的截止波长，对于矩形波导的基模$TE_{10}$有$m=1,n=0$，由此可得$\lambda_c=2a$，$f_c=\frac{c}{2a}$。
+若想要电磁波能穿透金属板，需满足$\lambda<\lambda_c$，则应使得$f>f_c$。\\
+
+\question{4.}{\textbf{为使开缝板达到更好的截止效应，对缝宽与板厚有什么要求？}}
+
+可以将开缝方向类比于平行于该方向的一个矩形波导，缝宽越窄，截止波长越小，对发生截止的电磁波的衰减更强；板厚越厚，相当于电磁波在波导内的衰减距离越大，从而对电磁波的衰减越大。
+
+因此，开缝板的缝宽越窄、板厚越厚，开缝板的截止效应越好。\\
+
+\question{5.}{\textbf{实验中波导系统的频响特性由哪些因素决定？}}
+
+实验中波导系统的频响特性由波导的尺寸参数、波导材料、衰减器的频率响应、探针的深度以及探针本身对测量系统内部场型的影响、所接负载等因素决定。\\
+
+\question{6.}{\textbf{开口波导的驻波比$\rho\neq\infty$，为什么？}}
+
+从驻波比的表达式可以看出，$\rho\neq \infty$的原因是因为最小点场强不为零。这个原因是因为开口波导会从开口处向外场辐射电磁波，因此不完全反射。
+
+此外，开口波导的空气介质并不能等效为理想的开路，故$\bar{z}\neq\infty$，从而
+
+$$
+\Gamma=\frac{\bar{z}-1}{\bar{z}+1}\neq1
+$$
+$$
+\rho=\frac{1+\left|\Gamma\right|}{1-\left|\Gamma\right|}\neq\infty
+$$
+
+无法形成纯驻波状态。
+
+
+\section{实验总结}
+
+在本次实验中，我通过具体操作认识了电磁波在空间中的特性，除了验证在理论课上学到的知识之外，也深刻地感受到了理论与实际之间的差距，对于原本陌生的理论上手操作后
+也有了更好的掌握。
+
+此外，本次实验的最后还用到了Smith圆图，这让我第一次直观认识到了圆图的方便，根据传输线规律绘制的圆图
+不需要经过复杂的复数计算，非常方便。
+
+最后，感谢凌丹老师和助教在实验中提供的指导和帮助！
+
+\newpage
+\section{实验原始数据}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{1.jpg}
+\end{figure}
+\newpage
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{2.jpg}
+\end{figure}
+\end{document}

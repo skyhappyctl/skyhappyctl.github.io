@@ -1,0 +1,842 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{实验三：存储管理}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{实验题目：动态分区存储管理}
+本实验选择了动态分区存储管理，操作系统平台选为Windows，实现语言为C++。
+
+\subsection{问题描述}
+分区存储管理有固定分区和动态分区两种方法。固定分区把内存划分为若干个固定大小
+的连续分区，每个分区的边界固定；而动态分区并不预先将内存事先划分成分区，当程序需
+要装入内存时系统从空闲的内存区中，采用不同的分配算法分配大小等于程序所需的内存空
+间。它有效地克服了固定分区方式中，由于分区内部剩余内存空置造成浪费的问题。
+
+请基于空闲内存分区链表的存储管理，设计一个动态分区存储管理程序，支持包括首次
+适配法、下次适配法、最佳适配法和最坏适配法在内的不同分区分配算法。
+
+\subsection{实现要求}
+\begin{description}
+    \item[1.] 维护一个记录已分配内存分区和空闲内存分区的链表；
+    \item[2.] 设计申请、释放函数循环处理用户的请求；
+    \item[3.] 实现首次适配法、下次适配法、最佳适配法和最坏适配法四种分区分配算法；
+    \item[4.] 可视化展示内存使用情况。
+\end{description}
+
+
+\subsection{程序设计思路}
+首先对内存分区定义一个结构体，因为是用链表管理，因此包含起始地址、分区大小、分区状态（占用还是空闲）、指向下一块分区的指针。然后定义一个
+MMU类，用于进行内存分区的管理。该类中的函数可以实现在分区后插入、删除新分区，并可以归并空闲分区。同时按照题目要求，实现首次
+适配法、下次适配法、最佳适配法和最坏适配法在内的四种分区分配算法。最后编写一个可视化函数，用于和用户交互。用户可以自行定义内存大小、对内存分区的分配（还可以选择使用什么算法分配）和释放、显示当前
+内存分配情况等操作。
+
+\subsubsection{内存分区节点结构体定义}
+\begin{lstlisting}[frame=shadowbox, language=C]
+enum Status {FREE, ALLOCATED};
+
+// 内存分区节点结构体
+struct Partition {
+    int start;      // 起始地址
+    int size;       // 分区大小
+    Status status;  // 分区状态
+    Partition* next;// 下一个分区指针
+
+    Partition(int s, int size, Status status)
+        : start(s), size(size), status(status), next(nullptr) {
+    }
+};
+\end{lstlisting}
+
+这一部分代码定义了内存分区结构体，包含了每个内存分区的基本信息。
+
+\subsubsection{MemoryManageUnit(MMU)类}
+\begin{lstlisting}[frame=shadowbox, language=C]
+class MemoryManageUnit {
+private:
+    int total_size;             //内存总大小
+    Partition* head;            //表头
+    Partition* last_used;       //下次适配算法的起始位置
+
+    void insertbehind(Partition* prev, Partition* newNode) {
+        newNode->next = prev->next;
+        prev->next = newNode;
+    }
+
+    void deletenode(Partition* prev, Partition* target) {
+        prev->next = target->next;
+        delete target;
+    }
+
+    // 合并相邻空闲分区
+    void mergeFree(Partition* node) {
+        //合并后驱空间分区
+        while (node->next && node->next->status == FREE) {
+            node->size += node->next->size;
+            Partition* temp = node->next;
+            node->next = temp->next;
+            delete temp;
+        }
+        //合并前驱空间分区
+        Partition* current = head;
+        Partition* prev = nullptr;
+        while (current) {
+            if (current == node && prev && prev->status == FREE) {
+                prev->size += node->size;
+                prev->next = node->next;
+                delete node;
+                node = prev; // 更新为合并后的前驱节点
+            }
+            prev = current;
+            current = current->next;
+        }
+    }
+
+    // 首次适配算法，找到合适的空闲区就分配
+    Partition* firstFit(int size) {
+        Partition* current = head;
+        while (current) {
+            if (current->status == FREE && current->size >= size) {
+                return current;
+            }
+            current = current->next;
+        }
+        return nullptr;
+    }
+
+    // 下次适配算法，从上次分配的位置开始查找下一个满足要求的空闲区
+    Partition* nextFit(int size) {
+        Partition* current = last_used->next ? last_used->next : head;
+        while (true) {
+            if (current->status == FREE && current->size >= size) {
+                last_used = current; // 更新上次结束位置
+                return current;
+            }
+            if (current == last_used) break; // 遍历完所有节点
+            current = current->next;
+        }
+        return nullptr;
+    }
+
+    // 最佳适配算法，找到大小最合适（最小的）的空闲区
+    Partition* bestFit(int size) {
+        Partition* best = nullptr;
+        int minSize = INT_MAX;
+        Partition* current = head;
+        while (current) {
+            if (current->status == FREE && current->size >= size) {
+                if (current->size < minSize) {
+                    minSize = current->size;
+                    best = current;
+                }
+            }
+            current = current->next;
+        }
+        return best;
+    }
+
+    // 最坏适配算法，找到最大的空闲区分配
+    Partition* worstFit(int size) {
+        Partition* worst = nullptr;
+        int maxSize = -1;
+        Partition* current = head;
+        while (current) {
+            if (current->status == FREE && current->size >= size) {
+                if (current->size > maxSize) {
+                    maxSize = current->size;
+                    worst = current;
+                }
+            }
+            current = current->next;
+        }
+        return worst;
+    }
+
+public: 
+    //构造函数
+    MemoryManageUnit(int total_size = 1024) : total_size(total_size) {
+        head = new Partition(0, total_size, FREE);
+        last_used = head;
+    }
+
+    //析构函数
+    ~MemoryManageUnit() {
+        Partition* current = head;
+        while (current) {
+            Partition* temp = current;
+            current = current->next;
+            delete temp;
+        }
+    }
+
+    //内存分配接口
+    bool allocate(int size, const string& algorithm) {
+        if (size <= 0) {
+            cout << "错误：申请内存大小必须大于0!" << endl;
+            return false;
+        }
+
+        Partition* found = nullptr;                             //找到合适的空闲分区
+        if (algorithm == "first_fit") found = firstFit(size);
+        else if (algorithm == "next_fit") found = nextFit(size);
+        else if (algorithm == "best_fit") found = bestFit(size);
+        else if (algorithm == "worst_fit") found = worstFit(size);
+        else {
+            cout << "错误：未知的分配算法!" << endl;
+            return false;
+        }
+
+        if (!found) {
+            cout << "错误：无足够空间分配! " << size << endl;
+            return false;
+        }
+
+        // 分割空闲分区
+        if (found->size > size) {
+            Partition* newPartition = new Partition(found->start + size, found->size - size, FREE);
+            insertbehind(found, newPartition);
+            found->size = size;
+        }
+
+        found->status = ALLOCATED;
+        return true;
+    }
+
+    // 内存释放接口
+    bool free(int start) {
+        Partition* current = head;
+        Partition* prev = nullptr;
+        while (current) {
+            if (current->status == ALLOCATED && current->start == start) {
+                current->status = FREE;
+                mergeFree(current); // 合并相邻空闲分区
+                return true;
+            }
+            prev = current;
+            current = current->next;
+        }
+        cout << "错误：未找到起始地址为 " << start << " 的已分配分区!" << endl;
+        return false;
+    }
+
+    // 可视化内存状态函数
+    void visualize() {
+        cout << "\n内存使用情况（地址从低到高）：" << endl;
+        cout << string(50, '=') << endl;
+        Partition* current = head;
+        while (current) {
+            string status = (current->status == ALLOCATED) ? "已分配" : "空闲";
+            cout << "地址：" << current->start << "-"
+                << current->start + current->size - 1 << " | "
+                << "大小：" << current->size << "  KB" << " | 状态：" << status << endl;
+            current = current->next;
+        }
+        cout << string(50, '=') << "\n" << endl;
+    }
+};
+\end{lstlisting}
+首先，insertbehind和deletenode函数可以实现指定分区的分配和释放，mergeFree函数可以将多个连在一起的空闲碎片合并变为一整个空闲分区。firstFit、nextFit、bestFit、worstFit这四个
+函数对应的就是首次适配法、下次适配法、最佳适配法和最坏适配法这四种算法。而allocate函数是内存分配操作的接口，成功分配返回true；free函数是内存释放接口，成功释放返回true;visualize函数是可视化
+内存状态函数，通过此可以看到目前内存分配情况。
+
+\subsubsection{菜单函数}
+\begin{lstlisting}[frame=shadowbox, language=C]
+void menu(MemoryManageUnit mmu)
+{
+    int choice;
+    while (true) {
+        cout << "\n===================== 内存管理菜单 =====================" << endl;
+        cout << "1. 分配内存（Allocate memory）" << endl;
+        cout << "2. 释放内存(Deallocate memory)" << endl;
+        cout << "3. 显示内存分配情况(Display memory allocation status)" << endl;
+        cout << "4. 退出(Exit)" << endl;
+        cout << "请输入选项（1-4）: ";
+
+        if (cin >> choice) {
+            if (choice >= 1 && choice <= 4) {
+                switch (choice) {
+                case 1: { // 内存分配
+                    int size;
+                    string algo;
+                    cout << "\n请输入要分配的内存大小（默认单位为KB）: ";
+                    cin >> size;
+                    cout << "请选择分配算法（first_fit/next_fit/best_fit/worst_fit）: ";
+                    cin >> algo;
+                    bool flag = mmu.allocate(size, algo);
+                    if(flag)
+                    {
+                        cout << "已分配成功！当前的内存分配情况为：" << endl;
+                        mmu.visualize();
+                        cin.clear();
+                    }
+                    else
+                    {
+                        cout << "出现异常错误，分配失败！" << endl;
+                        cin.clear();
+                    }
+                    break;
+                }
+                case 2: { // 内存释放
+                    int start;
+                    cout << "\n请输入要释放分区的起始地址: ";
+                    cin >> start;
+                    bool flag = mmu.free(start);
+                    if (flag)
+                    {
+                        cout << "已释放成功！当前的内存分配情况为：" << endl;
+                        mmu.visualize();
+                        cin.clear();
+                    }
+                    else
+                    {
+                        cout << "出现异常错误，释放失败！" << endl;
+                        cin.clear();
+                    }
+                    break;
+                }
+                case 3: // 显示状态
+                    mmu.visualize();
+                    cin.clear();
+                    break;
+                case 4: // 退出程序
+                    cout << "感谢使用，程序已退出！" << endl;
+                    cin.clear();
+                    return;
+                }
+            }
+        }
+        else {
+            // 清除输入错误状态
+            cin.clear();
+            // 忽略输入缓冲区中的剩余字符
+            cin.ignore(INT_MAX, '\n');
+            cout << "输入无效，请重新输入1-4的数字！" << endl;
+        }
+    }
+}
+\end{lstlisting}
+
+这一函数是菜单函数，用于可视化内存分配情况，以及和用户实现交互。
+
+\subsubsection{主函数}
+\begin{lstlisting}[frame=shadowbox, language=C]
+int main() {
+    
+    int init_mem_size;
+    cout << "初始化内存大小（默认单位为KB)：";
+    cin >> init_mem_size;
+    MemoryManageUnit mmu(init_mem_size);   //默认以KB为内存单位
+    menu(mmu);
+	return 0;
+}
+\end{lstlisting}
+
+在主函数中，可以定义内存初始大小，并调用菜单函数实现用户和系统交互。
+
+
+
+\section{实验结果}
+实验结果已经保存在result.txt中，助教可以自行运行程序使用，示例结果如下：
+\begin{lstlisting}[frame=shadowbox]
+初始化内存大小（默认单位为KB)：2048
+
+===================== 内存管理菜单 =====================
+1. 分配内存（Allocate memory）
+2. 释放内存(Deallocate memory)
+3. 显示内存分配情况(Display memory allocation status)
+4. 退出(Exit)
+请输入选项（1-4）: 1
+
+请输入要分配的内存大小（默认单位为KB）: 700
+请选择分配算法（first_fit/next_fit/best_fit/worst_fit）: best_fit
+已分配成功！当前的内存分配情况为：
+
+内存使用情况（地址从低到高）：
+==================================================
+地址：0-699 | 大小：700  KB | 状态：已分配
+地址：700-2047 | 大小：1348  KB | 状态：空闲
+==================================================
+
+
+===================== 内存管理菜单 =====================
+1. 分配内存（Allocate memory）
+2. 释放内存(Deallocate memory)
+3. 显示内存分配情况(Display memory allocation status)
+4. 退出(Exit)
+请输入选项（1-4）: 1
+
+请输入要分配的内存大小（默认单位为KB）: 800
+请选择分配算法（first_fit/next_fit/best_fit/worst_fit）: best_fit
+已分配成功！当前的内存分配情况为：
+
+内存使用情况（地址从低到高）：
+==================================================
+地址：0-699 | 大小：700  KB | 状态：已分配
+地址：700-1499 | 大小：800  KB | 状态：已分配
+地址：1500-2047 | 大小：548  KB | 状态：空闲
+==================================================
+
+
+===================== 内存管理菜单 =====================
+1. 分配内存（Allocate memory）
+2. 释放内存(Deallocate memory)
+3. 显示内存分配情况(Display memory allocation status)
+4. 退出(Exit)
+请输入选项（1-4）: 2
+
+请输入要释放分区的起始地址: 0
+已释放成功！当前的内存分配情况为：
+
+内存使用情况（地址从低到高）：
+==================================================
+地址：0-699 | 大小：700  KB | 状态：空闲
+地址：700-1499 | 大小：800  KB | 状态：已分配
+地址：1500-2047 | 大小：548  KB | 状态：空闲
+==================================================
+
+
+===================== 内存管理菜单 =====================
+1. 分配内存（Allocate memory）
+2. 释放内存(Deallocate memory)
+3. 显示内存分配情况(Display memory allocation status)
+4. 退出(Exit)
+请输入选项（1-4）: 1
+
+请输入要分配的内存大小（默认单位为KB）: 500
+请选择分配算法（first_fit/next_fit/best_fit/worst_fit）: best_fit
+已分配成功！当前的内存分配情况为：
+
+内存使用情况（地址从低到高）：
+==================================================
+地址：0-699 | 大小：700  KB | 状态：空闲
+地址：700-1499 | 大小：800  KB | 状态：已分配
+地址：1500-1999 | 大小：500  KB | 状态：已分配
+地址：2000-2047 | 大小：48  KB | 状态：空闲
+==================================================
+
+
+===================== 内存管理菜单 =====================
+1. 分配内存（Allocate memory）
+2. 释放内存(Deallocate memory)
+3. 显示内存分配情况(Display memory allocation status)
+4. 退出(Exit)
+请输入选项（1-4）: 1
+
+请输入要分配的内存大小（默认单位为KB）: 30
+请选择分配算法（first_fit/next_fit/best_fit/worst_fit）: worst_fit
+已分配成功！当前的内存分配情况为：
+
+内存使用情况（地址从低到高）：
+==================================================
+地址：0-29 | 大小：30  KB | 状态：已分配
+地址：30-699 | 大小：670  KB | 状态：空闲
+地址：700-1499 | 大小：800  KB | 状态：已分配
+地址：1500-1999 | 大小：500  KB | 状态：已分配
+地址：2000-2047 | 大小：48  KB | 状态：空闲
+==================================================
+
+
+===================== 内存管理菜单 =====================
+1. 分配内存（Allocate memory）
+2. 释放内存(Deallocate memory)
+3. 显示内存分配情况(Display memory allocation status)
+4. 退出(Exit)
+请输入选项（1-4）: 1
+
+请输入要分配的内存大小（默认单位为KB）: 100
+请选择分配算法（first_fit/next_fit/best_fit/worst_fit）: next_fit
+已分配成功！当前的内存分配情况为：
+
+内存使用情况（地址从低到高）：
+==================================================
+地址：0-29 | 大小：30  KB | 状态：已分配
+地址：30-129 | 大小：100  KB | 状态：已分配
+地址：130-699 | 大小：570  KB | 状态：空闲
+地址：700-1499 | 大小：800  KB | 状态：已分配
+地址：1500-1999 | 大小：500  KB | 状态：已分配
+地址：2000-2047 | 大小：48  KB | 状态：空闲
+==================================================
+
+
+===================== 内存管理菜单 =====================
+1. 分配内存（Allocate memory）
+2. 释放内存(Deallocate memory)
+3. 显示内存分配情况(Display memory allocation status)
+4. 退出(Exit)
+请输入选项（1-4）: 4
+感谢使用，程序已退出！
+
+\end{lstlisting}
+
+可以从结果看出，该程序的各个功能以及四种分配算法是正确的。
+\section{思考题}
+
+\question{1.}{\textbf{基于位图和空闲链表的存储管理各有什么优劣？如果使用基于位图的存储管理，有何额
+外注意事项？}}
+
+使用位图管理的优势是空间利用效率高，仅用1bit表示占用状态，内存占用极小；可以通过位运算直接定位某块是否空闲，时间复杂度为 O (1)；对于固定块大小的系统，管理逻辑非常简单。但是
+缺点同样很明显，分配大块空间时效率极低，需要扫描位图寻找连续的 “0” 位；并且无法直接支持可变大小的存储块。
+
+使用空闲链表管理的优势是支持可变大小块，适合动态内存分配；并且分配算法灵活，可结合不同算法优化分配效率，减少内存碎片；在释放块时可快速合并相邻空闲块，减少外碎片。
+缺点是链表查找的效率较低，性能随链表长度增加而下降明显；同时相较于位图管理，每个节点需存储地址、大小、指针等信息，链表长度随空闲块数增加而膨胀；对于维护链表的代价也更高，逻辑也更复杂。
+
+若使用位图管理，需要注意切割内存片的大小。块大小过小将导致位图过大，过大则浪费空间（产生大量内碎片）。同时要注意，块地址需与块大小对齐。
+在多线程或多进程环境下，位图的修改必须加互斥锁保护，防止多个操作同时修改同一位造成错误。
+
+
+\section{实验总结}
+
+本次实验中，我通过实现动态内存分区管理对内存的分区管理细节有了更近一步的了解。在理解了理论的同时，使用C++具体实现，并且完成了首次
+适配法、下次适配法、最佳适配法和最坏适配法四种算法的实现，在测试中也感受到了不同分配算法对内存分配的结果有何影响。在完成试验后，还对固定分区、空闲链表管理的性能和效果
+做了一定的分析。
+在最后做思考题时也对课上所学的位图、空闲链表管理的知识做了回顾。未来可以在此基础上实现伙伴系统，对比不同算法在内存碎片与分配速度上的差异。
+
+最后，感谢老师和助教的批阅！
+
+\newpage
+\section{源代码}
+
+\begin{lstlisting}[frame=shadowbox, caption=main.cpp,language=C]
+#include <iostream>
+#include <string>
+#include <climits>
+
+using namespace std;
+
+enum Status {FREE, ALLOCATED};
+
+// 内存分区节点结构体
+struct Partition {
+    int start;      // 起始地址
+    int size;       // 分区大小
+    Status status;  // 分区状态
+    Partition* next;// 下一个分区指针
+
+    Partition(int s, int size, Status status)
+        : start(s), size(size), status(status), next(nullptr) {
+    }
+};
+
+
+class MemoryManageUnit {
+private:
+    int total_size;             //内存总大小
+    Partition* head;            //表头
+    Partition* last_used;       //下次适配算法的起始位置
+
+    void insertbehind(Partition* prev, Partition* newNode) {
+        newNode->next = prev->next;
+        prev->next = newNode;
+    }
+
+    void deletenode(Partition* prev, Partition* target) {
+        prev->next = target->next;
+        delete target;
+    }
+
+    // 合并相邻空闲分区
+    void mergeFree(Partition* node) {
+        //合并后驱空间分区
+        while (node->next && node->next->status == FREE) {
+            node->size += node->next->size;
+            Partition* temp = node->next;
+            node->next = temp->next;
+            delete temp;
+        }
+        //合并前驱空间分区
+        Partition* current = head;
+        Partition* prev = nullptr;
+        while (current) {
+            if (current == node && prev && prev->status == FREE) {
+                prev->size += node->size;
+                prev->next = node->next;
+                delete node;
+                node = prev; // 更新为合并后的前驱节点
+            }
+            prev = current;
+            current = current->next;
+        }
+    }
+
+    // 首次适配算法，找到合适的空闲区就分配
+    Partition* firstFit(int size) {
+        Partition* current = head;
+        while (current) {
+            if (current->status == FREE && current->size >= size) {
+                return current;
+            }
+            current = current->next;
+        }
+        return nullptr;
+    }
+
+    // 下次适配算法，从上次分配的位置开始查找下一个满足要求的空闲区
+    Partition* nextFit(int size) {
+        Partition* current = last_used->next ? last_used->next : head;
+        while (true) {
+            if (current->status == FREE && current->size >= size) {
+                last_used = current; // 更新上次结束位置
+                return current;
+            }
+            if (current == last_used) break; // 遍历完所有节点
+            current = current->next;
+        }
+        return nullptr;
+    }
+
+    // 最佳适配算法，找到大小最合适（最小的）的空闲区
+    Partition* bestFit(int size) {
+        Partition* best = nullptr;
+        int minSize = INT_MAX;
+        Partition* current = head;
+        while (current) {
+            if (current->status == FREE && current->size >= size) {
+                if (current->size < minSize) {
+                    minSize = current->size;
+                    best = current;
+                }
+            }
+            current = current->next;
+        }
+        return best;
+    }
+
+    // 最坏适配算法，找到最大的空闲区分配
+    Partition* worstFit(int size) {
+        Partition* worst = nullptr;
+        int maxSize = -1;
+        Partition* current = head;
+        while (current) {
+            if (current->status == FREE && current->size >= size) {
+                if (current->size > maxSize) {
+                    maxSize = current->size;
+                    worst = current;
+                }
+            }
+            current = current->next;
+        }
+        return worst;
+    }
+
+public: 
+    //构造函数
+    MemoryManageUnit(int total_size = 1024) : total_size(total_size) {
+        head = new Partition(0, total_size, FREE);
+        last_used = head;
+    }
+
+    //析构函数
+    ~MemoryManageUnit() {
+        Partition* current = head;
+        while (current) {
+            Partition* temp = current;
+            current = current->next;
+            delete temp;
+        }
+    }
+
+    //内存分配接口
+    bool allocate(int size, const string& algorithm) {
+        if (size <= 0) {
+            cout << "错误：申请内存大小必须大于0!" << endl;
+            return false;
+        }
+
+        Partition* found = nullptr;                             //找到合适的空闲分区
+        if (algorithm == "first_fit") found = firstFit(size);
+        else if (algorithm == "next_fit") found = nextFit(size);
+        else if (algorithm == "best_fit") found = bestFit(size);
+        else if (algorithm == "worst_fit") found = worstFit(size);
+        else {
+            cout << "错误：未知的分配算法!" << endl;
+            return false;
+        }
+
+        if (!found) {
+            cout << "错误：无足够空间分配! " << size << endl;
+            return false;
+        }
+
+        // 分割空闲分区
+        if (found->size > size) {
+            Partition* newPartition = new Partition(found->start + size, found->size - size, FREE);
+            insertbehind(found, newPartition);
+            found->size = size;
+        }
+
+        found->status = ALLOCATED;
+        return true;
+    }
+
+    // 内存释放接口
+    bool free(int start) {
+        Partition* current = head;
+        Partition* prev = nullptr;
+        while (current) {
+            if (current->status == ALLOCATED && current->start == start) {
+                current->status = FREE;
+                mergeFree(current); // 合并相邻空闲分区
+                return true;
+            }
+            prev = current;
+            current = current->next;
+        }
+        cout << "错误：未找到起始地址为 " << start << " 的已分配分区!" << endl;
+        return false;
+    }
+
+    // 可视化内存状态函数
+    void visualize() {
+        cout << "\n内存使用情况（地址从低到高）：" << endl;
+        cout << string(50, '=') << endl;
+        Partition* current = head;
+        while (current) {
+            string status = (current->status == ALLOCATED) ? "已分配" : "空闲";
+            cout << "地址：" << current->start << "-"
+                << current->start + current->size - 1 << " | "
+                << "大小：" << current->size << "  KB" << " | 状态：" << status << endl;
+            current = current->next;
+        }
+        cout << string(50, '=') << "\n" << endl;
+    }
+
+
+};
+
+void menu(MemoryManageUnit mmu)
+{
+    int choice;
+    while (true) {
+        cout << "\n===================== 内存管理菜单 =====================" << endl;
+        cout << "1. 分配内存（Allocate memory）" << endl;
+        cout << "2. 释放内存(Deallocate memory)" << endl;
+        cout << "3. 显示内存分配情况(Display memory allocation status)" << endl;
+        cout << "4. 退出(Exit)" << endl;
+        cout << "请输入选项（1-4）: ";
+
+        if (cin >> choice) {
+            if (choice >= 1 && choice <= 4) {
+                switch (choice) {
+                case 1: { // 内存分配
+                    int size;
+                    string algo;
+                    cout << "\n请输入要分配的内存大小（默认单位为KB）: ";
+                    cin >> size;
+                    cout << "请选择分配算法（first_fit/next_fit/best_fit/worst_fit）: ";
+                    cin >> algo;
+                    bool flag = mmu.allocate(size, algo);
+                    if(flag)
+                    {
+                        cout << "已分配成功！当前的内存分配情况为：" << endl;
+                        mmu.visualize();
+                        cin.clear();
+                    }
+                    else
+                    {
+                        cout << "出现异常错误，分配失败！" << endl;
+                        cin.clear();
+                    }
+                    break;
+                }
+                case 2: { // 内存释放
+                    int start;
+                    cout << "\n请输入要释放分区的起始地址: ";
+                    cin >> start;
+                    bool flag = mmu.free(start);
+                    if (flag)
+                    {
+                        cout << "已释放成功！当前的内存分配情况为：" << endl;
+                        mmu.visualize();
+                        cin.clear();
+                    }
+                    else
+                    {
+                        cout << "出现异常错误，释放失败！" << endl;
+                        cin.clear();
+                    }
+                    break;
+                }
+                case 3: // 显示状态
+                    mmu.visualize();
+                    cin.clear();
+                    break;
+                case 4: // 退出程序
+                    cout << "感谢使用，程序已退出！" << endl;
+                    cin.clear();
+                    return;
+                }
+            }
+        }
+        else {
+            // 清除输入错误状态
+            cin.clear();
+            // 忽略输入缓冲区中的剩余字符
+            cin.ignore(INT_MAX, '\n');
+            cout << "输入无效，请重新输入1-4的数字！" << endl;
+        }
+    }
+}
+
+int main() {
+    
+    int init_mem_size;
+    cout << "初始化内存大小（默认单位为KB)：";
+    cin >> init_mem_size;
+    MemoryManageUnit mmu(init_mem_size);   //默认以KB为内存单位
+    menu(mmu);
+	return 0;
+}
+
+\end{lstlisting}
+\end{document}

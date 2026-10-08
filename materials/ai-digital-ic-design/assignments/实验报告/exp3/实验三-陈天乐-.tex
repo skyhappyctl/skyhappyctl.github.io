@@ -1,0 +1,2023 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{markdown}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{人工智能赋能的数字集成电路设计 作业三}}
+\author{陈天乐\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{功能一：代码补全 }
+将代码选中，右键选择Generate Code的功能。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{代码补全.png}
+    \caption{代码补全}
+\end{figure}
+
+生成的代码如下：
+\begin{lstlisting}[frame=shadowbox,caption=Demo\_RTL\_Complete.v]
+/*
+This is a multiplier for floating point
+- Support IEEE 754 Half-Precision Floating-Point Format (FP16):
+	- Handle all special cases (zero, infinity, NaN) as specified by IEEE 754.
+	- Ensure correct rounding to the nearest even value.
+- Use valid and ready signals for handshake. When valid is high, the input operands A and B are ready. When ready is high, the result C is valid.
+*/
+
+module fp_multiplier (
+    input clk,
+    input rst_n,
+    input [15:0] A,
+    input [15:0] B,
+    input Ready,
+    output reg [15:0] C,
+    output reg Valid
+);
+// Internal registers for pipeline stages
+    reg [15:0] A_reg, B_reg;
+    reg ready_reg;
+    reg [1:0] state;
+    
+    // Floating point components extraction
+    wire sign_A, sign_B;
+    wire [4:0] exp_A, exp_B;
+    wire [9:0] frac_A, frac_B;
+    
+    // Stage 1 signals
+    reg stage1_valid;
+    reg sign_prod;
+    reg [5:0] exp_sum;
+    reg [21:0] frac_prod;
+    reg is_zero_A, is_zero_B;
+    reg is_inf_A, is_inf_B;
+    reg is_nan_A, is_nan_B;
+    
+    // Stage 2 signals
+    reg stage2_valid;
+    reg [4:0] exp_adj;
+    reg [10:0] frac_rounded;
+    reg is_zero_prod, is_inf_prod, is_nan_prod;
+    
+    // Constants
+    localparam [4:0] EXP_BIAS = 5'd15;
+    localparam [4:0] EXP_MAX = 5'd31;
+    localparam [4:0] EXP_MIN = 5'd0;
+    
+    // Extract components
+    assign sign_A = A_reg[15];
+    assign exp_A = A_reg[14:10];
+    assign frac_A = A_reg[9:0];
+    
+    assign sign_B = B_reg[15];
+    assign exp_B = B_reg[14:10];
+    assign frac_B = B_reg[9:0];
+    
+    // Special case detection
+    always @(*) begin
+        is_zero_A = (exp_A == 5'b0) && (frac_A == 10'b0);
+        is_inf_A = (exp_A == 5'b11111) && (frac_A == 10'b0);
+        is_nan_A = (exp_A == 5'b11111) && (frac_A != 10'b0);
+        
+        is_zero_B = (exp_B == 5'b0) && (frac_B == 10'b0);
+        is_inf_B = (exp_B == 5'b11111) && (frac_B == 10'b0);
+        is_nan_B = (exp_B == 5'b11111) && (frac_B != 10'b0);
+    end
+    
+    // Pipeline stage 1: Multiplication and special case handling
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            stage1_valid <= 1'b0;
+            sign_prod <= 1'b0;
+            exp_sum <= 6'b0;
+            frac_prod <= 22'b0;
+        end else if (ready_reg) begin
+            stage1_valid <= 1'b1;
+            
+            // Sign calculation
+            sign_prod <= sign_A ^ sign_B;
+            
+            // Exponent calculation (subtract bias)
+            exp_sum <= {1'b0, exp_A} + {1'b0, exp_B} - EXP_BIAS;
+            
+            // Fraction multiplication (with implicit 1)
+            if (is_zero_A || is_zero_B) begin
+                frac_prod <= 22'b0;
+            end else begin
+                frac_prod <= {1'b1, frac_A} * {1'b1, frac_B};
+            end
+        end else begin
+            stage1_valid <= 1'b0;
+        end
+    end
+    
+    // Rounding logic (round to nearest even)
+    wire [21:0] frac_normalized;
+    wire [4:0] exp_normalized;
+    wire round_bit, sticky_bit, guard_bit;
+    wire round_up;
+    
+    // Normalization
+    assign frac_normalized = (frac_prod[21]) ? (frac_prod >> 1) : frac_prod;
+    assign exp_normalized = (frac_prod[21]) ? (exp_sum + 1) : exp_sum;
+    
+    // Rounding bits
+    assign guard_bit = frac_normalized[10];
+    assign round_bit = frac_normalized[9];
+    assign sticky_bit = |frac_normalized[8:0];
+    
+    // Round to nearest even
+    assign round_up = guard_bit & (round_bit | sticky_bit | frac_normalized[11]);
+    
+    // Pipeline stage 2: Normalization, rounding and final result assembly
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            stage2_valid <= 1'b0;
+            C <= 16'b0;
+            Valid <= 1'b0;
+            exp_adj <= 5'b0;
+            frac_rounded <= 11'b0;
+            is_zero_prod <= 1'b0;
+            is_inf_prod <= 1'b0;
+            is_nan_prod <= 1'b0;
+        end else if (stage1_valid) begin
+            stage2_valid <= 1'b1;
+            
+            // Handle special cases
+            is_nan_prod <= is_nan_A | is_nan_B | (is_inf_A & is_zero_B) | (is_zero_A & is_inf_B);
+            is_inf_prod <= (is_inf_A | is_inf_B) & ~is_nan_prod;
+            is_zero_prod <= (is_zero_A | is_zero_B) & ~is_nan_prod;
+            
+            if (is_nan_prod) begin
+                // NaN result
+                C <= {sign_prod, 5'b11111, 10'b1};
+            end else if (is_inf_prod) begin
+                // Infinity result
+                C <= {sign_prod, 5'b11111, 10'b0};
+            end else if (is_zero_prod) begin
+                // Zero result
+                C <= {sign_prod, 15'b0};
+            end else begin
+                // Normal case: apply rounding
+                if (round_up) begin
+                    frac_rounded <= frac_normalized[21:11] + 1;
+                    exp_adj <= exp_normalized;
+                    
+                    // Handle carry from rounding
+                    if (frac_rounded[10]) begin
+                        frac_rounded <= {1'b0, frac_rounded[10:1]};
+                        exp_adj <= exp_normalized + 1;
+                    end
+                end else begin
+                    frac_rounded <= frac_normalized[21:11];
+                    exp_adj <= exp_normalized;
+                end
+                
+                // Check for overflow/underflow
+                if (exp_adj >= EXP_MAX) begin
+                    // Overflow to infinity
+                    C <= {sign_prod, 5'b11111, 10'b0};
+                end else if (exp_adj <= EXP_MIN) begin
+                    // Underflow to zero
+                    C <= {sign_prod, 15'b0};
+                end else begin
+                    // Normal result
+                    C <= {sign_prod, exp_adj, frac_rounded[9:0]};
+                end
+            end
+            
+            Valid <= 1'b1;
+        end else begin
+            stage2_valid <= 1'b0;
+            Valid <= 1'b0;
+        end
+    end
+    
+    // Input register and ready handling
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            A_reg <= 16'b0;
+            B_reg <= 16'b0;
+            ready_reg <= 1'b0;
+            state <= 2'b0;
+        end else begin
+            case (state)
+                2'b00: begin // Idle state
+                    if (Ready) begin
+                        A_reg <= A;
+                        B_reg <= B;
+                        ready_reg <= 1'b1;
+                        state <= 2'b01;
+                    end
+                end
+                2'b01: begin // Processing state
+                    ready_reg <= 1'b0;
+                    if (stage2_valid) begin
+                        state <= 2'b00;
+                    end
+                end
+                default: state <= 2'b00;
+            endcase
+        end
+    end
+
+endmodule
+    
+\end{lstlisting}
+
+
+\newpage
+\section{功能二：代码纠错}
+将代码选中，右键选择Fix Code With Error Info的功能。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{代码修改.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{代码修改结果.png}
+    \caption{代码纠错}
+\end{figure}
+
+修改后的代码如下：
+\begin{lstlisting}[frame=shadowbox,caption=vRTL251119111749\_415.v]
+module fp_multiplier (
+    input clk,
+    input rst_n,
+    input [15:0] A,
+    input [15:0] B,
+    input Ready,
+    output reg [15:0] C,
+    output reg Valid
+);
+
+    reg [15:0] computed_C;
+
+    wire sign_A = A[15];
+    wire [4:0] exp_A = A[14:10];
+    wire [9:0] mant_A = A[9:0];
+
+    wire sign_B = B[15];
+    wire [4:0] exp_B = B[14:10];
+    wire [9:0] mant_B = B[9:0];
+
+    wire is_nan_A = (exp_A == 5'b11111) && (mant_A != 10'b0);
+    wire is_inf_A = (exp_A == 5'b11111) && (mant_A == 10'b0);
+    wire is_zero_A = (exp_A == 5'b0) && (mant_A == 10'b0);
+
+    wire is_nan_B = (exp_B == 5'b11111) && (mant_B != 10'b0);
+    wire is_inf_B = (exp_B == 5'b11111) && (mant_B == 10'b0);
+    wire is_zero_B = (exp_B == 5'b0) && (mant_B == 10'b0);
+
+    always @(*) begin
+        computed_C = 16'b0;
+
+        if (is_nan_A || is_nan_B) begin
+            computed_C = {1'b0, 5'b11111, 10'b1};
+        end else if ((is_inf_A && is_zero_B) || (is_zero_A && is_inf_B)) begin
+            computed_C = {1'b0, 5'b11111, 10'b1};
+        end else if (is_inf_A || is_inf_B) begin
+            computed_C = {sign_A ^ sign_B, 5'b11111, 10'b0};
+        end else if (is_zero_A || is_zero_B) begin
+            computed_C = {sign_A ^ sign_B, 5'b0, 10'b0};
+        end else begin
+            wire [10:0] sig_A = (exp_A == 5'b0) ? {1'b0, mant_A} : {1'b1, mant_A};
+            wire [10:0] sig_B = (exp_B == 5'b0) ? {1'b0, mant_B} : {1'b1, mant_B};
+            wire [21:0] product_sig = sig_A * sig_B;
+
+            wire [5:0] exp_A_adj = (exp_A == 5'b0) ? 6'b100001 : {1'b0, exp_A};
+            wire [5:0] exp_B_adj = (exp_B == 5'b0) ? 6'b100001 : {1'b0, exp_B};
+            wire [6:0] exp_sum = exp_A_adj + exp_B_adj;
+            wire [6:0] exp_prod = exp_sum - 7'b0011110;
+
+            reg [4:0] shift_amount;
+            reg [21:0] normalized_sig;
+            
+            if (product_sig[21]) begin
+                shift_amount = 5'b0;
+                normalized_sig = product_sig;
+            end else if (product_sig[20]) begin
+                shift_amount = 5'b1;
+                normalized_sig = product_sig << 1;
+            end else if (product_sig[19]) begin
+                shift_amount = 5'b10;
+                normalized_sig = product_sig << 2;
+            end else if (product_sig[18]) begin
+                shift_amount = 5'b11;
+                normalized_sig = product_sig << 3;
+            end else begin
+                shift_amount = 5'b0;
+                normalized_sig = product_sig;
+            end
+
+            wire [6:0] exp_after_norm = exp_prod - {2'b0, shift_amount};
+
+            wire [9:0] mant_part = normalized_sig[20:11];
+            wire G = normalized_sig[10];
+            wire R = normalized_sig[9];
+            wire S = |normalized_sig[8:0];
+
+            wire round_up;
+            if (G && (R || S)) begin
+                round_up = 1'b1;
+            end else if (G && !(R || S) && mant_part[0]) begin
+                round_up = 1'b1;
+            end else begin
+                round_up = 1'b0;
+            end
+
+            wire [10:0] rounded_mant = {1'b0, mant_part} + round_up;
+            wire [9:0] final_mant;
+            wire [6:0] final_exp;
+            
+            if (rounded_mant[10]) begin
+                final_mant = rounded_mant[10:1];
+                final_exp = exp_after_norm + 7'b1;
+            end else begin
+                final_mant = rounded_mant[9:0];
+                final_exp = exp_after_norm;
+            end
+
+            if (final_exp[6] || final_exp[5:0] > 6'b001111) begin
+                computed_C = {sign_A ^ sign_B, 5'b11111, 10'b0};
+            end else if (final_exp[5:0] < 6'b000001) begin
+                computed_C = {sign_A ^ sign_B, 5'b0, 10'b0};
+            end else begin
+                computed_C = {sign_A ^ sign_B, final_exp[4:0], final_mant};
+            end
+        end
+    end
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            C <= 16'b0;
+            Valid <= 1'b0;
+        end else begin
+            if (Ready) begin
+                C <= computed_C;
+                Valid <= 1'b1;
+            end else begin
+                Valid <= 1'b0;
+            end
+        end
+    end
+endmodule
+\end{lstlisting}
+
+对这个修改过的代码进行检查，发现还是有些地方出错，比如在always中使用wire。因此再对代码进行二次修改：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{代码修改结果2.png}
+\end{figure}
+
+第二次修改的结果如下：
+\begin{lstlisting}[frame=shadowbox,caption=vRTL251119112055\_473.v]
+module fp_multiplier (
+    input clk,
+    input rst_n,
+    input [15:0] A,
+    input [15:0] B,
+    input Ready,
+    output reg [15:0] C,
+    output reg Valid
+);
+
+    reg [15:0] computed_C;
+
+    wire sign_A = A[15];
+    wire [4:0] exp_A = A[14:10];
+    wire [9:0] mant_A = A[9:0];
+
+    wire sign_B = B[15];
+    wire [4:0] exp_B = B[14:10];
+    wire [9:0] mant_B = B[9:0];
+
+    wire is_nan_A = (exp_A == 5'b11111) && (mant_A != 10'b0);
+    wire is_inf_A = (exp_A == 5'b11111) && (mant_A == 10'b0);
+    wire is_zero_A = (exp_A == 5'b0) && (mant_A == 10'b0);
+
+    wire is_nan_B = (exp_B == 5'b11111) && (mant_B != 10'b0);
+    wire is_inf_B = (exp_B == 5'b11111) && (mant_B == 10'b0);
+    wire is_zero_B = (exp_B == 5'b0) && (mant_B == 10'b0);
+
+    // 将原来在always块内部的wire声明移到外部
+    wire [10:0] sig_A = (exp_A == 5'b0) ? {1'b0, mant_A} : {1'b1, mant_A};
+    wire [10:0] sig_B = (exp_B == 5'b0) ? {1'b0, mant_B} : {1'b1, mant_B};
+    wire [21:0] product_sig = sig_A * sig_B;
+    wire [5:0] exp_A_adj = (exp_A == 5'b0) ? 6'b100001 : {1'b0, exp_A};
+    wire [5:0] exp_B_adj = (exp_B == 5'b0) ? 6'b100001 : {1'b0, exp_B};
+    wire [6:0] exp_sum = exp_A_adj + exp_B_adj;
+    wire [6:0] exp_prod = exp_sum - 7'b0011110;
+
+    always @(*) begin
+        computed_C = 16'b0;
+
+        if (is_nan_A || is_nan_B) begin
+            computed_C = {1'b0, 5'b11111, 10'b1};
+        end else if ((is_inf_A && is_zero_B) || (is_zero_A && is_inf_B)) begin
+            computed_C = {1'b0, 5'b11111, 10'b1};
+        end else if (is_inf_A || is_inf_B) begin
+            computed_C = {sign_A ^ sign_B, 5'b11111, 10'b0};
+        end else if (is_zero_A || is_zero_B) begin
+            computed_C = {sign_A ^ sign_B, 5'b0, 10'b0};
+        end else begin
+            reg [4:0] shift_amount;
+            reg [21:0] normalized_sig;
+            
+            if (product_sig[21]) begin
+                shift_amount = 5'b0;
+                normalized_sig = product_sig;
+            end else if (product_sig[20]) begin
+                shift_amount = 5'b1;
+                normalized_sig = product_sig << 1;
+            end else if (product_sig[19]) begin
+                shift_amount = 5'b10;
+                normalized_sig = product_sig << 2;
+            end else if (product_sig[18]) begin
+                shift_amount = 5'b11;
+                normalized_sig = product_sig << 3;
+            end else begin
+                shift_amount = 5'b0;
+                normalized_sig = product_sig;
+            end
+
+            wire [6:0] exp_after_norm = exp_prod - {2'b0, shift_amount};
+
+            wire [9:0] mant_part = normalized_sig[20:11];
+            wire G = normalized_sig[10];
+            wire R = normalized_sig[9];
+            wire S = |normalized_sig[8:0];
+
+            wire round_up;
+            if (G && (R || S)) begin
+                round_up = 1'b1;
+            end else if (G && !(R || S) && mant_part[0]) begin
+                round_up = 1'b1;
+            end else begin
+                round_up = 1'b0;
+            end
+
+            wire [10:0] rounded_mant = {1'b0, mant_part} + round_up;
+            wire [9:0] final_mant;
+            wire [6:0] final_exp;
+            
+            if (rounded_mant[10]) begin
+                final_mant = rounded_mant[10:1];
+                final_exp = exp_after_norm + 7'b1;
+            end else begin
+                final_mant = rounded_mant[9:0];
+                final_exp = exp_after_norm;
+            end
+
+            if (final_exp[6] || final_exp[5:0] > 6'b001111) begin
+                computed_C = {sign_A ^ sign_B, 5'b11111, 10'b0};
+            end else if (final_exp[5:0] < 6'b000001) begin
+                computed_C = {sign_A ^ sign_B, 5'b0, 10'b0};
+            end else begin
+                computed_C = {sign_A ^ sign_B, final_exp[4:0], final_mant};
+            end
+        end
+    end
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            C <= 16'b0;
+            Valid <= 1'b0;
+        end else begin
+            if (Ready) begin
+                C <= computed_C;
+                Valid <= 1'b1;
+            end else begin
+                Valid <= 1'b0;
+            end
+        end
+    end
+endmodule 
+\end{lstlisting}
+
+
+\newpage
+\section{功能三：在聊天框进行代码纠错}
+将代码右键Add to Chat，或者在Chat区添加文件。然后对模型提出修改任务和目标。这里我将任务一中补全的代码进行修改。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{聊天框纠错.png}
+    \caption{聊天框纠错}
+\end{figure}
+
+将修改的结果插入到源代码中：
+
+\begin{lstlisting}[frame=shadowbox]
+
+//Revised version
+
+module fp_multiplier (
+    input clk,
+    input rst_n,
+    input [15:0] A,
+    input [15:0] B,
+    input Ready,
+    output reg [15:0] C,
+    output reg Valid
+);
+
+    // Internal registers for pipeline stages
+    reg [15:0] A_reg, B_reg;
+    reg ready_reg;
+    reg [1:0] state;
+    
+    // Floating point components extraction
+    wire sign_A = A_reg[15];
+    wire [4:0] exp_A = A_reg[14:10];
+    wire [9:0] frac_A = A_reg[9:0];
+    
+    wire sign_B = B_reg[15];
+    wire [4:0] exp_B = B_reg[14:10];
+    wire [9:0] frac_B = B_reg[9:0];
+    
+    // Stage 1 signals
+    reg stage1_valid;
+    reg sign_prod;
+    reg [5:0] exp_sum;
+    reg [21:0] frac_prod;
+    reg is_zero_A, is_zero_B;
+    reg is_inf_A, is_inf_B;
+    reg is_nan_A, is_nan_B;
+    
+    // Stage 2 signals
+    reg stage2_valid;
+    reg [5:0] exp_normalized;
+    reg [21:0] frac_normalized;
+    reg guard_bit, round_bit, sticky_bit;
+    reg round_up;
+    reg is_zero_prod, is_inf_prod, is_nan_prod;
+    
+    // Constants
+    localparam [4:0] EXP_BIAS = 5'd15;
+    localparam [4:0] EXP_MAX = 5'd31;
+    localparam [4:0] EXP_MIN = 5'd0;
+    
+    // Special case detection (combinational)
+    always @(*) begin
+        is_zero_A = (exp_A == 5'b0) && (frac_A == 10'b0);
+        is_inf_A = (exp_A == 5'b11111) && (frac_A == 10'b0);
+        is_nan_A = (exp_A == 5'b11111) && (frac_A != 10'b0);
+        
+        is_zero_B = (exp_B == 5'b0) && (frac_B == 10'b0);
+        is_inf_B = (exp_B == 5'b11111) && (frac_B == 10'b0);
+        is_nan_B = (exp_B == 5'b11111) && (frac_B != 10'b0);
+    end
+    
+    // Pipeline stage 1: Multiplication and special case handling
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            stage1_valid <= 1'b0;
+            sign_prod <= 1'b0;
+            exp_sum <= 6'b0;
+            frac_prod <= 22'b0;
+            exp_normalized <= 6'b0;
+            frac_normalized <= 22'b0;
+            guard_bit <= 1'b0;
+            round_bit <= 1'b0;
+            sticky_bit <= 1'b0;
+            round_up <= 1'b0;
+        end else if (ready_reg) begin
+            stage1_valid <= 1'b1;
+            
+            // Sign calculation
+            sign_prod <= sign_A ^ sign_B;
+            
+            // Exponent calculation (subtract bias)
+            exp_sum <= {1'b0, exp_A} + {1'b0, exp_B} - EXP_BIAS;
+            
+            // Fraction multiplication (with implicit 1)
+            if (is_zero_A || is_zero_B) begin
+                frac_prod <= 22'b0;
+            end else begin
+                frac_prod <= {1'b1, frac_A} * {1'b1, frac_B};
+            end
+            
+            // Normalization logic (moved from combinational to sequential)
+            if (frac_prod[21]) begin
+                frac_normalized <= frac_prod >> 1;
+                exp_normalized <= exp_sum + 1;
+            end else begin
+                frac_normalized <= frac_prod;
+                exp_normalized <= exp_sum;
+            end
+            
+            // Rounding bits calculation
+            guard_bit <= frac_normalized[10];
+            round_bit <= frac_normalized[9];
+            sticky_bit <= |frac_normalized[8:0];
+            
+            // Round to nearest even
+            round_up <= guard_bit & (round_bit | sticky_bit | frac_normalized[11]);
+            
+        end else begin
+            stage1_valid <= 1'b0;
+        end
+    end
+    
+    // Pipeline stage 2: Rounding and final result assembly
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            stage2_valid <= 1'b0;
+            C <= 16'b0;
+            Valid <= 1'b0;
+            is_zero_prod <= 1'b0;
+            is_inf_prod <= 1'b0;
+            is_nan_prod <= 1'b0;
+        end else if (stage1_valid) begin
+            stage2_valid <= 1'b1;
+            
+            // Handle special cases
+            is_nan_prod <= is_nan_A | is_nan_B | (is_inf_A & is_zero_B) | (is_zero_A & is_inf_B);
+            is_inf_prod <= (is_inf_A | is_inf_B) & ~is_nan_prod;
+            is_zero_prod <= (is_zero_A | is_zero_B) & ~is_nan_prod;
+            
+            if (is_nan_prod) begin
+                // NaN result
+                C <= {sign_prod, 5'b11111, 10'b1};
+            end else if (is_inf_prod) begin
+                // Infinity result
+                C <= {sign_prod, 5'b11111, 10'b0};
+            end else if (is_zero_prod) begin
+                // Zero result
+                C <= {sign_prod, 15'b0};
+            end else begin
+                // Normal case: apply rounding with carry handling
+                reg [10:0] temp_frac_rounded;
+                reg [5:0] temp_exp_adj;
+                
+                if (round_up) begin
+                    temp_frac_rounded = frac_normalized[21:11] + 1;
+                    temp_exp_adj = exp_normalized;
+                    
+                    // Handle carry from rounding
+                    if (temp_frac_rounded[10]) begin
+                        temp_frac_rounded = {1'b0, temp_frac_rounded[10:1]};
+                        temp_exp_adj = temp_exp_adj + 1;
+                    end
+                end else begin
+                    temp_frac_rounded = frac_normalized[21:11];
+                    temp_exp_adj = exp_normalized;
+                end
+                
+                // Check for overflow/underflow
+                if (temp_exp_adj >= EXP_MAX) begin
+                    // Overflow to infinity
+                    C <= {sign_prod, 5'b11111, 10'b0};
+                end else if (temp_exp_adj <= EXP_MIN) begin
+                    // Underflow to zero
+                    C <= {sign_prod, 15'b0};
+                end else begin
+                    // Normal result
+                    C <= {sign_prod, temp_exp_adj[4:0], temp_frac_rounded[9:0]};
+                end
+            end
+            
+            Valid <= 1'b1;
+        end else begin
+            stage2_valid <= 1'b0;
+            Valid <= 1'b0;
+        end
+    end
+    
+    // Input register and state machine
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            A_reg <= 16'b0;
+            B_reg <= 16'b0;
+            ready_reg <= 1'b0;
+            state <= 2'b00;
+        end else begin
+            case (state)
+                2'b00: begin // Idle state
+                    ready_reg <= 1'b0;
+                    if (Ready) begin
+                        A_reg <= A;
+                        B_reg <= B;
+                        ready_reg <= 1'b1;
+                        state <= 2'b01;
+                    end
+                end
+                2'b01: begin // Stage 1 processing
+                    ready_reg <= 1'b0;
+                    state <= 2'b10;
+                end
+                2'b10: begin // Stage 2 processing
+                    if (stage2_valid) begin
+                        state <= 2'b00;
+                    end
+                end
+                default: begin
+                    state <= 2'b00;
+                    ready_reg <= 1'b0;
+                end
+            endcase
+        end
+    end
+
+endmodule
+\end{lstlisting}
+
+
+\section{功能四：基于Specification的RTL生成}
+因为我想看看该AI-EDA工具的生成能力，因此这里采用的是助教在HW1中提供的Zero Shot Prompt3，让其有更多
+可以自由发挥的设计空间。
+\begin{lstlisting}[frame=shadowbox]
+Please help me generate a floating-point multiplier unit, including RTL code and TestBench. 
+
+### Problem Description
+
+ModelName: fp_multiplier
+
+InputNode:
+
+- clk: Clock signal (rising edge effective).
+- rst_n: Active-low reset signal.
+- A: 16-bit FP16 format input, operand one.
+- B: 16-bit FP16 format input, operand two.
+- Ready: Input data ready signal, high effective.
+
+OutputNode:
+
+- C: 16-bit FP16 format output.
+- Valid: Device idle and result ready signal, high effective.
+
+Specification:
+
+- Support IEEE 754 Half-Precision Floating-Point Format (FP16):
+  - Handle all special cases (zero, infinity, NaN) as specified by IEEE 754.
+  - Ensure correct rounding to the nearest even value.
+- Use valid and ready signals for handshake. When valid is high, the input operands A and B are ready. When ready is high, the result C is valid.
+- TestBench should contain the following test conditions:
+  - Basic Multiplication: Positive numbers (e.g., 2.0 * 3.0); Negative numbers (e.g., -2.0 * 3.0); Mixed signs (e.g., -2.0 * -3.0);
+  - Zero Multiplication: Multiplication involving zero (e.g., 0.0 * 2.0);
+  - Infinity Multiplication: Multiplication involving infinity (e.g., inf * 2.0);
+  - NaN Multiplication: Multiplication involving NaN (e.g., NaN * 2.0);
+  - Subnormal Numbers: Multiplication involving very small numbers (e.g., 5.96e-8 * 5.96e-8);
+  - Overflow and Underflow: Test cases that result in overflow or underflow;
+  - Edge Cases: Multiplication of maximum representable values (e.g., 65504.0 * 1.5); Multiplication of minimum representable values (e.g., 5.96e-8 * 5.96e-8);
+
+
+### RTL
+
+```verilog
+module fp_multiplier
+(
+    input wire clk,
+    input wire rst_n,
+    input wire [15:0] A,
+    input wire [15:0] B,
+    output wire [15:0] C,
+    input wire valid,
+    output wire ready
+)
+```
+
+### TestBench
+
+```systemverilog
+module fp_multiplier_tb;
+```
+
+
+### Tips
+
+Here is some tips that you need to follow:
+
+1. When responsing, please fill in RTL and TestBench respectively in the code box starting with "### RTL" and "### TestBench".
+2. Use Verilog for RTL and SystemVerilog for TestBench.
+3. We use the -g2005sv specification supported by iverilog for compilation. Please make sure that the verilog used can be supported.
+4. Unpacked structs not supported in iverilog, do not use typedef struct.
+5. When using the $bitstoreal function, please make sure that the parameter is 64bit.
+6. Save the simulated waveform diagram with $dumpfile and $dumpvars instructions. Save the vcd file as Out/wave.vcd
+7. In Testbench, please verify whether the function is correct. If you pass all the tests, please output TestSuccessed, otherwise you will output TestFailed.
+
+
+\end{lstlisting}
+
+将这个prompt放入Chat聊天框中，得到的生成结果如下。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{spec生成rtl.png}
+\end{figure}
+
+\begin{lstlisting}[frame=shadowbox,caption=fp\_multiplier\_generated.v]
+module fp_multiplier
+(
+    input wire clk,
+    input wire rst_n,
+    input wire [15:0] A,
+    input wire [15:0] B,
+    output reg [15:0] C,
+    input wire valid,
+    output reg ready
+);
+
+    // Internal registers for pipeline
+    reg [15:0] A_reg, B_reg;
+    reg valid_reg;
+    reg [1:0] state;
+    
+    // FP16 format: 1-bit sign, 5-bit exponent, 10-bit fraction
+    wire sign_a = A[15];
+    wire sign_b = B[15];
+    wire [4:0] exp_a = A[14:10];
+    wire [4:0] exp_b = B[14:10];
+    wire [9:0] frac_a = A[9:0];
+    wire [9:0] frac_b = B[9:0];
+    
+    // Special case detection
+    wire a_is_zero = (exp_a == 5'b0) && (frac_a == 10'b0);
+    wire b_is_zero = (exp_b == 5'b0) && (frac_b == 10'b0);
+    wire a_is_inf = (exp_a == 5'b11111) && (frac_a == 10'b0);
+    wire b_is_inf = (exp_b == 5'b11111) && (frac_b == 10'b0);
+    wire a_is_nan = (exp_a == 5'b11111) && (frac_a != 10'b0);
+    wire b_is_nan = (exp_b == 5'b11111) && (frac_b != 10'b0);
+    wire a_is_subnormal = (exp_a == 5'b0) && (frac_a != 10'b0);
+    wire b_is_subnormal = (exp_b == 5'b0) && (frac_b != 10'b0);
+    
+    // Pipeline stage 1: Special case handling and mantissa multiplication preparation
+    reg stage1_valid;
+    reg stage1_sign;
+    reg [5:0] stage1_exp_sum; // 6 bits for sum + bias adjustment
+    reg [20:0] stage1_mant_product; // 11x11 = 22 bits, but we use 21 for calculation
+    reg stage1_is_zero, stage1_is_inf, stage1_is_nan;
+    
+    // Pipeline stage 2: Normalization and rounding
+    reg stage2_valid;
+    reg [15:0] stage2_result;
+    
+    // FSM states
+    localparam IDLE = 2'b00;
+    localparam STAGE1 = 2'b01;
+    localparam STAGE2 = 2'b10;
+    
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            state <= IDLE;
+            ready <= 1'b1;
+            valid_reg <= 1'b0;
+            A_reg <= 16'b0;
+            B_reg <= 16'b0;
+            stage1_valid <= 1'b0;
+            stage2_valid <= 1'b0;
+            C <= 16'b0;
+        end else begin
+            case (state)
+                IDLE: begin
+                    ready <= 1'b1;
+                    if (valid && ready) begin
+                        A_reg <= A;
+                        B_reg <= B;
+                        valid_reg <= 1'b1;
+                        state <= STAGE1;
+                        ready <= 1'b0;
+                        
+                        // Stage 1 calculations
+                        stage1_sign <= sign_a ^ sign_b;
+                        
+                        // Handle special cases
+                        if (a_is_nan || b_is_nan) begin
+                            stage1_is_nan <= 1'b1;
+                            stage1_is_zero <= 1'b0;
+                            stage1_is_inf <= 1'b0;
+                            stage1_exp_sum <= 6'b0;
+                            stage1_mant_product <= 21'b0;
+                        end else if ((a_is_zero && b_is_inf) || (a_is_inf && b_is_zero)) begin
+                            stage1_is_nan <= 1'b1;
+                            stage1_is_zero <= 1'b0;
+                            stage1_is_inf <= 1'b0;
+                            stage1_exp_sum <= 6'b0;
+                            stage1_mant_product <= 21'b0;
+                        end else if (a_is_zero || b_is_zero) begin
+                            stage1_is_zero <= 1'b1;
+                            stage1_is_inf <= 1'b0;
+                            stage1_is_nan <= 1'b0;
+                            stage1_exp_sum <= 6'b0;
+                            stage1_mant_product <= 21'b0;
+                        end else if (a_is_inf || b_is_inf) begin
+                            stage1_is_inf <= 1'b1;
+                            stage1_is_zero <= 1'b0;
+                            stage1_is_nan <= 1'b0;
+                            stage1_exp_sum <= 6'b0;
+                            stage1_mant_product <= 21'b0;
+                        end else begin
+                            // Normal multiplication
+                            stage1_is_zero <= 1'b0;
+                            stage1_is_inf <= 1'b0;
+                            stage1_is_nan <= 1'b0;
+                            
+                            // Add exponents and subtract bias (15 for FP16)
+                            stage1_exp_sum <= {1'b0, exp_a} + {1'b0, exp_b} - 6'd15;
+                            
+                            // Multiply mantissas (with hidden bit)
+                            wire [10:0] mant_a = (a_is_subnormal) ? {1'b0, frac_a} : {1'b1, frac_a};
+                            wire [10:0] mant_b = (b_is_subnormal) ? {1'b0, frac_b} : {1'b1, frac_b};
+                            stage1_mant_product <= mant_a * mant_b;
+                        end
+                        
+                        stage1_valid <= 1'b1;
+                    end
+                end
+                
+                STAGE1: begin
+                    if (stage1_valid) begin
+                        // Stage 2: Normalization and rounding
+                        if (stage1_is_nan) begin
+                            stage2_result <= {stage1_sign, 5'b11111, 10'b1}; // Quiet NaN
+                        end else if (stage1_is_inf) begin
+                            stage2_result <= {stage1_sign, 5'b11111, 10'b0}; // Infinity
+                        end else if (stage1_is_zero) begin
+                            stage2_result <= {stage1_sign, 15'b0}; // Zero
+                        end else begin
+                            // Normal case: normalize and round
+                            reg [4:0] final_exp;
+                            reg [9:0] final_frac;
+                            reg [20:0] normalized_mant;
+                            
+                            // Check for overflow in exponent
+                            if (stage1_exp_sum[5] || (stage1_exp_sum[4:0] > 5'd30)) begin
+                                // Overflow - return infinity
+                                stage2_result <= {stage1_sign, 5'b11111, 10'b0};
+                            end else if (stage1_exp_sum[4:0] == 5'b0) begin
+                                // Underflow - return zero
+                                stage2_result <= {stage1_sign, 15'b0};
+                            end else begin
+                                // Normal case
+                                normalized_mant = stage1_mant_product;
+                                final_exp = stage1_exp_sum[4:0];
+                                
+                                // Normalize: product is in [1,4) range, so we may need to shift
+                                if (normalized_mant[20]) begin
+                                    normalized_mant = normalized_mant >> 1;
+                                    final_exp = final_exp + 1;
+                                    
+                                    // Check for exponent overflow after normalization
+                                    if (final_exp > 5'd30) begin
+                                        stage2_result <= {stage1_sign, 5'b11111, 10'b0};
+                                    end else begin
+                                        // Round to nearest even (simplified)
+                                        final_frac = normalized_mant[19:10];
+                                        if (normalized_mant[9] && (normalized_mant[8:0] != 9'b0 || normalized_mant[10])) begin
+                                            final_frac = final_frac + 1;
+                                            if (final_frac == 10'b0) begin // Carry occurred
+                                                final_exp = final_exp + 1;
+                                                if (final_exp > 5'd30) begin
+                                                    stage2_result <= {stage1_sign, 5'b11111, 10'b0};
+                                                end else begin
+                                                    stage2_result <= {stage1_sign, final_exp, final_frac};
+                                                end
+                                            end else begin
+                                                stage2_result <= {stage1_sign, final_exp, final_frac};
+                                            end
+                                        end else begin
+                                            stage2_result <= {stage1_sign, final_exp, final_frac};
+                                        end
+                                    end
+                                end else begin
+                                    // No normalization needed
+                                    final_frac = normalized_mant[18:9];
+                                    if (normalized_mant[8] && (normalized_mant[7:0] != 8'b0 || normalized_mant[9])) begin
+                                        final_frac = final_frac + 1;
+                                        if (final_frac == 10'b0) begin // Carry occurred
+                                            final_exp = final_exp + 1;
+                                            if (final_exp > 5'd30) begin
+                                                stage2_result <= {stage1_sign, 5'b11111, 10'b0};
+                                            end else begin
+                                                stage2_result <= {stage1_sign, final_exp, final_frac};
+                                            end
+                                        end else begin
+                                            stage2_result <= {stage1_sign, final_exp, final_frac};
+                                        end
+                                    end else begin
+                                        stage2_result <= {stage1_sign, final_exp, final_frac};
+                                    end
+                                end
+                            end
+                        end
+                        
+                        stage2_valid <= 1'b1;
+                        state <= STAGE2;
+                    end
+                end
+                
+                STAGE2: begin
+                    if (stage2_valid) begin
+                        C <= stage2_result;
+                        stage2_valid <= 1'b0;
+                        stage1_valid <= 1'b0;
+                        valid_reg <= 1'b0;
+                        state <= IDLE;
+                    end
+                end
+            endcase
+        end
+    end
+
+endmodule
+\end{lstlisting}
+
+\section{功能五：TestBench生成及仿真结果}
+
+\begin{lstlisting}[frame=shadowbox,caption=tb\_fp\_multiplier\_generated.sv]
+module fp_multiplier_tb;
+    reg clk;
+    reg rst_n;
+    reg [15:0] A;
+    reg [15:0] B;
+    wire [15:0] C;
+    reg valid;
+    wire ready;
+    
+    // Test results
+    integer test_count = 0;
+    integer pass_count = 0;
+    integer fail_count = 0;
+    
+    // Instantiate DUT
+    fp_multiplier dut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .A(A),
+        .B(B),
+        .C(C),
+        .valid(valid),
+        .ready(ready)
+    );
+    
+    // Clock generation
+    always #5 clk = ~clk;
+    
+    // FP16 value definitions
+    parameter FP16_ZERO = 16'h0000;
+    parameter FP16_ONE = 16'h3C00;
+    parameter FP16_TWO = 16'h4000;
+    parameter FP16_THREE = 16'h4200;
+    parameter FP16_NEG_TWO = 16'hC000;
+    parameter FP16_NEG_THREE = 16'hC200;
+    parameter FP16_INF = 16'h7C00;
+    parameter FP16_NEG_INF = 16'hFC00;
+    parameter FP16_NAN = 16'h7E00;
+    parameter FP16_MAX = 16'h7BFF;  // 65504
+    parameter FP16_MIN = 16'h0001;  // ~5.96e-8
+    
+    // Function to convert FP16 to real (simplified)
+    function real fp16_to_real;
+        input [15:0] fp16;
+        reg sign;
+        reg [4:0] exp;
+        reg [9:0] frac;
+        real result;
+        integer i;
+        real fraction_value;
+    begin
+        sign = fp16[15];
+        exp = fp16[14:10];
+        frac = fp16[9:0];
+        
+        if (exp == 5'b11111) begin
+            if (frac == 10'b0) begin
+                fp16_to_real = (sign) ? -$bitstoreal(64'h7FF0000000000000) : $bitstoreal(64'h7FF0000000000000);
+            end else begin
+                fp16_to_real = $bitstoreal(64'h7FF8000000000000); // NaN
+            end
+        end else if (exp == 5'b0) then begin
+            // Subnormal
+            fraction_value = 0.0;
+            for (i = 0; i < 10; i = i + 1) begin
+                if (frac[9-i]) fraction_value = fraction_value + (2.0 ** (-i-1));
+            end
+            result = fraction_value * (2.0 ** -14);
+            fp16_to_real = (sign) ? -result : result;
+        end else begin
+            // Normal
+            fraction_value = 1.0;
+            for (i = 0; i < 10; i = i + 1) begin
+                if (frac[9-i]) fraction_value = fraction_value + (2.0 ** (-i-1));
+            end
+            result = fraction_value * (2.0 ** (exp - 15));
+            fp16_to_real = (sign) ? -result : result;
+        end
+    end
+    endfunction
+    
+    // Test task
+    task test_multiply;
+        input [15:0] a_val;
+        input [15:0] b_val;
+        input [15:0] expected;
+        string test_name;
+        real a_real, b_real, expected_real, result_real;
+        reg [63:0] expected_bits, result_bits;
+    begin
+        test_count = test_count + 1;
+        
+        // Wait for ready
+        @(posedge clk);
+        while (!ready) @(posedge clk);
+        
+        // Apply inputs
+        A = a_val;
+        B = b_val;
+        valid = 1'b1;
+        
+        // Wait for computation
+        @(posedge clk);
+        valid = 1'b0;
+        
+        // Wait for result (3 cycles for pipeline)
+        repeat(3) @(posedge clk);
+        
+        // Convert to real for comparison (handle special cases)
+        a_real = fp16_to_real(a_val);
+        b_real = fp16_to_real(b_val);
+        expected_real = fp16_to_real(expected);
+        result_real = fp16_to_real(C);
+        
+        expected_bits = $realtobits(expected_real);
+        result_bits = $realtobits(result_real);
+        
+        // Check result
+        if (expected_bits === result_bits) begin
+            pass_count = pass_count + 1;
+            $display("PASS: Test %0d - A=%h, B=%h, Got=%h, Expected=%h", 
+                     test_count, a_val, b_val, C, expected);
+        end else begin
+            fail_count = fail_count + 1;
+            $display("FAIL: Test %0d - A=%h, B=%h, Got=%h, Expected=%h", 
+                     test_count, a_val, b_val, C, expected);
+            $display("      A_real=%f, B_real=%f, Got_real=%f, Expected_real=%f",
+                     a_real, b_real, result_real, expected_real);
+        end
+    end
+    endtask
+    
+    initial begin
+        // Initialize
+        clk = 0;
+        rst_n = 0;
+        valid = 0;
+        A = 0;
+        B = 0;
+        
+        // Generate waveform
+        $dumpfile("Out/wave.vcd");
+        $dumpvars(0, fp_multiplier_tb);
+        
+        // Reset
+        #10 rst_n = 1;
+        
+        $display("Starting FP16 Multiplier Tests...");
+        
+        // Test 1: Basic Multiplication - Positive numbers
+        test_multiply(FP16_TWO, FP16_THREE, 16'h4400); // 2.0 * 3.0 = 6.0
+        
+        // Test 2: Negative numbers  
+        test_multiply(FP16_NEG_TWO, FP16_THREE, 16'hC400); // -2.0 * 3.0 = -6.0
+        
+        // Test 3: Mixed signs
+        test_multiply(FP16_NEG_TWO, FP16_NEG_THREE, 16'h4400); // -2.0 * -3.0 = 6.0
+        
+        // Test 4: Zero multiplication
+        test_multiply(FP16_ZERO, FP16_TWO, FP16_ZERO); // 0.0 * 2.0 = 0.0
+        test_multiply(FP16_TWO, FP16_ZERO, FP16_ZERO); // 2.0 * 0.0 = 0.0
+        
+        // Test 5: Infinity multiplication
+        test_multiply(FP16_INF, FP16_TWO, FP16_INF); // inf * 2.0 = inf
+        test_multiply(FP16_NEG_INF, FP16_THREE, FP16_NEG_INF); // -inf * 3.0 = -inf
+        
+        // Test 6: NaN multiplication
+        test_multiply(FP16_NAN, FP16_TWO, FP16_NAN); // NaN * 2.0 = NaN
+        
+        // Test 7: Infinity * Zero = NaN
+        test_multiply(FP16_INF, FP16_ZERO, FP16_NAN);
+        test_multiply(FP16_ZERO, FP16_INF, FP16_NAN);
+        
+        // Test 8: Subnormal numbers
+        test_multiply(FP16_MIN, FP16_MIN, FP16_ZERO); // Very small * very small = 0 (underflow)
+        
+        // Test 9: Overflow
+        test_multiply(FP16_MAX, FP16_TWO, FP16_INF); // 65504 * 2.0 = inf (overflow)
+        
+        // Test 10: Edge case - maximum representable
+        test_multiply(FP16_MAX, FP16_ONE, FP16_MAX); // 65504 * 1.0 = 65504
+        
+        // Final summary
+        $display("\nTest Summary:");
+        $display("Total Tests: %0d", test_count);
+        $display("Passed: %0d", pass_count);
+        $display("Failed: %0d", fail_count);
+        
+        if (fail_count == 0) begin
+            $display("TestSuccessed");
+        end else begin
+            $display("TestFailed");
+        end
+        
+        $finish;
+    end
+
+endmodule
+\end{lstlisting}
+
+在FILES中将这两个文件添加进来，运行仿真。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{仿真结果.png}
+    \caption{第一次仿真结果}
+\end{figure}
+
+可以看到，这一版的代码可以运行，但是很多测试点的结果都不对。因此我们在聊天框将这个仿真结果输入给AI，并让其
+帮我们修改代码。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{结合仿真结果修改生成代码.png}
+    \caption{结合仿真结果修改生成代码}
+\end{figure}
+
+生成的代码如下：
+\begin{lstlisting}[frame=shadowbox,caption=fp\_multiplier\_generated3.sv]
+module fp_multiplier
+(
+    input wire clk,
+    input wire rst_n,
+    input wire [15:0] A,
+    input wire [15:0] B,
+    output reg [15:0] C,
+    input wire valid,
+    output reg ready
+);
+
+    // Internal registers for pipeline
+    reg [15:0] A_reg, B_reg;
+    reg valid_reg;
+    reg [1:0] state;
+    
+    // FP16 format: 1-bit sign, 5-bit exponent, 10-bit fraction
+    wire sign_a = A[15];
+    wire sign_b = B[15];
+    wire [4:0] exp_a = A[14:10];
+    wire [4:0] exp_b = B[14:10];
+    wire [9:0] frac_a = A[9:0];
+    wire [9:0] frac_b = B[9:0];
+    
+    // Special case detection
+    wire a_is_zero = (exp_a == 5'b0) && (frac_a == 10'b0);
+    wire b_is_zero = (exp_b == 5'b0) && (frac_b == 10'b0);
+    wire a_is_inf = (exp_a == 5'b11111) && (frac_a == 10'b0);
+    wire b_is_inf = (exp_b == 5'b11111) && (frac_b == 10'b0);
+    wire a_is_nan = (exp_a == 5'b11111) && (frac_a != 10'b0);
+    wire b_is_nan = (exp_b == 5'b11111) && (frac_b != 10'b0);
+    wire a_is_subnormal = (exp_a == 5'b0) && (frac_a != 10'b0);
+    wire b_is_subnormal = (exp_b == 5'b0) && (frac_b != 10'b0);
+    
+    // Mantissa calculation wires
+    wire [10:0] mant_a = (a_is_subnormal || a_is_zero) ? {1'b0, frac_a} : {1'b1, frac_a};
+    wire [10:0] mant_b = (b_is_subnormal || b_is_zero) ? {1'b0, frac_b} : {1'b1, frac_b};
+    
+    // Pipeline stage 1: Special case handling and mantissa multiplication preparation
+    reg stage1_valid;
+    reg stage1_sign;
+    reg [5:0] stage1_exp_sum; // 6 bits for sum + bias adjustment
+    reg [21:0] stage1_mant_product; // 11x11 = 22 bits
+    reg stage1_is_zero, stage1_is_inf, stage1_is_nan;
+    
+    // Pipeline stage 2: Normalization and rounding
+    reg stage2_valid;
+    reg [15:0] stage2_result;
+    
+    // FSM states
+    localparam IDLE = 2'b00;
+    localparam STAGE1 = 2'b01;
+    localparam STAGE2 = 2'b10;
+    
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            state <= IDLE;
+            ready <= 1'b1;
+            valid_reg <= 1'b0;
+            A_reg <= 16'b0;
+            B_reg <= 16'b0;
+            stage1_valid <= 1'b0;
+            stage2_valid <= 1'b0;
+            C <= 16'b0;
+        end else begin
+            case (state)
+                IDLE: begin
+                    ready <= 1'b1;
+                    if (valid && ready) begin
+                        A_reg <= A;
+                        B_reg <= B;
+                        valid_reg <= 1'b1;
+                        state <= STAGE1;
+                        ready <= 1'b0;
+                        
+                        // Stage 1 calculations
+                        stage1_sign <= sign_a ^ sign_b;
+                        
+                        // Handle special cases
+                        if (a_is_nan || b_is_nan) begin
+                            stage1_is_nan <= 1'b1;
+                            stage1_is_zero <= 1'b0;
+                            stage1_is_inf <= 1'b0;
+                            stage1_exp_sum <= 6'b0;
+                            stage1_mant_product <= 22'b0;
+                        end else if ((a_is_zero && b_is_inf) || (a_is_inf && b_is_zero)) begin
+                            stage1_is_nan <= 1'b1;
+                            stage1_is_zero <= 1'b0;
+                            stage1_is_inf <= 1'b0;
+                            stage1_exp_sum <= 6'b0;
+                            stage1_mant_product <= 22'b0;
+                        end else if (a_is_zero || b_is_zero) begin
+                            stage1_is_zero <= 1'b1;
+                            stage1_is_inf <= 1'b0;
+                            stage1_is_nan <= 1'b0;
+                            stage1_exp_sum <= 6'b0;
+                            stage1_mant_product <= 22'b0;
+                        end else if (a_is_inf || b_is_inf) begin
+                            stage1_is_inf <= 1'b1;
+                            stage1_is_zero <= 1'b0;
+                            stage1_is_nan <= 1'b0;
+                            stage1_exp_sum <= 6'b0;
+                            stage1_mant_product <= 22'b0;
+                        end else begin
+                            // Normal multiplication
+                            stage1_is_zero <= 1'b0;
+                            stage1_is_inf <= 1'b0;
+                            stage1_is_nan <= 1'b0;
+                            
+                            // Add exponents and subtract bias (15 for FP16)
+                            // For normal numbers: exp = stored_exp - 15
+                            // So product_exp = (exp_a - 15) + (exp_b - 15) + 15 = exp_a + exp_b - 15
+                            stage1_exp_sum <= {1'b0, exp_a} + {1'b0, exp_b} - 6'd15;
+                            
+                            // Multiply mantissas (with hidden bit)
+                            stage1_mant_product <= mant_a * mant_b;
+                        end
+                        
+                        stage1_valid <= 1'b1;
+                    end
+                end
+                
+                STAGE1: begin
+                    if (stage1_valid) begin
+                        // Stage 2: Normalization and rounding
+                        if (stage1_is_nan) begin
+                            // Return canonical NaN
+                            stage2_result <= {stage1_sign, 5'b11111, 10'b1000000000};
+                        end else if (stage1_is_inf) begin
+                            stage2_result <= {stage1_sign, 5'b11111, 10'b0}; // Infinity
+                        end else if (stage1_is_zero) begin
+                            stage2_result <= {stage1_sign, 15'b0}; // Zero
+                        end else begin
+                            // Normal case: normalize and round
+                            reg [5:0] temp_exp;
+                            reg [9:0] temp_frac;
+                            reg [21:0] temp_mant;
+                            
+                            temp_exp = stage1_exp_sum;
+                            temp_mant = stage1_mant_product;
+                            
+                            // Normalize: product is in [1,4) range, so we may need to shift
+                            if (temp_mant[21]) begin
+                                // Product >= 2, need to shift right
+                                temp_mant = temp_mant >> 1;
+                                temp_exp = temp_exp + 1;
+                            end
+                            
+                            // Check for overflow/underflow
+                            if (temp_exp[5] || temp_exp[4:0] > 5'd30) begin
+                                // Overflow - return infinity
+                                stage2_result <= {stage1_sign, 5'b11111, 10'b0};
+                            end else if (temp_exp[4:0] == 5'b0) begin
+                                // Underflow - return zero
+                                stage2_result <= {stage1_sign, 15'b0};
+                            end else begin
+                                // Extract fraction (ignore the hidden bit at position 20)
+                                temp_frac = temp_mant[20:11];
+                                
+                                // Round to nearest even
+                                if (temp_mant[10] && (temp_mant[9:0] != 10'b0 || temp_mant[11])) begin
+                                    temp_frac = temp_frac + 1;
+                                    if (temp_frac == 10'b0) begin // Carry to exponent
+                                        temp_exp = temp_exp + 1;
+                                        if (temp_exp > 5'd30) begin
+                                            stage2_result <= {stage1_sign, 5'b11111, 10'b0};
+                                        end else begin
+                                            stage2_result <= {stage1_sign, temp_exp[4:0], temp_frac};
+                                        end
+                                    end else begin
+                                        stage2_result <= {stage1_sign, temp_exp[4:0], temp_frac};
+                                    end
+                                end else begin
+                                    stage2_result <= {stage1_sign, temp_exp[4:0], temp_frac};
+                                end
+                            end
+                        end
+                        
+                        stage2_valid <= 1'b1;
+                        state <= STAGE2;
+                    end
+                end
+                
+                STAGE2: begin
+                    if (stage2_valid) begin
+                        C <= stage2_result;
+                        stage2_valid <= 1'b0;
+                        stage1_valid <= 1'b0;
+                        valid_reg <= 1'b0;
+                        state <= IDLE;
+                    end
+                end
+            endcase
+        end
+    end
+
+endmodule
+\end{lstlisting}
+\begin{lstlisting}[frame=shadowbox,caption=vRTL251119114743\_749.v]
+odule fp_multiplier_tb;
+    reg clk;
+    reg rst_n;
+    reg [15:0] A;
+    reg [15:0] B;
+    wire [15:0] C;
+    reg valid;
+    wire ready;
+    
+    // Test results
+    integer test_count = 0;
+    integer pass_count = 0;
+    integer fail_count = 0;
+    
+    // Instantiate DUT
+    fp_multiplier dut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .A(A),
+        .B(B),
+        .C(C),
+        .valid(valid),
+        .ready(ready)
+    );
+    
+    // Clock generation
+    always #5 clk = ~clk;
+    
+    // FP16 value definitions
+    parameter FP16_ZERO = 16'h0000;
+    parameter FP16_ONE = 16'h3C00;
+    parameter FP16_TWO = 16'h4000;
+    parameter FP16_THREE = 16'h4200;
+    parameter FP16_NEG_TWO = 16'hC000;
+    parameter FP16_NEG_THREE = 16'hC200;
+    parameter FP16_INF = 16'h7C00;
+    parameter FP16_NEG_INF = 16'hFC00;
+    parameter FP16_NAN = 16'h7E00;
+    parameter FP16_MAX = 16'h7BFF;  // 65504
+    parameter FP16_MIN = 16'h0001;  // ~5.96e-8
+    parameter FP16_SIX = 16'h4600;  // 6.0
+    
+    // Function to convert FP16 to real (simplified)
+    function real fp16_to_real;
+        input [15:0] fp16;
+        reg sign;
+        reg [4:0] exp;
+        reg [9:0] frac;
+        real result;
+        integer i;
+        real fraction_value;
+    begin
+        sign = fp16[15];
+        exp = fp16[14:10];
+        frac = fp16[9:0];
+        
+        if (exp == 5'b11111) begin
+            if (frac == 10'b0) begin
+                fp16_to_real = (sign) ? -$bitstoreal(64'h7FF0000000000000) : $bitstoreal(64'h7FF0000000000000);
+            end else begin
+                fp16_to_real = $bitstoreal(64'h7FF8000000000000); // NaN
+            end
+        end else if (exp == 5'b0) begin
+            // Subnormal
+            fraction_value = 0.0;
+            for (i = 0; i < 10; i = i + 1) begin
+                if (frac[9-i]) fraction_value = fraction_value + (2.0 ** (-i-1));
+            end
+            result = fraction_value * (2.0 ** -14);
+            fp16_to_real = (sign) ? -result : result;
+        end else begin
+            // Normal
+            fraction_value = 1.0;
+            for (i = 0; i < 10; i = i + 1) begin
+                if (frac[9-i]) fraction_value = fraction_value + (2.0 ** (-i-1));
+            end
+            result = fraction_value * (2.0 ** (exp - 15));
+            fp16_to_real = (sign) ? -result : result;
+        end
+    end
+    endfunction
+    
+    // Function to check if two FP16 values are equal (including special cases)
+    function bit fp16_equal;
+        input [15:0] a;
+        input [15:0] b;
+    begin
+        // For NaN, we consider any NaN equal to any other NaN
+        if ((a[14:10] == 5'b11111 && a[9:0] != 10'b0) && 
+            (b[14:10] == 5'b11111 && b[9:0] != 10'b0)) begin
+            fp16_equal = 1'b1;
+        end else begin
+            fp16_equal = (a === b);
+        end
+    end
+    endfunction
+    
+    // Test task
+    task test_multiply;
+        input [15:0] a_val;
+        input [15:0] b_val;
+        input [15:0] expected;
+        string test_name;
+        real a_real, b_real, expected_real, result_real;
+    begin
+        test_count = test_count + 1;
+        
+        // Wait for ready
+        @(posedge clk);
+        while (!ready) @(posedge clk);
+        
+        // Apply inputs
+        A = a_val;
+        B = b_val;
+        valid = 1'b1;
+        
+        // Wait for computation
+        @(posedge clk);
+        valid = 1'b0;
+        
+        // Wait for result (3 cycles for pipeline)
+        repeat(3) @(posedge clk);
+        
+        // Convert to real for debug
+        a_real = fp16_to_real(a_val);
+        b_real = fp16_to_real(b_val);
+        expected_real = fp16_to_real(expected);
+        result_real = fp16_to_real(C);
+        
+        // Check result using fp16_equal function for proper NaN handling
+        if (fp16_equal(C, expected)) begin
+            pass_count = pass_count + 1;
+            $display("PASS: Test %0d - A=%h, B=%h, Got=%h, Expected=%h", 
+                     test_count, a_val, b_val, C, expected);
+        end else begin
+            fail_count = fail_count + 1;
+            $display("FAIL: Test %0d - A=%h, B=%h, Got=%h, Expected=%h", 
+                     test_count, a_val, b_val, C, expected);
+            $display("      A_real=%f, B_real=%f, Got_real=%f, Expected_real=%f",
+                     a_real, b_real, result_real, expected_real);
+        end
+    end
+    endtask
+    
+    initial begin
+        // Initialize
+        clk = 0;
+        rst_n = 0;
+        valid = 0;
+        A = 0;
+        B = 0;
+        
+        // Generate waveform
+        $dumpfile("Out/wave.vcd");
+        $dumpvars(0, fp_multiplier_tb);
+        
+        // Reset
+        #10 rst_n = 1;
+        
+        $display("Starting FP16 Multiplier Tests...");
+        
+        // Test 1: Basic Multiplication - Positive numbers
+        test_multiply(FP16_TWO, FP16_THREE, FP16_SIX); // 2.0 * 3.0 = 6.0
+        
+        // Test 2: Negative numbers  
+        test_multiply(FP16_NEG_TWO, FP16_THREE, 16'hC600); // -2.0 * 3.0 = -6.0
+        
+        // Test 3: Mixed signs
+        test_multiply(FP16_NEG_TWO, FP16_NEG_THREE, FP16_SIX); // -2.0 * -3.0 = 6.0
+        
+        // Test 4: Zero multiplication
+        test_multiply(FP16_ZERO, FP16_TWO, FP16_ZERO); // 0.0 * 2.0 = 0.0
+        test_multiply(FP16_TWO, FP16_ZERO, FP16_ZERO); // 2.0 * 0.0 = 0.0
+        
+        // Test 5: Infinity multiplication
+        test_multiply(FP16_INF, FP16_TWO, FP16_INF); // inf * 2.0 = inf
+        test_multiply(FP16_NEG_INF, FP16_THREE, FP16_NEG_INF); // -inf * 3.0 = -inf
+        
+        // Test 6: NaN multiplication
+        test_multiply(FP16_NAN, FP16_TWO, FP16_NAN); // NaN * 2.0 = NaN
+        
+        // Test 7: Infinity * Zero = NaN
+        test_multiply(FP16_INF, FP16_ZERO, FP16_NAN);
+        test_multiply(FP16_ZERO, FP16_INF, FP16_NAN);
+        
+        // Test 8: Subnormal numbers - expect underflow to zero
+        test_multiply(FP16_MIN, FP16_MIN, FP16_ZERO); // Very small * very small = 0 (underflow)
+        
+        // Test 9: Overflow
+        test_multiply(FP16_MAX, FP16_TWO, FP16_INF); // 65504 * 2.0 = inf (overflow)
+        
+        // Test 10: Edge case - maximum representable
+        test_multiply(FP16_MAX, FP16_ONE, FP16_MAX); // 65504 * 1.0 = 65504
+        
+        // Additional test: 1.0 * 1.0 = 1.0
+        test_multiply(FP16_ONE, FP16_ONE, FP16_ONE);
+        
+        // Final summary
+        $display("\nTest Summary:");
+        $display("Total Tests: %0d", test_count);
+        $display("Passed: %0d", pass_count);
+        $display("Failed: %0d", fail_count);
+        
+        if (fail_count == 0) begin
+            $display("TestSuccessed");
+        end else begin
+            $display("TestFailed");
+        end
+        
+        $finish;
+    end
+
+endmodule
+\end{lstlisting}
+
+\newpage
+\section{功能六：时序和面积优化}
+除了以上的功能，我还尝试了一下Explore QoR功能，对刚刚生成的浮点乘法器做面积、时序优化。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{面积优化.png}
+    \caption{时序和面积优化}
+\end{figure}
+
+最优时序和最优面积的代码如下：
+\begin{lstlisting}[frame=shadowbox,caption=vRTL251119114743\_779.v]
+module fp_multiplier (
+    input clk,
+    input rst_n,
+    input [15:0] A,
+    input [15:0] B,
+    input Ready,
+    output reg [15:0] C,
+    output reg Valid
+);
+
+    // Internal registers and wires
+    reg [15:0] computed_C;
+    
+    // Input decomposition
+    wire sign_A;
+    wire [4:0] exp_A;
+    wire [9:0] mant_A;
+    wire sign_B;
+    wire [4:0] exp_B;
+    wire [9:0] mant_B;
+    
+    // Special case detection
+    wire is_nan_A;
+    wire is_inf_A;
+    wire is_zero_A;
+    wire is_nan_B;
+    wire is_inf_B;
+    wire is_zero_B;
+    
+    // Computation signals - stage 1
+    wire [10:0] sig_A;
+    wire [10:0] sig_B;
+    wire [21:0] product_sig;
+    wire [5:0] exp_A_adj;
+    wire [5:0] exp_B_adj;
+    wire [6:0] exp_sum;
+    wire [6:0] exp_prod;
+    
+    // Normalization signals - stage 2
+    wire [4:0] shift_amount;
+    wire [21:0] normalized_sig;
+    wire [6:0] exp_after_norm;
+    
+    // Rounding signals - stage 3
+    wire [9:0] mant_part;
+    wire G;
+    wire R;
+    wire S;
+    wire round_up;
+    wire [10:0] rounded_mant;
+    wire [9:0] final_mant;
+    wire [6:0] final_exp;
+    
+    // Pipeline registers
+    reg [1:0] special_case_stage1;
+    reg sign_prod_stage1;
+    reg [21:0] product_sig_stage1;
+    reg [6:0] exp_prod_stage1;
+    
+    reg [1:0] special_case_stage2;
+    reg sign_prod_stage2;
+    reg [21:0] normalized_sig_stage2;
+    reg [6:0] exp_after_norm_stage2;
+    
+    // Assign input decomposition
+    assign sign_A = A[15];
+    assign exp_A = A[14:10];
+    assign mant_A = A[9:0];
+    assign sign_B = B[15];
+    assign exp_B = B[14:10];
+    assign mant_B = B[9:0];
+    
+    // Special case detection
+    assign is_nan_A = (exp_A == 5'b11111) && (mant_A != 10'b0);
+    assign is_inf_A = (exp_A == 5'b11111) && (mant_A == 10'b0);
+    assign is_zero_A = (exp_A == 5'b0) && (mant_A == 10'b0);
+    assign is_nan_B = (exp_B == 5'b11111) && (mant_B != 10'b0);
+    assign is_inf_B = (exp_B == 5'b11111) && (mant_B == 10'b0);
+    assign is_zero_B = (exp_B == 5'b0) && (mant_B == 10'b0);
+    
+    // Stage 1: Basic computation
+    assign sig_A = (exp_A == 5'b0) ? {1'b0, mant_A} : {1'b1, mant_A};
+    assign sig_B = (exp_B == 5'b0) ? {1'b0, mant_B} : {1'b1, mant_B};
+    assign product_sig = sig_A * sig_B;
+    assign exp_A_adj = (exp_A == 5'b0) ? 6'b100001 : {1'b0, exp_A};
+    assign exp_B_adj = (exp_B == 5'b0) ? 6'b100001 : {1'b0, exp_B};
+    assign exp_sum = exp_A_adj + exp_B_adj;
+    assign exp_prod = exp_sum - 7'b0011110;
+    
+    // Stage 1 pipeline register
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            special_case_stage1 <= 2'b00;
+            sign_prod_stage1 <= 1'b0;
+            product_sig_stage1 <= 22'b0;
+            exp_prod_stage1 <= 7'b0;
+        end else if (Ready) begin
+            // Encode special cases
+            if (is_nan_A || is_nan_B) begin
+                special_case_stage1 <= 2'b01; // NaN
+            end else if ((is_inf_A && is_zero_B) || (is_zero_A && is_inf_B)) begin
+                special_case_stage1 <= 2'b01; // NaN
+            end else if (is_inf_A || is_inf_B) begin
+                special_case_stage1 <= 2'b10; // Infinity
+            end else if (is_zero_A || is_zero_B) begin
+                special_case_stage1 <= 2'b11; // Zero
+            end else begin
+                special_case_stage1 <= 2'b00; // Normal case
+            end
+            
+            sign_prod_stage1 <= sign_A ^ sign_B;
+            product_sig_stage1 <= product_sig;
+            exp_prod_stage1 <= exp_prod;
+        end
+    end
+    
+    // Stage 2: Normalization
+    assign shift_amount = (product_sig_stage1[21]) ? 5'b0 :
+                         (product_sig_stage1[20]) ? 5'b1 :
+                         (product_sig_stage1[19]) ? 5'b10 :
+                         (product_sig_stage1[18]) ? 5'b11 : 5'b0;
+                         
+    assign normalized_sig = product_sig_stage1 << shift_amount;
+    assign exp_after_norm = exp_prod_stage1 - {2'b0, shift_amount};
+    
+    // Stage 2 pipeline register
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            special_case_stage2 <= 2'b00;
+            sign_prod_stage2 <= 1'b0;
+            normalized_sig_stage2 <= 22'b0;
+            exp_after_norm_stage2 <= 7'b0;
+        end else begin
+            special_case_stage2 <= special_case_stage1;
+            sign_prod_stage2 <= sign_prod_stage1;
+            normalized_sig_stage2 <= normalized_sig;
+            exp_after_norm_stage2 <= exp_after_norm;
+        end
+    end
+    
+    // Stage 3: Rounding and final computation
+    assign mant_part = normalized_sig_stage2[20:11];
+    assign G = normalized_sig_stage2[10];
+    assign R = normalized_sig_stage2[9];
+    assign S = |normalized_sig_stage2[8:0];
+    
+    assign round_up = (G && (R || S)) ? 1'b1 :
+                     (G && !(R || S) && mant_part[0]) ? 1'b1 : 1'b0;
+                     
+    assign rounded_mant = {1'b0, mant_part} + round_up;
+    assign final_mant = rounded_mant[10] ? rounded_mant[10:1] : rounded_mant[9:0];
+    assign final_exp = rounded_mant[10] ? (exp_after_norm_stage2 + 7'b1) : exp_after_norm_stage2;
+    
+    // Final result computation
+    always @(*) begin
+        computed_C = 16'b0;
+        
+        case (special_case_stage2)
+            2'b01: computed_C = {1'b0, 5'b11111, 10'b1}; // NaN
+            2'b10: computed_C = {sign_prod_stage2, 5'b11111, 10'b0}; // Infinity
+            2'b11: computed_C = {sign_prod_stage2, 5'b0, 10'b0}; // Zero
+            default: begin
+                if (final_exp[6] || final_exp[5:0] > 6'b001111) begin
+                    computed_C = {sign_prod_stage2, 5'b11111, 10'b0};
+                end else if (final_exp[5:0] < 6'b000001) begin
+                    computed_C = {sign_prod_stage2, 5'b0, 10'b0};
+                end else begin
+                    computed_C = {sign_prod_stage2, final_exp[4:0], final_mant};
+                end
+            end
+        endcase
+    end
+    
+    // Output register
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            C <= 16'b0;
+            Valid <= 1'b0;
+        end else begin
+            C <= computed_C;
+            Valid <= Ready; // Valid follows Ready with pipeline delay
+        end
+    end
+
+endmodule
+\end{lstlisting}
+
+\begin{lstlisting}[frame=shadowbox,caption=fp\_multiplier\_generated3.sv]
+module fp_multiplier (
+    input clk,
+    input rst_n,
+    input [15:0] A,
+    input [15:0] B,
+    input Ready,
+    output reg [15:0] C,
+    output reg Valid
+);
+
+    // Internal registers and wires
+    reg [15:0] computed_C;
+    
+    // Input decomposition
+    wire sign_A = A[15];
+    wire [4:0] exp_A = A[14:10];
+    wire [9:0] mant_A = A[9:0];
+    wire sign_B = B[15];
+    wire [4:0] exp_B = B[14:10];
+    wire [9:0] mant_B = B[9:0];
+    
+    // Special case detection
+    wire is_nan_A = (exp_A == 5'b11111) && (mant_A != 10'b0);
+    wire is_inf_A = (exp_A == 5'b11111) && (mant_A == 10'b0);
+    wire is_zero_A = (exp_A == 5'b0) && (mant_A == 10'b0);
+    wire is_nan_B = (exp_B == 5'b11111) && (mant_B != 10'b0);
+    wire is_inf_B = (exp_B == 5'b11111) && (mant_B == 10'b0);
+    wire is_zero_B = (exp_B == 5'b0) && (mant_B == 10'b0);
+    
+    // Shared computation signals
+    wire [10:0] sig_A = (exp_A == 5'b0) ? {1'b0, mant_A} : {1'b1, mant_A};
+    wire [10:0] sig_B = (exp_B == 5'b0) ? {1'b0, mant_B} : {1'b1, mant_B};
+    wire [21:0] product_sig = sig_A * sig_B;
+    wire [5:0] exp_A_adj = (exp_A == 5'b0) ? 6'b100001 : {1'b0, exp_A};
+    wire [5:0] exp_B_adj = (exp_B == 5'b0) ? 6'b100001 : {1'b0, exp_B};
+    wire [6:0] exp_sum = exp_A_adj + exp_B_adj;
+    wire [6:0] exp_prod = exp_sum - 7'b0011110;
+    
+    // Area-optimized normalization using shared logic
+    wire [4:0] shift_amount;
+    wire [21:0] normalized_sig;
+    
+    // Optimized shift amount calculation using priority encoder style
+    assign shift_amount = (~product_sig[21] & ~product_sig[20] & ~product_sig[19] & ~product_sig[18]) ? 5'b0 :
+                         (~product_sig[21] & ~product_sig[20] & ~product_sig[19] & product_sig[18]) ? 5'b11 :
+                         (~product_sig[21] & ~product_sig[20] & product_sig[19]) ? 5'b10 :
+                         (~product_sig[21] & product_sig[20]) ? 5'b1 : 5'b0;
+    
+    // Shared barrel shifter
+    assign normalized_sig = product_sig << shift_amount;
+    
+    wire [6:0] exp_after_norm = exp_prod - {2'b0, shift_amount};
+    
+    // Shared rounding logic
+    wire [9:0] mant_part = normalized_sig[20:11];
+    wire G = normalized_sig[10];
+    wire R = normalized_sig[9];
+    wire S = |normalized_sig[8:0];
+    wire round_up = (G && (R || S)) || (G && !(R || S) && mant_part[0]);
+    wire [10:0] rounded_mant = {1'b0, mant_part} + round_up;
+    
+    wire [9:0] final_mant = rounded_mant[10] ? rounded_mant[10:1] : rounded_mant[9:0];
+    wire [6:0] final_exp = rounded_mant[10] ? (exp_after_norm + 7'b1) : exp_after_norm;
+    
+    // Combined result computation
+    always @(*) begin
+        computed_C = 16'b0;
+        
+        if (is_nan_A || is_nan_B) begin
+            computed_C = {1'b0, 5'b11111, 10'b1};
+        end else if ((is_inf_A && is_zero_B) || (is_zero_A && is_inf_B)) begin
+            computed_C = {1'b0, 5'b11111, 10'b1};
+        end else if (is_inf_A || is_inf_B) begin
+            computed_C = {sign_A ^ sign_B, 5'b11111, 10'b0};
+        end else if (is_zero_A || is_zero_B) begin
+            computed_C = {sign_A ^ sign_B, 5'b0, 10'b0};
+        end else begin
+            if (final_exp[6] || final_exp[5:0] > 6'b001111) begin
+                computed_C = {sign_A ^ sign_B, 5'b11111, 10'b0};
+            end else if (final_exp[5:0] < 6'b000001) begin
+                computed_C = {sign_A ^ sign_B, 5'b0, 10'b0};
+            end else begin
+                computed_C = {sign_A ^ sign_B, final_exp[4:0], final_mant};
+            end
+        end
+    end
+    
+    // Output register
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            C <= 16'b0;
+            Valid <= 1'b0;
+        end else begin
+            if (Ready) begin
+                C <= computed_C;
+                Valid <= 1'b1;
+            end else begin
+                Valid <= 1'b0;
+            end
+        end
+    end
+
+endmodule
+\end{lstlisting}
+
+从代码可以看到，对于优化时序，其采用了四级流水线设计；而对于优化面积，其降低了时序逻辑和组合逻辑的个数。
+\section{对合见工软UDA的使用评价，修改建议}
+做完整个任务后，我深深感受到了这个UDA工具的强大。其功能十分完善，纠错、补全代码、QoR探索、一站式验证调试等已经能满足大部分
+设计者基本的设计任务，同时使用手册还提供了更加高阶的使用操作。并且内嵌AI模型，可以在设计中的Chat聊天框中和AI对话，非常的方便且灵活。
+
+除此之外，一些细节的设计也非常到位。比如在某个代码中做了改错的操作，会在代码开头显示过对这代码有过UDA的什么操作；在Chat聊天框中可以一键插入代码、保存代码、新旧代码对比，非常好用。
+
+至于修改建议，可以在设置中的prompt add里添加一个直接读取文件的功能；同时在修改代码时，可以自动跑一遍仿真，将仿真结果作为AI下一次修改意见；以及在FILES区域
+添加文件的时候，可能是有小bug，有几次点进去添加文件，结果文件夹中的代码文件根本没有显示。
+
+\end{document}

@@ -1,0 +1,802 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{电磁场与微波第三次实验}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{2025 年 5 月 5 日}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{实验目的}
+\begin{description}
+    \item[1.] 研究电磁波在良导体表面的反射。
+    \item[2.] 研究电磁波在介质表面的反射和折射。
+    \item[3.] 研究平面电磁波的极化特性。
+    \item[4.] 了解电磁波空间滤波器-频率选择表面(Frequency Selective Surfaces, FSS)的原理。
+    \item[5.] 学习带通FSS、带阻FSS的原理和特性。
+    \item[6.]深入理解S参数的物理概念，掌握测量S参数的方法。
+    \item[7.]掌握几种基本微波电路及宽频带电路的工作原理和特性。
+
+\end{description}
+
+\section{实验原理}
+\subsection{电磁波的反射、折射研究}
+
+均匀平面波斜入射到两种不同媒质的分界面上会发生反射和折射。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{反射折射.png}
+    \caption{电磁波的反射和折射}
+\end{figure}
+
+如上图所示，有反射定律和折射定律：
+\begin{equation}
+\theta_i=\theta_r
+\end{equation}
+\begin{equation}
+\frac{\sin\theta_i}{\sin\theta_t}=\sqrt{\frac{\varepsilon_2}{\varepsilon_1}}=\frac{n_2}{n_1}
+\end{equation}
+
+式中$\theta_i$、$\theta_r$、$\theta_t$分别为入射角、反射角、折射角，$\varepsilon_1$和$\varepsilon_2$分别为两种媒质的介电常数。
+
+垂直极化波投射的菲涅耳公式是：
+\begin{equation}
+\left(\frac{E_r}{E_i}\right)_\perp =\frac{n_1\cos\theta_i-n_2\cos\theta_t}{n_1\cos\theta_i+n_2\cos\theta_t}
+\end{equation}
+\begin{equation}
+\left(\frac{E_t}{E_i}\right)_\perp =\frac{2n_1\cos\theta_i}{n_1\cos\theta_i+n_2\cos\theta_t}
+\end{equation}
+
+平行极化波投射的菲涅耳公式是：
+\begin{equation}
+\left(\frac{E_r}{E_i}\right)_\parallel =\frac{n_2\cos\theta_i-n_1\cos\theta_t}{n_1\cos\theta_t+n_2\cos\theta_i}
+\end{equation}
+\begin{equation}
+\left(\frac{E_t}{E_i}\right)_\parallel =\frac{2n_1\cos\theta_i}{n_1\cos\theta_t+n_2\cos\theta_i}
+\end{equation}
+
+\subsubsection{电磁波极化特性研究}
+
+矩形喇叭发射波是线极化波。当接收喇叭与发射喇叭在一条轴线并且口面状态一致时，接收到的线极化波功率最大。如下图所示：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{极化.png}
+    \caption{电磁波的极化特性}
+\end{figure}
+
+当旋转接收喇叭的转盘，使接收喇叭口面轴线与发射喇叭口面轴线不平行而存在一个夹角$\varphi$时，接收到的信号减小。随着
+$\varphi$的增大，接收功率$I$逐渐减小。当$\varphi=90°$时，接收信号功率为零。设$\varphi=0°$时接收到的信号为$I_0$，
+由于喇叭接收信号通过平方律检波输出，故接收喇叭与发射喇叭轴线成$\varphi$角时接收到的功率为：
+$$
+I=I_0\cos^2\varphi
+$$
+
+
+\subsection{空间滤波器特性}
+
+
+频率选择表面与LC滤波器类似，也是一种滤波器。前者作用于电流和电压，而后者作用于电磁波。频率选择表面(FSS)通常采用空间周期性结构，设计不同的单元图形，可以实现带通型和
+带阻型滤波特性。其应用十分广泛，涉及电磁领域的许多方面，如抛物面天线的副反射器、雷达天线罩等。
+
+有限元方法是近似求解频率选择表面的一种数值技术。ANSYS公司的HFSS软件是基于电磁场有限元(FEM)方法分析微波工程问题的三维仿真软件。
+
+本实验使用 HFSS 软件仿真设计了两类表面：带通FSS和带阻FSS。
+
+\subsubsection{金属网格栅}
+
+
+如下面左图所示，深色部分是金属网格栅，附着在介质材料上。当电磁波从垂直入射到该板，与入射波极化方向平行的金属贴片上产生感应电流，
+类似于电感的作用；与入射波极化方向垂直的两根金属贴片之间产生感应电压，类似于电容的作用。整个网格栅的作用类似于电感和电容并联
+而成的电路，起到带通滤波的作用。等效电路如下面右图所示。由其结构尺寸决定的相应频段的信号可以通过该网格栅。
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{0.49\linewidth}
+		\centering
+		\includegraphics[width=0.8\linewidth,height=0.22\textheight]{网格栅.png}
+        \caption{金属网格栅}
+	\end{minipage}
+	\begin{minipage}{0.49\linewidth}
+		\centering
+		\includegraphics[width=0.8\linewidth,height=0.22\textheight]{等效网格.png}
+        \caption{金属网格栅等效电路}
+	\end{minipage}
+\end{figure}
+
+\subsubsection{交叉偶极子}
+
+
+如下面左图所示，深色部分是交叉偶极子，附着在介质材料上。当电磁波从垂直入射到该板，与入射波极化方向平行的金属贴片上产生感应电流，
+类似于电感的作用；两根金属贴片之间的缝隙产生感应电压，类似于电容的作用。整个板的作用类似于电感和电容串联而成的电路，起到带阻滤
+波的作用。等效电路如下面右图所示。由其结构尺寸决定的相应频段的信号不能通过该板子。
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{0.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth,height=0.22\textheight]{交叉偶极.png}
+        \caption{交叉偶极子}
+	\end{minipage}
+	\begin{minipage}{0.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth,height=0.22\textheight]{交叉偶极等效.png}
+        \caption{交叉偶极子等效电路}
+	\end{minipage}
+\end{figure}
+
+
+\subsubsection{双方环缝隙}
+
+
+如下面左图所示，深色部分是金属，白色部分是裸露出来的介质板，整体结构为在金属表面刻蚀了两个大小不同的方环形缝隙。
+
+当电磁波从垂直入射到该板，与入射波极化方向平行的金属贴片上产生感应电流，类似于电感的作用；而两个金属之间的
+缝隙之间产生感应电压，类似于电容的作用。等效电路如下面右图所示。
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{0.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth,height=0.22\textheight]{方环缝隙.png}
+        \caption{双方环缝隙结构}
+	\end{minipage}
+	\begin{minipage}{0.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth,height=0.22\textheight]{方环缝隙等效.png}
+        \caption{双方环缝隙等效电路}
+	\end{minipage}
+\end{figure}
+
+由等效电路可计算该FSS的阻抗为:
+
+$$
+Z=\frac{j\omega L_1}{1-\omega^2L_1C_1}+\frac{j\omega L_2}{1-\omega^2L_2C_2}
+$$
+
+当$Z=\infty$时，电磁波全部透过，因此其存在两个传输极点$f_1$和$f_2$；当$Z=0$时，FSS等效为金属板，因此存在一个传输零点$f_3$，
+其中$f_1 < f_3 < f_2$，因此该FSS随频率增加，表现为带通-带阻-带通的特性。
+
+\subsubsection{双层方环贴片/缝隙}
+
+如下图所示，深色部分是金属，白色部分是裸露出来的介质板，上层是在介质表面加载两个大小不同的方环形贴片，下层是金属表面蚀刻了
+一个方环形缝隙。当电磁波从垂直入射到该板，与入射波极化方向平行的金属贴片上产生感应电流，类似于电感的作用；而两个金属之间的缝
+隙之间产生感应电压，类似于电容的作用。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{双层.png}
+    \caption{双层方环贴片/缝隙结构 (a)上层；(b)下层}
+\end{figure}
+
+其等效电路如下图所示：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{双层等效.png}
+    \caption{双层方环贴片/缝隙等效电路}
+\end{figure}
+
+
+其上层结构产生两个阻带$f_1$和$f_2$，下层结构产生一个通带$f_3$，$f_1 < f_3 < f_2$，因此该FSS随频率增加，表现为带阻-带通-带阻的特性。
+
+\subsection{几种微波电路}
+用网络分析仪研究微波电路的特性，主要是通过测量各个电路的S参数，对S参数进行分析处理后得出其性能。以下是几种常用的微波电路的原理。
+
+\subsubsection{微带功分器}
+
+微带功分器可以对功率进行分配和合成，主要用于阵列天线功分网络等电路中。其基本结构原理图和横截面图如下图所示：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{微带线.jpg}
+    \caption{微带功分器结构图与横截面图}
+\end{figure}
+
+等分功分器的S矩阵为：
+
+$$
+[S]=\begin{bmatrix}
+    0&\frac{1}{\sqrt{2}}&\frac{1}{\sqrt{2}}\\
+    \frac{1}{\sqrt{2}}&0&0\\
+    \frac{1}{\sqrt{2}}&0&0\\
+\end{bmatrix}
+$$
+
+等分功分器的基本特性为：当输入端口1无反射，输出端口2和3接匹配负载时，从端口1输入的功率被平分到端口2和3，且相位差为0，
+端口2和端口3相互隔离。
+
+功分器的主要性能指标有功分比、相位平衡度、隔离度、插入衰减和工作频带。定义如下：
+
+\begin{description}
+    \item[(1)] 功分比：当信号频率从1端口输入时，从2、3端口出来的功率之比，以分贝表示：
+    
+    $$
+    10\lg\frac{P_{12}}{P_{13}}dB=20\lg\frac{\left|S_{21}\right|}{\left|S_{31}\right|}dB
+    $$
+
+    \item[(2)] 相位平衡度：当信号频率从1端口输入时，从2、3端口出来的信号的相位差
+    
+    $$
+    \phi(S_{21})-\phi(S_{31})
+    $$
+    
+    \item[(3)] 隔离度：从2端口输入的信号功率与从3端口输出的功率之比，以分贝表示：
+    
+    $$
+    10\lg\frac{P_2}{P_{23}}dB=20\lg\frac{1}{\left|S_{32}\right|}dB
+    $$
+
+    \item[(4)] 插入衰减：从1端口输入的信号功率与从2、3端口输出的功率和之比，以分贝表示：
+    
+    $$
+    10\lg\frac{P_1}{P_{12}+P_{13}}dB=10\lg\frac{1}{\left|S_{21}\right|^2+\left|S_{31}\right|^2}dB
+    $$
+\end{description}
+
+以上公式中，$P_1$、$P_2$分别表示从1、2端口输入的功率，$P_{12}$、$P_{13}$分别表示信号功率从1端口输入时2、3端口输出的功率，
+$P_{23}$表示信号功率从2端口输入时3端口输出的功率。
+
+
+\subsubsection{微带3dB电桥}
+
+
+这类电路可以在满足一定相位要求的条件下，对功率进行分配和合成，可用于平衡混频器、移相器和功分器等电路中。
+\begin{description}
+    \item[(1)] 微带分支线电桥
+    
+    微带分支线电桥由两根平行导带组成，通过一些分支导带实现耦合，即$3dB$定向耦合器。结构示意图如下：
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\textwidth]{微带分支线.png}
+        \caption{微带分支线电桥}
+    \end{figure}
+
+    分支导带的长度及其间隔均为$\frac{\lambda_g}{4}$，正确设置各段微带线的归一化特性导纳值，使$G=1$、$H=\sqrt{2}$，
+    则可以使其在理想情况下，从端口1输入功率时，在端口2和3平分输出，端口4无输出，且各端口$S_{ii}=0$。理想情况下的S矩阵为：
+
+    $$
+    S=\frac{1}{\sqrt{2}}\begin{bmatrix}
+        0&-j&-1&0\\
+        -j&0&0&-1\\
+        -1&0&0&-j\\
+        0&-1&-j&0
+    \end{bmatrix}
+    $$
+    
+    由于微带分支线电桥体积小，重量轻，加工方便，便于实现小型化，广泛用作功分器、合成器、平衡混频器等。
+    
+    \item[(2)] 微带环形电桥
+    
+    微带环形电桥上下结构是对称的，但左右结构不再对称。结构示意图如下：
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{环形.png}
+        \caption{微带环形电桥}
+    \end{figure}
+    它的主要特性为：信号从环形定向耦合器的端口1输入时，2、3两端口有等幅同相信号输出，端口4是隔离口；信号从端口2输入时，
+    端口1、4有等幅反相信号输出，端口 3为隔离口。
+
+    对于微带3dB电桥，主要性能指标有：功分比、相位差、隔离度、插入衰减及工作频带。定义如下：
+    \begin{description}
+        \item[(1)]     功分比：当信号频率从1端口输入时，从2、3端口出来的功率之比，以分贝表示：
+
+        $$
+        10\lg\frac{P_{12}}{P_{13}}dB=20\lg\frac{\left|S_{21}\right|}{\left|S_{31}\right|}dB
+        $$
+        
+        \item[(2)]    相位差：
+        
+        对分支线电桥，信号从1端口输入时，从2、3端口出来的信号的相位差$\phi(S_{21}) - \phi(S_{31})$；
+        
+        对环形电桥，信号从 1 端口输入时，从 2、 3 端口出来的信
+        号相位差$\phi(S_{21}) - \phi(S_{31})$；信号从 2 端口输入时，从 1、 4 端口出来的信号的相位差
+        $\phi(S_{12}) - \phi(S_{42})$
+
+        \item[(3)]隔离度：从1端口输入的信号功率与从4端口输出的功率之比，以分贝表示：
+    
+        $$
+        10\lg\frac{P_1}{P_{14}}dB=20\lg\frac{1}{\left|S_{41}\right|}dB
+        $$
+
+            \item[(4)]插入衰减：从1端口输入的信号功率与从2、3端口输出的功率和之比，以分贝表示：
+            
+            $$
+            10\lg\frac{P_1}{P_{12}+P_{13}}dB=10\lg\frac{1}{\left|S_{21}\right|^2+\left|S_{31}\right|^2}dB
+            $$
+
+            以上公式中，$P_1$表示从1端口输入的功率，$P_{12}$、$P_{13}$、$P_{14}$分别表示信号功率从1端口输入时2、3、4端口输出的功率。
+    \end{description}
+
+    
+
+
+    
+    
+    
+
+\end{description}
+
+\subsubsection{微带平行耦合线定向耦合器}
+
+这类耦合器主要用于信号分离装置中，把入射信号与反射信号分离。比如在网络分析仪
+的信号分离装置中，可以对入射信号、反射信号和传输信号进行分离，从而分析计算其 S 参
+数。 结构示意图如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{平行线.png}
+    \caption{平行耦合线定向耦合器}
+\end{figure}
+
+这种定向耦合器主要由两条平行耦合线组成。它的特性为：当信号从端口 1 输入时，端
+口 2 是直通臂，端口 3 是耦合臂，端口 4 是隔离臂。 MSP7-1 的单阶定向耦合器，耦合臂与
+直通臂的输出信号有$\frac{\pi}{2}$的相位差。 MSP7-2 的三阶定向耦合器，耦合臂与直通臂的输出信号
+有$\frac{3\pi}{2}$的相位差。相对于单阶定向耦合器来说，三阶定向耦合器的工作频带更宽，且具有
+更高的耦合度。
+
+对于微带耦合线定向耦合器，主要技术指标有过渡衰减（耦合度）、方向性、相位差及
+工作频带。定义如下：
+
+\begin{description}
+    \item[(1)] 过渡衰减（耦合度）：主波导端口 1 的入射波功率$P_1$与副波导中端口 3 的耦合功率$P_3$之比，以分贝表示：
+    
+    $$
+    C=10\lg\frac{P_1}{P_3}dB=20\lg\frac{1}{\left|S_{31}\right|}dB
+    $$
+
+    \item[(2)] 方向性：当功率有 1 端口输入时，到达 3 端口（耦合臂）的功率$P_3$与到达 4 端口（隔离臂）的功率$P_4$之比，以分贝表示
+    
+    $$
+    D=10\lg\frac{P_{13}}{P_{14}}dB=20\lg\frac{\left|S_{31}\right|}{\left|S_{41}\right|}dB
+    $$
+    
+    可见，对于理想的定向耦合器，其方向性应是无穷大。
+
+    \item[(3)] 相位差：当信号从端口 1 输入，端口 2 和端口 3 的相位差$\phi(S_{21}) - \phi(S_{31})$。
+\end{description}
+
+
+
+\section{实验步骤}
+\subsection{电磁波的反射、折射研究}
+
+
+\begin{description}
+    \item[(1)] 打开振荡电源开关，预热 10 分钟。调整发射喇叭天线和接收喇叭天线，使发射天线与接收天线互相正对。
+    
+    \item[(2)] 调试实验装置: 首先使两个喇叭天线互相正对，它们的轴线应在一条直线上。具体方法如下: 旋转工作平台使
+    $0°$刻线与发射天线所在的固定臂上的指针正对，再转活动臂使活动臂上的指针对正工作平台上的$180°$刻线，然后锁定活动臂。
+
+    \item[(3)] 测试电磁波入射到良导体的反射特性。首先不加反射板，使发射天线与接收天线互相正对，调整可变衰减器，测出入
+    射波功率（检波晶体为平方律检波，可使检波指示器指示为$80µA$）。然后把良导体反射板放在转台上，使导体板平面对准转台
+    上的$90°$刻线，这时转台上的$0°$刻线与导体板的法线方向一致。转动反射板改变入射角$\theta_i$，测在反射角$\theta_r=\theta_i$
+    时的反射波功率，记录测试数据。最后可把接收天线转到导体板后（$180°$刻线处），观察有无折射波。
+
+    \item[(4)] 观察、测试电磁波投射到介质板上的反射与折射特性。把导体板换成介质板（这里用的玻璃板），观察、测试电磁波投射到
+    介质板上的反射和折射。首先观察反射波，测出反射角等于入射角时反射波的大小并记录。再观察折射波，由于电磁波经过
+    玻璃板的两次折射穿过玻璃板的折射波方向与入射波保持一致，因此在测折射波时应将接收喇叭调到与发射喇叭轴线一致，旋转玻璃板，
+    测得入射波为$30°$和$45°$时折射波的大小，并记录。记录数据，观察$I_i$、$I_r$、$I_t$满足什么关系。
+\end{description}
+
+\subsection{电磁波极化特性研究}
+
+
+\begin{description}
+    \item[(1)] 调试实验装置: 首先使两个喇叭天线互相正对，它们的轴线应在一条直线上。
+    
+    \item[(2)] 打开振荡电源开关。
+    
+    \item[(3)] 使接收喇叭口面轴线与发射喇叭口面轴线的夹角$\varphi$为零值，调整可变衰减器，使得此时检波指示器的读数$I_0$接近满刻度并记录。
+    
+    \item[(4)] 旋转接收喇叭转盘，顺时针改变夹角$\varphi$，每改变$10°$时，读取检波指示器的读数$I$并记录。逆时针改变夹角$\varphi$重
+    复测试过程，记录数据。
+    
+    \item[(5)] 分析实验数据，研究其特性是否满足$I=I_0\cos^2\varphi$，并分析。
+\end{description}
+
+\subsection{空间滤波器特性研究}
+
+
+\begin{description}
+    \item[(1)] 使用电磁波综合测试仪，采用矩形喇叭作为发射喇叭和接收喇叭，调整发射喇叭和接收喇叭使得两者互相正对；
+    \item[(2)] 设定发射喇叭频率，调节衰减器使得接收示数为固定值。分别放置四类空间滤波器，记录检波指示器的示数；
+    \item[(3)] 改变发射喇叭频率，重复上述步骤，记录数据。
+\end{description}
+
+
+\subsection{微波电路特性研究}
+
+
+\begin{description}
+    \item[(1)] 打开矢量网络分析仪，频带设置为1.8到3.0$GHz$。
+    
+    \item[(2)] 首先测量一阶分支线电桥的 S 参数，该电路的工作频带为 2.35到2.45GHz，中
+    心频点为 2.4GHz，对这三个频点设置 Marker，测量内容包括S21、 S31的对数
+    幅度和相位， S41的对数幅度， $S_{11}$、 $S_{22}$、 $S_{33}$、 $S_{44}$的对数幅度。在测量 S 参量
+    前要进行校准，对于Sii参量，首先使矢网端口断路，然后校准，对于$S_{ij}$参量，
+    需要把两个矢网端口短接，然后校准。测量$S_{ii}$时，其他三个端口接匹配负载，
+    由于实验仪器中仅有 2 个，另外一个匹配负载可以由矢网端口替代。
+    
+    \item[(3)] 然后测量二阶分支线电桥的 S 参数，该电路的工作频带为 2.06到2.74GHz，中
+    心频点为 2.4GHz，这三个频点设置 Marker，测量内容和一阶电桥相似，包括
+    $S_{21}$、 $S_{31}$的对数幅度和相位，$S_{41}$的对数幅度， $S_{11}$、 $S_{22}$、 $S_{33}$、 $S_{44}$的对数幅度。
+\end{description}
+
+
+\section{实验数据整理及分析}
+
+\subsection{电磁波的反射与折射研究}
+实验测量数据如下表所示：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{电磁波反射特性记录表}
+    \begin{tabular}{|c|c|c|c|c|}\hline
+        入射场$I_i(\mu A)$&\multicolumn{4}{c|}{80}\\\hline
+        入射角与反射角$\theta_i$&30°&40°&50°&60°\\\hline
+        反射场$I_r(\mu A)$&61&43&49&60\\\hline
+    \end{tabular}
+\end{table}
+
+理论上而言，在良导体上反射时电磁波应该是没有能量损失的，但实验结果却显示电磁波经过反射后有明显的能量衰减。这是由于实验的非理想因素导致的。一方面，实验中使用的
+两个导体板面积有限且不是理想良导体，无法全部反射电磁波能量；另一方面，实验室电磁环境较复杂，不是真实的自由空间，可能存在多径效应等非理想效应对测量的影响，导致实验值与理论值偏差较大。
+
+\subsection{电磁波透射到介质板上的反射、折射特性}
+实验测量数据如下表所示：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{圆极化喇叭的极化特性研究}
+    \begin{tabular}{|c|c|c|c|}\hline
+        入射角$\theta_i$&入射场$I_i(\mu A)$&反射场$I_r(\mu A)$&折射场$I_t(\mu A)$\\\hline
+        $30°$&85&28&18\\\hline
+        $45°$&85&40&14\\\hline
+    \end{tabular}
+\end{table}
+
+根据能量守恒，有$I_i= I_r+I_t$，但实验测得结果显示，在两个测量角度下均为$I_i>I_r+I_t$，这也再次说明实验环境
+是非理想的，多方面非理想因素导致电磁波在空间中损失了较大的能量。
+
+
+\subsection{电磁波极化特性研究}
+实验测量数据如下表所示：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{电磁波极化特性研究}
+    %\begin{tabular}{|p{2.5cm}<{\centering}|p{2.7cm}<{\centering}|p{2.5cm}<{\centering}|p{2.7cm}<{\centering}|p{2.5cm}<{\centering}|}\hline
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|}\hline
+        $I_0(\mu A)$&\multicolumn{8}{c|}{85}\\\hline
+        $\varphi$&$20°$&$30°$&$40°$&$50°$&$60°$&$70°$&$80°$&$90°$\\\hline
+        (逆时针)$I_1(\mu A)$&70&54&38&22&10&4&0&0\\\hline
+        (顺时针)$I_2(\mu A)$&74&60&44&25&11&3&0&0\\\hline
+        测量平均值$\bar{I}(\mu A)$&72&57&40&23.5&10.5&3.5&0&0\\\hline
+        理论值$I(\mu A)$&75.06&63.75&49.88&35.12&21.25&9.94&2.56&0\\\hline
+    \end{tabular}
+\end{table}
+
+
+根据实验数据画出曲线，并与理论值曲线进行对比，如下图：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{comp.png}
+    \caption{实验数据与理论值对比}
+\end{figure}
+
+可见实验数据整体上与理论值吻合，验证了$I=I_0\cos^2\varphi$的规律。
+
+\subsection{空间滤波器特性}
+
+实验测量数据如下表所示:
+
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{空间滤波器特性数据记录}
+    \begin{tabular}{|c|c|c|c|}\hline
+        频率$f$/$GHz$&发射示数/$\mu A$&双方环缝隙/$\mu A$&双层方环贴片/$\mu A$\\\hline
+        8.60&84&40&2\\\hline
+        8.70&84&41&12\\\hline
+        8.80&86&26&22\\\hline
+        8.90&90&14&43\\\hline
+        9.00&87&0&28\\\hline
+        9.10&83&0&51\\\hline
+        9.20&85&6&48\\\hline
+        9.30&93&13&28\\\hline
+        9.40&88&31&20\\\hline
+        9.50&84&52&4\\\hline
+        9.60&90&72&3\\\hline
+    \end{tabular}
+\end{table}
+
+由以上数据可以看到不同器件对电磁波不同的频率选择特性。为了更清晰地观察其变化规律，绘制其频率特性曲线：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{pinlv.png}
+    \caption{不同器件的频率选择特性}
+\end{figure}
+
+可以观察到，对于双方环缝隙，对9.0-9.2GHz频点呈现带阻特性，而双层方环贴片则在该频点处呈现带通特性，与理论结果相一致。
+
+
+\subsection{S参数测量结果}
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{功分器测量数据(幅度单位：dB，相位单位：°)}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|}\hline
+        电路&频率/GHz&指标&$|S_{11}|$&$|S_{21}|$&$|S_{22}|$&$|S_{23}|$&$|S_{31}|$&$|S_{33}|$\\\hline
+        \multirow{2}*{一阶功分器}&\multirow{2}*{2.24$\sim$2.60}&对数幅度(dB)&-18.673&-3.4065&-23.610&-19.381&-3.5620&-23.820\\
+        \cline{3-9}
+
+        ~&~&相位&-18.673&125.85&~&~&123.66&~\\\hline
+        \multirow{2}*{二阶功分器}&\multirow{2}*{1.26$\sim$2.92}&对数幅度(dB)&-14.677&-3.3938&-17.423&-23.842&-3.6266&-17.705\\
+        \cline{3-9}
+        ~&~&相位&~&71.867&~&~&71.691&~\\\hline
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+
+    \caption{性能指标}
+    \begin{tabular}{|c|c|c|c|c|}\hline
+        电路&功分比(dB)&相位平衡度&隔离度(dB)&插入衰减(dB)\\\hline
+        一阶功分器&0.1555&2.19°&23.610&0.4733\\\hline
+        二阶功分器&0.2328&0.176°&17.423&0.4983\\\hline
+    \end{tabular}
+\end{table}
+
+在实验过程中，我们通过矢量网络分析仪直接得到了各参数随频率变化的曲线，如下图所示：
+
+
+一阶功分器
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{18.jpg}
+    \caption{一阶功分器$S_{11}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{15.jpg}
+    \caption{一阶功分器$S_{21}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{14.jpg}
+    \caption{一阶功分器$S_{21}$相位}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{17.jpg}
+    \caption{一阶功分器$S_{22}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{11.jpg}
+    \caption{一阶功分器$S_{23}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{12.jpg}
+    \caption{一阶功分器$S_{31}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{13.jpg}
+    \caption{一阶功分器$S_{31}$相位}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{16.jpg}
+    \caption{一阶功分器$S_{33}$幅度}
+\end{figure}
+
+
+
+二阶功分器
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{10.jpg}
+    \caption{二阶功分器$S_{11}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{7.jpg}
+    \caption{二阶功分器$S_{21}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{6.jpg}
+    \caption{二阶功分器$S_{21}$相位}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{9.jpg}
+    \caption{二阶功分器$S_{22}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{3.jpg}
+    \caption{二阶功分器$S_{23}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{4.jpg}
+    \caption{二阶功分器$S_{31}$幅度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{5.jpg}
+    \caption{二阶功分器$S_{31}$相位}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{8.jpg}
+    \caption{二阶功分器$S_{33}$幅度}
+\end{figure}
+
+\section{思考题}
+
+\question{1.}{\textbf{分析反射、折射测量误差，提出减少测试误差的方案。}}
+
+误差来源：实验室环境不是自由空间，存在其他组实验中电磁波经过空间的多次反射折射等带来的影响；接收喇叭尺寸有限，不能够完全接收并测量电磁波；
+介质板面积有限且不是理想良导体，存在一定的能量泄露，当入射角较大时部分电磁波可能传播到自由空间中；导体及介质板表面不平整可能导致电磁波向
+多个方向散射，造成能量损失；仪器的测量误差以及读数误差；天线或探头倾斜引入偏振误差。
+
+减少误差的方案：优化实验环境，到微波暗室中进行实验或使用吸波材料；增大接收喇叭口径和介质板的面积；对导体板介质板表面进行保养，
+减小电磁波在其表面的散射损耗；多次测量取平均值以减小误差；在VNA中启用时域门，滤除多重反射信号（需设置合理时间窗）。\\
+
+\question{2.}{\textbf{如有一块介质平板，已知其厚度。应用电磁波综合测试仪设计一个近似测量介质板的介电常数的方案。}}
+
+可以利用Brust角的结论进行测量：
+
+    使用矩形喇叭发射电磁波投射到介质平板表面进行反射和折射，旋转发射喇叭使得入射波极化方向在由入射波传播方向
+    与介质板法线方向构成的平面内，调整入射角使得透射波最强，反射波能量几乎为0，此时对应的入射角即为Brust角$\theta_b$，有
+
+    $$
+    \theta_b=\arctan\sqrt{\frac{\varepsilon_2}{\varepsilon_1}}
+    $$
+    
+    其中空气的介电常数为$\varepsilon_1$，由此可以得到介质板的介电常数
+
+    $$
+    \varepsilon_2=\varepsilon_1\tan^2\theta_b
+    $$
+
+
+\question{3.}{\textbf{简单叙述了解的FSS的应用。}}
+
+用于军事飞行器、舰船等，通过FSS反射或吸收特定频段雷达波，降低雷达散射截面（RCS）;集成FSS作为超表面透镜，增强天线增益或抑制旁瓣；在电子设备外壳上设计FSS，屏蔽特定干扰频段（如5G基站隔离Wi-Fi干扰）；建筑玻璃嵌入FSS，透可见光但屏蔽微波（如军事指挥部的防窃听窗户）。\\
+
+
+
+\question{4.}{\textbf{信号通过微带电路产生的衰减可能来自哪几个方面？}}
+
+阻抗不匹配导致端口电磁波的反射，信号的能量不能完全吸收；滤波器本身含有电阻，而且微带线的介质板不是理想绝缘体，会存在电磁能量转化为热能，存在能量损耗；部分信号可能会因为辐射、泄露等原因没有到达输出端；邻近微带线或器件间的寄生耦合（串扰）可能导致信号能量转移。\\
+
+\question{5.}{\textbf{在测量过程中，对于多端口器件，将其按照双端口器件的接法接入测量系统，如何处理没有接入仪器的端口？}}
+
+没有接入仪器的端口接匹配负载。如果匹配负载数量不够，因为可以用已经校准过的矢量分析仪的端口来替代。\\
+
+
+\question{6.}{\textbf{如果在测试微带分支线电桥的某一端口时，其他端口所接匹配负载反射系数不为0，会出现什么现象?}}
+
+根据$S_{ij}$的定义:$b_i = S_{i1}a_1 + ... + S_{ij}a_j + ... + S_{i4}a_4$可知：其他端口匹配负载反射系数不为 0 时，$S_{ij}$的计算结果会偏离理论值。\\
+
+
+\question{7.}{\textbf{如功分器各端口的反射系数不为零，对它的指标有何影响？}}
+
+如功分器各端口的反射系数不为零，这时电路中会存在反射波，使得散射矩阵中各个 S 参数都会变大。按照性能指标的定义：功分比变化不确定，与各端口的反射系数大小有关；隔离度变小；插入衰减变大。\\
+
+
+\question{8.}{\textbf{ 功分器还可用作什么器件？}}
+
+可以用作定向耦合器、混频器，即在 2、 3 端口输入不同频率的信号，在端口 1 输出从而达到混频的功能。\\
+
+
+\question{9.}{\textbf{测量定向耦合器，如果各端口的反射系数不理想，即不为 0，会对电路的性能带来什么影响?}}
+
+若反射系数不为 0 ,会使得电路中出现反射波，干扰电路的正常性能使用。\\
+
+
+\question{10.}{\textbf{在微带线电路设计中，如何使得电路尺寸减小?}}
+
+微带线的波长缩短效应为$\lambda_g=\lambda_0/\sqrt{\varepsilon}$，
+可以选择介电常数大的材料作为介质来减小电磁波的波长，进而减小电路的尺寸；此外，在布线上采用垂直堆叠结构（如多层PCB或LTCC低温共烧陶瓷）实现三维布线，减少平面占用面积；
+还可以设计负介电常数或负磁导率结构，实现超小型谐振器或天线。
+
+\section{实验总结}
+
+在本次实验中，我第一次接触到了各种微波器件和空间滤波器，通过实际测量进一步认识了它们在实际应用中的一些特性。这一次实验也拓宽了我对滤波器的认知，不仅在电路设计中有滤波器，在微波传输
+电路中同样存在滤波器，只是实现的方式不同。此外，对于常用微波网络数据的测量也进一步让
+我认识到频率对于微波器件的重要性，在不同的频率下，微波器件的物理特性可能会完全不同。
+
+最后，感谢凌丹老师和助教在实验中提供的指导和帮助！
+
+\newpage
+\section{实验原始数据}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.2\textwidth,angle=-90]{1.jpg}
+\end{figure}
+\newpage
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.2\textwidth,angle=-90]{2.jpg}
+\end{figure}
+
+\end{document}

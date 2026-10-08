@@ -1,0 +1,1434 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{实验四：处理机调度}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{实验题目：银行家算法}
+本实验选择了银行家算法，操作系统平台选为Windows，实现语言为C++。
+
+\subsection{问题描述}
+银行家算法是避免死锁的一种重要方法，将操作系统视为银行家，操作系统管理的资源
+视为银行家管理的资金，进程向操作系统请求分配资源即企业向银行申请贷款的过程。
+
+请根据银行家算法的思想，编写程序模拟实现动态资源分配，并能够有效避免死锁的发
+生。
+
+\subsection{实现要求}
+\begin{description}
+    \item[1.] 对实现的算法通过流程图进行说明;
+    \item[2.] 设计不少于三组测试样例，需包括资源分配成功和失败的情况；
+    \item[3.] 能够展示系统资源占用和分配情况的变化及安全性检测的过程；
+    \item[4.] 结合操作系统课程中银行家算法理论对实验结果进行分析，验证结果的正确性；
+    \item[5.] 分析算法的鲁棒性及算法效率。
+\end{description}
+
+
+\subsection{程序设计思路}
+
+\subsubsection{算法流程图}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{流程图.png}
+    \caption{银行家算法流程图}
+\end{figure}
+
+银行家算法的程序设计核心是模拟操作系统对资源的动态分配过程，因此需要首先用可用资源向量、最大需求矩阵、分配矩阵和需求矩阵表示系统资源状态。
+同时实现一个从文件中读取测例的函数用于初始化每个系统的状态。定义一个银行家Banker类，在运行测试测例时，银行家对系统发出的资源申请做判断处理，
+首先是检测这个申请是否合法，然后在申请合法的基础上模拟分配过程。同时需要一个安全性检测函数，在模拟分配过程后中寻找是否存在安全序列，如果存在安全序列，
+则该申请后系统安全，允许申请；若找不到安全序列，说明该申请后系统进入不安全状态，驳回申请并输出报错。
+
+\subsubsection{测试用例结构体定义}
+\begin{lstlisting}[frame=shadowbox, language=C]
+struct TestCase {
+    int processNum;      
+    int resourceNum;     
+    vector<int> Available;  
+    vector<vector<int>> Matrix_MaxNeed;    
+    vector<vector<int>> Matrix_Allocation; 
+    int pid;             
+    vector<int> request;  
+};
+\end{lstlisting}
+
+这一部分代码定义了测例结构体，方便读入文件中的测例。
+
+\subsubsection{银行家类定义}
+\begin{lstlisting}[frame=shadowbox, language=C]
+class Banker {
+private:
+    int processNum;    // 进程数量
+    int resourceNum;   // 资源种类数量
+    vector<int> Available;       // 可用资源向量
+    vector<vector<int>> Matrix_MaxNeed;     // 最大需求矩阵
+    vector<vector<int>> Matrix_Allocation;// 已分配矩阵
+    vector<vector<int>> Matrix_Need;    // 需求矩阵
+
+    vector<int> safetyCheck()           //安全性检查函数，模拟实现动态资源分配
+    {
+        vector<int> safeSequence_final;
+
+
+        for (int ii = 0; ii < processNum; ii++)
+        {
+            vector<int> Work = Available;                       //工作向量，模拟分配时的可用资源
+            vector<bool> Finish(processNum, false);             //记录模拟运行的进程是否完成，初始全都未完成
+            vector<int> safeSequence;
+
+            bool flag = true;
+            for (int j = 0; j < resourceNum; j++)
+            {
+                if (Work[j] < Matrix_Need[ii][j])            //超出了限制
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag)
+            {
+                for (int j = 0; j < resourceNum; j++)
+                    Work[j] += Matrix_Allocation[ii][j];
+                safeSequence.push_back(ii);
+                Finish[ii] = true;
+            }
+            else
+                continue;
+
+            bool found = true;     //?
+            for (int i = 0; i < processNum; i++)
+            {
+                if (!Finish[i])
+                {
+                    bool canallocate = true;
+                    for (int j = 0; j < resourceNum; j++)
+                    {
+                        if (Work[j] < Matrix_Need[i][j])            //超出了限制
+                        {
+                            canallocate = false;
+                            break;
+                        }
+                    }
+
+                    if (canallocate)
+                    {
+                        for (int j = 0; j < resourceNum; j++)
+                            Work[j] += Matrix_Allocation[i][j];
+                        safeSequence.push_back(i);
+                        Finish[i] = true;
+                        i = -1;
+                    }
+                    
+                }
+           
+                }
+                for (bool f : Finish) {
+                    if (!f) {
+                        //cout << "不存在安全序列，此时系统不安全！" << endl;
+                        found = false;
+                    }
+                if (!found)
+                    safeSequence_final = {};
+                else
+                {
+                    safeSequence_final = safeSequence;
+                    break;
+                }
+            }
+        }
+
+        return safeSequence_final;
+    }
+
+public:
+    Banker(int p, int r, vector<int> av,
+        vector<vector<int>> m, vector<vector<int>> a)
+        : processNum(p), resourceNum(r), Available(av), Matrix_MaxNeed(m), Matrix_Allocation(a) {
+
+        // 计算Need矩阵：Need = MaxNeed - Allocation
+        Matrix_Need.resize(processNum, vector<int>(resourceNum));
+        for (int i = 0; i < processNum; i++) {
+            for (int j = 0; j < resourceNum; j++) {
+                Matrix_Need[i][j] = Matrix_MaxNeed[i][j] - Matrix_Allocation[i][j];
+                if (Matrix_Need[i][j] < 0) {
+                    cerr << "错误：最大需求小于已分配资源！进程" << i << " 资源" << j << " !" << endl;
+                    exit(1);
+                }
+            }
+        }
+    }
+
+    // 处理资源请求函数，检测合法性
+    bool requestResource(int pid, vector<int> request, vector<string>& log) {
+        for (int j = 0; j < resourceNum; j++) {
+            if (request[j] < 0) {
+                log.push_back("错误：请求不能为负数！");
+                return false;
+            }
+            if (request[j] > Available[j]) {
+                log.push_back("错误：资源不足，需等待资源释放！");
+                return false;
+            }
+            if (request[j] > Matrix_Need[pid][j]) {
+                log.push_back("错误：请求超过需求！");
+                return false;
+            }
+
+        }
+
+        //保存现场
+        vector<int> Available_copy = Available;
+        vector<vector<int>> Matrix_Allocation_copy = Matrix_Allocation;
+        vector<vector<int>> Matrix_Need_copy = Matrix_Need;
+
+        // 模拟资源分配
+        for (int j = 0; j < resourceNum; j++) {
+            Available[j] -= request[j];
+            Matrix_Allocation[pid][j] += request[j];
+            Matrix_Need[pid][j] -= request[j];
+        }
+
+        // 输出临时状态
+        log.push_back("\n模拟分配后的临时状态：");
+        log.push_back("可用资源向量: " + vec2string(Available));
+        log.push_back("已分配矩阵:\n " + matrix2string(Matrix_Allocation));
+        log.push_back("需求矩阵:\n " + matrix2string(Matrix_Need));
+
+        // 安全性检查
+        vector<int> safeSequence = safetyCheck();
+        if (!safeSequence.empty()) {                                                 //证明有安全序列
+            log.push_back("\n系统处于安全状态！安全序列为: " + seq2string(safeSequence));
+                return true;
+        }
+        else {
+            log.push_back("\n无安全序列存在，系统不安全，回滚分配...");
+            // 恢复现场
+            Available = Available_copy;
+            Matrix_Allocation = Matrix_Allocation_copy;
+            Matrix_Need = Matrix_Need_copy;
+            return false;
+        }
+    }
+
+    string seq2string(vector<int> seq) {
+        string res;
+        for (size_t i = 0; i < seq.size(); i++) {
+            res += "P" + to_string(seq[i]);
+            if (i != seq.size() - 1) res += " -> ";
+        }
+        return res;
+    }
+
+    string vec2string(vector<int> vec)
+    {
+        string s = "[";
+        for (size_t i = 0; i < vec.size(); i++) {
+            s += to_string(vec[i]);
+            if (i != vec.size() - 1) s += ", ";
+        }
+        s += "]";
+        return s;
+    }
+
+    string matrix2string(vector<vector<int>>matrix)
+    {
+        string s;
+        for (size_t i = 0; i < matrix.size(); i++) {
+            s += "P" + to_string(i) + ": " + vec2string(matrix[i]) + "\n";
+        }
+        return s;
+    }
+
+    void displayState()
+    {
+        cout << "\n================当前系统状态================：\n";
+        cout << "可用资源向量: " << vec2string(Available) << endl;
+        cout << "最大需求矩阵:\n" << matrix2string(Matrix_MaxNeed);
+        cout << "已分配矩阵:\n" << matrix2string(Matrix_Allocation);
+        cout << "需求矩阵:\n" << matrix2string(Matrix_Need);
+    }
+
+};
+\end{lstlisting}
+
+这一部分是实现银行家算法的核心。其中Available、Matrix\_MaxNeed、Matrix\_Aloocation、Matrix\_Need是当前所有可用资源、各进程最大需求矩阵、各进程已
+分配资源矩阵、各进程仍需资源矩阵。而safetyCheck则是整个算法的核心函数。其大概工作机制是对每一个进程进行遍历循环，模拟进程运行结束后的资源分配过程。如果在这个模拟进程中能够找到一个
+安全序列，那么直接停止循环直接返回安全序列。
+requestResource函数就是处理资源请求函数，在每一次资源申请时会调用safetyCheck函数检测系统安全性，并会输出模拟资源分配后的情况。倘若遍历了所有可能性也无法找到一个使得所有进程都完成的安全序列，那么这个资源申请就会使得整个系统进入不安全状态，因此驳回该请求并回滚资源状态，同时输出报错信息。seq2string、vec2string、matrix2string三个函数是便于
+输出系统状态信息的转换函数。displayState函数就是用于可视化当前系统状态的函数，输出可用资源向量等信息。
+
+\subsubsection{读取测试用例函数}
+\begin{lstlisting}[frame=shadowbox, language=C]
+// 从文件读取测试用例的函数
+vector<TestCase> readTestCasesFromFile(const string& filename, vector<string>& log) {
+    vector<TestCase> testCases;
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "错误：无法打开测试用例文件 " << filename << endl;
+        exit(1);
+    }
+
+    string line;
+    while (getline(file, line)) {
+        if (line.empty() || line.substr(0, 4) == "Test") continue; // 跳过空行和测试用例标题
+
+        TestCase tc;
+        // 读取进程数量
+        if (line.substr(0, 11) == "ProcessNum:") {
+            istringstream iss(line.substr(11));
+            iss >> tc.processNum;
+        }
+        // 读取资源种类数
+        getline(file, line);
+        if (line.substr(0, 12) == "ResourceNum:") {
+            istringstream iss(line.substr(12));
+            iss >> tc.resourceNum;
+        }
+        // 读取可用资源向量
+        getline(file, line);
+        if (line.substr(0, 10) == "Available:") {
+            istringstream iss(line.substr(10));
+            int val;
+            while (iss >> val) {
+                tc.Available.push_back(val);
+            }
+        }
+        // 读取最大需求矩阵
+        getline(file, line);
+        if (line == "Max:") {
+            for (int i = 0; i < tc.processNum; i++) {
+                getline(file, line);
+                istringstream iss(line);
+                vector<int> row;
+                int val;
+                while (iss >> val) {
+                    row.push_back(val);
+                }
+                tc.Matrix_MaxNeed.push_back(row);
+            }
+        }
+        // 读取已分配矩阵
+        getline(file, line);
+        if (line == "Allocation:") {
+            for (int i = 0; i < tc.processNum; i++) {
+                getline(file, line);
+                istringstream iss(line);
+                vector<int> row;
+                int val;
+                while (iss >> val) {
+                    row.push_back(val);
+                }
+                tc.Matrix_Allocation.push_back(row);
+            }
+        }
+        // 读取请求信息
+        getline(file, line);
+        if (line.substr(0, 8) == "Request:") {
+            istringstream iss(line.substr(8));
+            iss >> tc.pid;  // 第一个数是进程ID
+            int val;
+            while (iss >> val) {
+                tc.request.push_back(val);
+            }
+        }
+
+        testCases.push_back(tc);
+        getline(file, line); // 读取测试用例分隔空行
+    }
+    return testCases;
+}
+\end{lstlisting}
+
+这一部分定义的readTestcasesFromFile函数是用于从文件中读取特定格式的测例，生成相对应的当前所有可用资源、各进程最大需求矩阵、各进程已
+分配资源矩阵、各进程仍需资源矩阵。
+
+
+\subsubsection{通用测试执行函数}
+\begin{lstlisting}[frame=shadowbox, language=C]
+// 通用测试执行函数
+void runTestCase(const TestCase& tc, vector<string>& log) {
+    cout << "\n================ 执行测试用例 ================\n";
+    Banker banker(tc.processNum, tc.resourceNum, tc.Available, tc.Matrix_MaxNeed, tc.Matrix_Allocation);
+    banker.displayState();
+
+    bool result = banker.requestResource(tc.pid, tc.request, log);
+
+    cout << "\n操作日志：\n";
+    for (string s : log) cout << s << endl;
+    cout << "最终分配结果：" << (result ? "成功" : "失败") << endl;
+    if (result) banker.displayState();
+    log.clear();
+}
+\end{lstlisting}
+
+这一部分定义的runTestCase函数是用于执行测试用例的函数，会输出操作日志中的结果以及最终分配情况。
+
+\subsubsection{主函数}
+\begin{lstlisting}[frame=shadowbox, language=C]
+int main() {
+
+    string test_data_file = "C:/Users/skyhappy/Desktop/test4.txt";
+    vector<string> log;
+
+    vector<TestCase> testCases = readTestCasesFromFile(test_data_file, log);
+    for (const auto& tc : testCases) {
+        runTestCase(tc, log);
+    }
+
+	return 0;
+}
+\end{lstlisting}
+
+主函数中定义测例文件，并运行测例执行函数。
+
+\subsection{实验测例}
+测试文件由若干测例组成。在该实验中，设计的测例为：
+\begin{lstlisting}[frame=shadowbox, caption=test.txt]
+TestCase1: 安全分配成功
+ProcessNum: 5
+ResourceNum: 3
+Available: 3 3 2
+Max:
+7 5 3
+3 2 2
+9 0 2
+2 2 2
+4 3 3
+Allocation:
+0 1 0
+2 0 0
+3 0 2
+2 1 1
+0 0 2
+Request: 1 1 0 2
+
+TestCase2: 请求超过最大需求（失败）
+ProcessNum: 5
+ResourceNum: 3
+Available: 3 3 2
+Max:
+7 5 3
+3 2 2
+9 0 2
+2 2 2
+4 3 3
+Allocation:
+0 1 0
+2 0 0
+3 0 2
+2 1 1
+0 0 2
+Request: 1 2 1 3
+
+TestCase3: 分配导致不安全状态（失败）
+ProcessNum: 3
+ResourceNum: 2
+Available: 1 1
+Max:
+3 2
+2 2
+2 1
+Allocation:
+1 1
+1 0
+0 0
+Request: 2 1 1
+
+TestCase4: 请求超过可用资源（失败）
+ProcessNum: 4
+ResourceNum: 2
+Available: 2 1
+Max:
+4 3
+3 2
+2 2
+1 1
+Allocation:
+2 1
+1 0
+0 1
+0 0
+Request: 0 3 1 
+
+TestCase5: 多进程连续请求（安全）
+ProcessNum: 3
+ResourceNum: 3
+Available: 2 2 2
+Max:
+5 5 5
+4 4 4
+3 3 3
+Allocation:
+1 1 1
+1 0 1
+0 1 0
+Request: 1 1 1 1  
+
+TestCase6: 单进程单资源边界测试（安全）
+ProcessNum: 1
+ResourceNum: 1
+Available: 5
+Max:
+8
+Allocation:
+3
+Request: 0 2  
+
+TestCase7: 进程完成后释放资源（安全）
+ProcessNum: 2
+ResourceNum: 2
+Available: 1 1
+Max:
+3 3
+2 2
+Allocation:
+2 2  
+0 0  
+Request: 0 1 1  
+
+TestCase8: 8进程5资源安全分配（核心业务场景）
+ProcessNum: 8
+ResourceNum: 5
+Available: 5 3 7 2 4
+Max:
+10 8 12 5 7
+9 7 11 6 8
+8 9 10 4 5
+12 10 15 7 9
+7 5 9 3 6
+6 8 10 5 7
+11 9 13 8 10
+5 4 6 2 3
+Allocation:
+3 2 4 1 2
+2 1 3 2 3
+4 3 5 1 2
+5 4 6 3 4
+2 1 3 1 2
+1 2 4 2 3
+3 2 5 3 4
+1 1 2 1 1
+Request: 3 2 1 3 0 2
+
+TestCase9: 10进程6资源不安全分配（高并发竞争）
+ProcessNum: 10
+ResourceNum: 6
+Available: 2 1 4 1 3 2
+Max:
+5 4 7 3 6 5
+4 3 6 2 5 4
+6 5 8 4 7 6
+5 4 7 3 6 5
+7 6 9 5 8 7
+3 2 5 1 4 3
+8 7 10 6 9 8
+4 3 6 2 5 4
+5 4 7 3 6 5
+2 1 3 1 2 1
+Allocation:
+3 2 5 2 4 3
+2 1 4 1 3 2
+4 3 6 3 5 4
+3 2 5 2 4 3
+5 4 7 4 6 5
+1 1 3 0 2 1
+6 5 8 5 7 6
+2 1 4 1 3 2
+3 2 5 2 4 3
+1 0 2 0 1 0
+Request: 5 1 1 2 1 1 1
+
+TestCase10: 7进程4资源超量请求（边界压力测试）
+ProcessNum: 7
+ResourceNum: 4
+Available: 4 3 5 2
+Max:
+9 7 10 6
+8 6 9 5
+10 8 12 7
+7 5 8 4
+11 9 13 8
+6 4 7 3
+5 3 6 2
+Allocation:
+5 4 6 3
+4 3 5 2
+6 5 8 4
+3 2 4 1
+7 6 9 5
+2 1 3 1
+1 1 2 1
+Request: 0 5 4 5 3
+
+\end{lstlisting}
+
+一共设计了10个测例，其中会有成功的测例，以及由于找不到安全序列、请求大于需求、请求大于可用资源等失败测例，同时进程的个数和资源个数也会有多样性的体现。
+\section{实验结果}
+
+实验结果已经保存在result.txt文件中，结果如下：
+\begin{lstlisting}
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [3, 3, 2]
+最大需求矩阵:
+P0: [7, 5, 3]
+P1: [3, 2, 2]
+P2: [9, 0, 2]
+P3: [2, 2, 2]
+P4: [4, 3, 3]
+已分配矩阵:
+P0: [0, 1, 0]
+P1: [2, 0, 0]
+P2: [3, 0, 2]
+P3: [2, 1, 1]
+P4: [0, 0, 2]
+需求矩阵:
+P0: [7, 4, 3]
+P1: [1, 2, 2]
+P2: [6, 0, 0]
+P3: [0, 1, 1]
+P4: [4, 3, 1]
+
+操作日志：
+
+模拟分配后的临时状态：
+可用资源向量: [2, 3, 0]
+已分配矩阵:
+ P0: [0, 1, 0]
+P1: [3, 0, 2]
+P2: [3, 0, 2]
+P3: [2, 1, 1]
+P4: [0, 0, 2]
+
+需求矩阵:
+ P0: [7, 4, 3]
+P1: [0, 2, 0]
+P2: [6, 0, 0]
+P3: [0, 1, 1]
+P4: [4, 3, 1]
+
+
+系统处于安全状态！安全序列为: P1 -> P3 -> P0 -> P2 -> P4
+最终分配结果：成功
+
+================当前系统状态================：
+可用资源向量: [2, 3, 0]
+最大需求矩阵:
+P0: [7, 5, 3]
+P1: [3, 2, 2]
+P2: [9, 0, 2]
+P3: [2, 2, 2]
+P4: [4, 3, 3]
+已分配矩阵:
+P0: [0, 1, 0]
+P1: [3, 0, 2]
+P2: [3, 0, 2]
+P3: [2, 1, 1]
+P4: [0, 0, 2]
+需求矩阵:
+P0: [7, 4, 3]
+P1: [0, 2, 0]
+P2: [6, 0, 0]
+P3: [0, 1, 1]
+P4: [4, 3, 1]
+
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [3, 3, 2]
+最大需求矩阵:
+P0: [7, 5, 3]
+P1: [3, 2, 2]
+P2: [9, 0, 2]
+P3: [2, 2, 2]
+P4: [4, 3, 3]
+已分配矩阵:
+P0: [0, 1, 0]
+P1: [2, 0, 0]
+P2: [3, 0, 2]
+P3: [2, 1, 1]
+P4: [0, 0, 2]
+需求矩阵:
+P0: [7, 4, 3]
+P1: [1, 2, 2]
+P2: [6, 0, 0]
+P3: [0, 1, 1]
+P4: [4, 3, 1]
+
+操作日志：
+错误：请求超过需求！
+最终分配结果：失败
+
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [1, 1]
+最大需求矩阵:
+P0: [3, 2]
+P1: [2, 2]
+P2: [2, 1]
+已分配矩阵:
+P0: [1, 1]
+P1: [1, 0]
+P2: [0, 0]
+需求矩阵:
+P0: [2, 1]
+P1: [1, 2]
+P2: [2, 1]
+
+操作日志：
+
+模拟分配后的临时状态：
+可用资源向量: [0, 0]
+已分配矩阵:
+ P0: [1, 1]
+P1: [1, 0]
+P2: [1, 1]
+
+需求矩阵:
+ P0: [2, 1]
+P1: [1, 2]
+P2: [1, 0]
+
+
+无安全序列存在，系统不安全，回滚分配...
+最终分配结果：失败
+
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [2, 1]
+最大需求矩阵:
+P0: [4, 3]
+P1: [3, 2]
+P2: [2, 2]
+P3: [1, 1]
+已分配矩阵:
+P0: [2, 1]
+P1: [1, 0]
+P2: [0, 1]
+P3: [0, 0]
+需求矩阵:
+P0: [2, 2]
+P1: [2, 2]
+P2: [2, 1]
+P3: [1, 1]
+
+操作日志：
+错误：资源不足，需等待资源释放！
+最终分配结果：失败
+
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [2, 2, 2]
+最大需求矩阵:
+P0: [5, 5, 5]
+P1: [4, 4, 4]
+P2: [3, 3, 3]
+已分配矩阵:
+P0: [1, 1, 1]
+P1: [1, 0, 1]
+P2: [0, 1, 0]
+需求矩阵:
+P0: [4, 4, 4]
+P1: [3, 4, 3]
+P2: [3, 2, 3]
+
+操作日志：
+
+模拟分配后的临时状态：
+可用资源向量: [1, 1, 1]
+已分配矩阵:
+ P0: [1, 1, 1]
+P1: [2, 1, 2]
+P2: [0, 1, 0]
+
+需求矩阵:
+ P0: [4, 4, 4]
+P1: [2, 3, 2]
+P2: [3, 2, 3]
+
+
+无安全序列存在，系统不安全，回滚分配...
+最终分配结果：失败
+
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [5]
+最大需求矩阵:
+P0: [8]
+已分配矩阵:
+P0: [3]
+需求矩阵:
+P0: [5]
+
+操作日志：
+
+模拟分配后的临时状态：
+可用资源向量: [3]
+已分配矩阵:
+ P0: [5]
+
+需求矩阵:
+ P0: [3]
+
+
+系统处于安全状态！安全序列为: P0
+最终分配结果：成功
+
+================当前系统状态================：
+可用资源向量: [3]
+最大需求矩阵:
+P0: [8]
+已分配矩阵:
+P0: [5]
+需求矩阵:
+P0: [3]
+
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [1, 1]
+最大需求矩阵:
+P0: [3, 3]
+P1: [2, 2]
+已分配矩阵:
+P0: [2, 2]
+P1: [0, 0]
+需求矩阵:
+P0: [1, 1]
+P1: [2, 2]
+
+操作日志：
+
+模拟分配后的临时状态：
+可用资源向量: [0, 0]
+已分配矩阵:
+ P0: [3, 3]
+P1: [0, 0]
+
+需求矩阵:
+ P0: [0, 0]
+P1: [2, 2]
+
+
+系统处于安全状态！安全序列为: P0 -> P1
+最终分配结果：成功
+
+================当前系统状态================：
+可用资源向量: [0, 0]
+最大需求矩阵:
+P0: [3, 3]
+P1: [2, 2]
+已分配矩阵:
+P0: [3, 3]
+P1: [0, 0]
+需求矩阵:
+P0: [0, 0]
+P1: [2, 2]
+
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [5, 3, 7, 2, 4]
+最大需求矩阵:
+P0: [10, 8, 12, 5, 7]
+P1: [9, 7, 11, 6, 8]
+P2: [8, 9, 10, 4, 5]
+P3: [12, 10, 15, 7, 9]
+P4: [7, 5, 9, 3, 6]
+P5: [6, 8, 10, 5, 7]
+P6: [11, 9, 13, 8, 10]
+P7: [5, 4, 6, 2, 3]
+已分配矩阵:
+P0: [3, 2, 4, 1, 2]
+P1: [2, 1, 3, 2, 3]
+P2: [4, 3, 5, 1, 2]
+P3: [5, 4, 6, 3, 4]
+P4: [2, 1, 3, 1, 2]
+P5: [1, 2, 4, 2, 3]
+P6: [3, 2, 5, 3, 4]
+P7: [1, 1, 2, 1, 1]
+需求矩阵:
+P0: [7, 6, 8, 4, 5]
+P1: [7, 6, 8, 4, 5]
+P2: [4, 6, 5, 3, 3]
+P3: [7, 6, 9, 4, 5]
+P4: [5, 4, 6, 2, 4]
+P5: [5, 6, 6, 3, 4]
+P6: [8, 7, 8, 5, 6]
+P7: [4, 3, 4, 1, 2]
+
+操作日志：
+
+模拟分配后的临时状态：
+可用资源向量: [3, 2, 4, 2, 2]
+已分配矩阵:
+ P0: [3, 2, 4, 1, 2]
+P1: [2, 1, 3, 2, 3]
+P2: [4, 3, 5, 1, 2]
+P3: [7, 5, 9, 3, 6]
+P4: [2, 1, 3, 1, 2]
+P5: [1, 2, 4, 2, 3]
+P6: [3, 2, 5, 3, 4]
+P7: [1, 1, 2, 1, 1]
+
+需求矩阵:
+ P0: [7, 6, 8, 4, 5]
+P1: [7, 6, 8, 4, 5]
+P2: [4, 6, 5, 3, 3]
+P3: [5, 5, 6, 4, 3]
+P4: [5, 4, 6, 2, 4]
+P5: [5, 6, 6, 3, 4]
+P6: [8, 7, 8, 5, 6]
+P7: [4, 3, 4, 1, 2]
+
+
+无安全序列存在，系统不安全，回滚分配...
+最终分配结果：失败
+
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [2, 1, 4, 1, 3, 2]
+最大需求矩阵:
+P0: [5, 4, 7, 3, 6, 5]
+P1: [4, 3, 6, 2, 5, 4]
+P2: [6, 5, 8, 4, 7, 6]
+P3: [5, 4, 7, 3, 6, 5]
+P4: [7, 6, 9, 5, 8, 7]
+P5: [3, 2, 5, 1, 4, 3]
+P6: [8, 7, 10, 6, 9, 8]
+P7: [4, 3, 6, 2, 5, 4]
+P8: [5, 4, 7, 3, 6, 5]
+P9: [2, 1, 3, 1, 2, 1]
+已分配矩阵:
+P0: [3, 2, 5, 2, 4, 3]
+P1: [2, 1, 4, 1, 3, 2]
+P2: [4, 3, 6, 3, 5, 4]
+P3: [3, 2, 5, 2, 4, 3]
+P4: [5, 4, 7, 4, 6, 5]
+P5: [1, 1, 3, 0, 2, 1]
+P6: [6, 5, 8, 5, 7, 6]
+P7: [2, 1, 4, 1, 3, 2]
+P8: [3, 2, 5, 2, 4, 3]
+P9: [1, 0, 2, 0, 1, 0]
+需求矩阵:
+P0: [2, 2, 2, 1, 2, 2]
+P1: [2, 2, 2, 1, 2, 2]
+P2: [2, 2, 2, 1, 2, 2]
+P3: [2, 2, 2, 1, 2, 2]
+P4: [2, 2, 2, 1, 2, 2]
+P5: [2, 1, 2, 1, 2, 2]
+P6: [2, 2, 2, 1, 2, 2]
+P7: [2, 2, 2, 1, 2, 2]
+P8: [2, 2, 2, 1, 2, 2]
+P9: [1, 1, 1, 1, 1, 1]
+
+操作日志：
+
+模拟分配后的临时状态：
+可用资源向量: [1, 0, 2, 0, 2, 1]
+已分配矩阵:
+ P0: [3, 2, 5, 2, 4, 3]
+P1: [2, 1, 4, 1, 3, 2]
+P2: [4, 3, 6, 3, 5, 4]
+P3: [3, 2, 5, 2, 4, 3]
+P4: [5, 4, 7, 4, 6, 5]
+P5: [2, 2, 5, 1, 3, 2]
+P6: [6, 5, 8, 5, 7, 6]
+P7: [2, 1, 4, 1, 3, 2]
+P8: [3, 2, 5, 2, 4, 3]
+P9: [1, 0, 2, 0, 1, 0]
+
+需求矩阵:
+ P0: [2, 2, 2, 1, 2, 2]
+P1: [2, 2, 2, 1, 2, 2]
+P2: [2, 2, 2, 1, 2, 2]
+P3: [2, 2, 2, 1, 2, 2]
+P4: [2, 2, 2, 1, 2, 2]
+P5: [1, 0, 0, 0, 1, 1]
+P6: [2, 2, 2, 1, 2, 2]
+P7: [2, 2, 2, 1, 2, 2]
+P8: [2, 2, 2, 1, 2, 2]
+P9: [1, 1, 1, 1, 1, 1]
+
+
+系统处于安全状态！安全序列为: P5 -> P0 -> P1 -> P2 -> P3 -> P4 -> P6 -> P7 -> P8 -> P9
+最终分配结果：成功
+
+================当前系统状态================：
+可用资源向量: [1, 0, 2, 0, 2, 1]
+最大需求矩阵:
+P0: [5, 4, 7, 3, 6, 5]
+P1: [4, 3, 6, 2, 5, 4]
+P2: [6, 5, 8, 4, 7, 6]
+P3: [5, 4, 7, 3, 6, 5]
+P4: [7, 6, 9, 5, 8, 7]
+P5: [3, 2, 5, 1, 4, 3]
+P6: [8, 7, 10, 6, 9, 8]
+P7: [4, 3, 6, 2, 5, 4]
+P8: [5, 4, 7, 3, 6, 5]
+P9: [2, 1, 3, 1, 2, 1]
+已分配矩阵:
+P0: [3, 2, 5, 2, 4, 3]
+P1: [2, 1, 4, 1, 3, 2]
+P2: [4, 3, 6, 3, 5, 4]
+P3: [3, 2, 5, 2, 4, 3]
+P4: [5, 4, 7, 4, 6, 5]
+P5: [2, 2, 5, 1, 3, 2]
+P6: [6, 5, 8, 5, 7, 6]
+P7: [2, 1, 4, 1, 3, 2]
+P8: [3, 2, 5, 2, 4, 3]
+P9: [1, 0, 2, 0, 1, 0]
+需求矩阵:
+P0: [2, 2, 2, 1, 2, 2]
+P1: [2, 2, 2, 1, 2, 2]
+P2: [2, 2, 2, 1, 2, 2]
+P3: [2, 2, 2, 1, 2, 2]
+P4: [2, 2, 2, 1, 2, 2]
+P5: [1, 0, 0, 0, 1, 1]
+P6: [2, 2, 2, 1, 2, 2]
+P7: [2, 2, 2, 1, 2, 2]
+P8: [2, 2, 2, 1, 2, 2]
+P9: [1, 1, 1, 1, 1, 1]
+
+================ 执行测试用例 ================
+
+================当前系统状态================：
+可用资源向量: [4, 3, 5, 2]
+最大需求矩阵:
+P0: [9, 7, 10, 6]
+P1: [8, 6, 9, 5]
+P2: [10, 8, 12, 7]
+P3: [7, 5, 8, 4]
+P4: [11, 9, 13, 8]
+P5: [6, 4, 7, 3]
+P6: [5, 3, 6, 2]
+已分配矩阵:
+P0: [5, 4, 6, 3]
+P1: [4, 3, 5, 2]
+P2: [6, 5, 8, 4]
+P3: [3, 2, 4, 1]
+P4: [7, 6, 9, 5]
+P5: [2, 1, 3, 1]
+P6: [1, 1, 2, 1]
+需求矩阵:
+P0: [4, 3, 4, 3]
+P1: [4, 3, 4, 3]
+P2: [4, 3, 4, 3]
+P3: [4, 3, 4, 3]
+P4: [4, 3, 4, 3]
+P5: [4, 3, 4, 2]
+P6: [4, 2, 4, 1]
+
+操作日志：
+错误：资源不足，需等待资源释放！
+最终分配结果：失败
+\end{lstlisting}
+
+可以自行结合操作系统课程中银行家算法理论对实验结果进行验证，该程序结果是正确的。
+
+\subsection{算法鲁棒性及效率分析}
+该算法在如资源请求、矩阵初始化等关键逻辑中实现了基本的输入验证，提升了鲁棒性。并且当模拟资源分配前保存现场，在分配后
+发现系统不安全时，程序会回滚到分配前的状态，避免系统进入不安全状态，这是鲁棒性的重要保障。当然，还有一些潜在的鲁棒性问题，比如文件读取鲁棒性不足，
+readTestCasesFromFile函数假设输入文件严格符合格式，未设立应对处理文件格式错误的机制，可能导致解析错误。同时部分错误场景未将错误信息记录到日志中，不利于问题追溯。
+
+该算法的核心是对系统做安全性检查，因此时间复杂度主要由safetyCheck函数决定。
+假设进程数为n，资源数为m。安全检查需要遍历所有进程，每次遍历需检查每个进程的资源需求是否满足$（O(m)）$，内层循环遍历进程并反复重置索引$（O(n^2)）$。因此，安全检查的时间复杂度为 $O(m n^2  )$。
+程序的空间复杂度主要由存储系统状态的矩阵（Available、Matrix\_MaxNeed、Matrix\_Allocation、Matrix\_Need）决定，均为 $O(nm)$，属于合理范围。
+\section{思考题}
+
+\question{1.}{\textbf{银行家算法在实现过程中需注意资源分配的哪些事项才能避免死锁？}}
+
+从实现过程可以得知，银行家算法通过模拟分配资源并检查系统是否处于安全状态来避免死锁，实际上是通过破坏 “循环等待条件” 来避免死锁的。
+
+在资源分配中首先注意资源申请的合法性，同时在模拟分配后需要检查是否有安全序列存在，如果不存在的话还需要将资源回滚并驳回该资源申请。因此每个进程必须预先声明其最大资源需求量，这个声明值不可以动态更改。而资源分配矩阵必须在
+安全性检测和模拟分配过程中实时性更新。
+\section{实验总结}
+
+在本次实验中，通过在课上对银行家算法的理论学习，使用C++将其具体实现出来后，对其细节和思想有了更为深入的了解，深入理解死锁避免的核心机制，掌握安全状态检查的具体流程，验证动态资源分配策略如何通过预防循环等待条件避免死锁。此外，在实现程序功能性后，我还
+自行设计了10组测例，用于测试在多种情况下算法的正确性，结果和预期相符合。这也是对我程序设计能力的一种提升，即完成功能性实现后提升程序的鲁棒性，软件工程性意识得到了增强。同时，还画出了算法的流程图，以及对算法做了鲁棒性和效率分析，提高了系统性
+思维。通过本次实验，我们不仅掌握了一个具体算法，更领悟了计算机系统中 "安全性 - 高效性 - 可预测性" 的平衡艺术。
+
+最后，感谢老师和助教的批阅！
+
+\newpage
+\section{源代码}
+
+\begin{lstlisting}[frame=shadowbox, caption=main.cpp,language=C]
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+
+using namespace std;
+
+// 测试用例结构体
+struct TestCase {
+    int processNum;      
+    int resourceNum;     
+    vector<int> Available;  
+    vector<vector<int>> Matrix_MaxNeed;    
+    vector<vector<int>> Matrix_Allocation; 
+    int pid;             
+    vector<int> request;  
+};
+
+class Banker {
+private:
+    int processNum;    // 进程数量
+    int resourceNum;   // 资源种类数量
+    vector<int> Available;       // 可用资源向量
+    vector<vector<int>> Matrix_MaxNeed;     // 最大需求矩阵
+    vector<vector<int>> Matrix_Allocation;// 已分配矩阵
+    vector<vector<int>> Matrix_Need;    // 需求矩阵
+
+    vector<int> safetyCheck()           //安全性检查函数，模拟实现动态资源分配
+    {
+        vector<int> safeSequence_final;
+
+
+        for (int ii = 0; ii < processNum; ii++)
+        {
+            vector<int> Work = Available;                       //工作向量，模拟分配时的可用资源
+            vector<bool> Finish(processNum, false);             //记录模拟运行的进程是否完成，初始全都未完成
+            vector<int> safeSequence;
+
+            bool flag = true;
+            for (int j = 0; j < resourceNum; j++)
+            {
+                if (Work[j] < Matrix_Need[ii][j])            //超出了限制
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag)
+            {
+                for (int j = 0; j < resourceNum; j++)
+                    Work[j] += Matrix_Allocation[ii][j];
+                safeSequence.push_back(ii);
+                Finish[ii] = true;
+            }
+            else
+                continue;
+
+            bool found = true;     //?
+            for (int i = 0; i < processNum; i++)
+            {
+                if (!Finish[i])
+                {
+                    bool canallocate = true;
+                    for (int j = 0; j < resourceNum; j++)
+                    {
+                        if (Work[j] < Matrix_Need[i][j])            //超出了限制
+                        {
+                            canallocate = false;
+                            break;
+                        }
+                    }
+
+                    if (canallocate)
+                    {
+                        for (int j = 0; j < resourceNum; j++)
+                            Work[j] += Matrix_Allocation[i][j];
+                        safeSequence.push_back(i);
+                        Finish[i] = true;
+                        i = -1;
+                    }
+                    
+                }
+           
+                }
+                for (bool f : Finish) {
+                    if (!f) {
+                        //cout << "不存在安全序列，此时系统不安全！" << endl;
+                        found = false;
+                    }
+                if (!found)
+                    safeSequence_final = {};
+                else
+                {
+                    safeSequence_final = safeSequence;
+                    break;
+                }
+            }
+        }
+
+        return safeSequence_final;
+    }
+
+public:
+    Banker(int p, int r, vector<int> av,
+        vector<vector<int>> m, vector<vector<int>> a)
+        : processNum(p), resourceNum(r), Available(av), Matrix_MaxNeed(m), Matrix_Allocation(a) {
+
+        // 计算Need矩阵：Need = MaxNeed - Allocation
+        Matrix_Need.resize(processNum, vector<int>(resourceNum));
+        for (int i = 0; i < processNum; i++) {
+            for (int j = 0; j < resourceNum; j++) {
+                Matrix_Need[i][j] = Matrix_MaxNeed[i][j] - Matrix_Allocation[i][j];
+                if (Matrix_Need[i][j] < 0) {
+                    cerr << "错误：最大需求小于已分配资源！进程" << i << " 资源" << j << " !" << endl;
+                    exit(1);
+                }
+            }
+        }
+    }
+
+    // 处理资源请求函数，检测合法性
+    bool requestResource(int pid, vector<int> request, vector<string>& log) {
+        for (int j = 0; j < resourceNum; j++) {
+            if (request[j] < 0) {
+                log.push_back("错误：请求不能为负数！");
+                return false;
+            }
+            if (request[j] > Available[j]) {
+                log.push_back("错误：资源不足，需等待资源释放！");
+                return false;
+            }
+            if (request[j] > Matrix_Need[pid][j]) {
+                log.push_back("错误：请求超过需求！");
+                return false;
+            }
+
+        }
+
+        //保存现场
+        vector<int> Available_copy = Available;
+        vector<vector<int>> Matrix_Allocation_copy = Matrix_Allocation;
+        vector<vector<int>> Matrix_Need_copy = Matrix_Need;
+
+        // 模拟资源分配
+        for (int j = 0; j < resourceNum; j++) {
+            Available[j] -= request[j];
+            Matrix_Allocation[pid][j] += request[j];
+            Matrix_Need[pid][j] -= request[j];
+        }
+
+        // 输出临时状态
+        log.push_back("\n模拟分配后的临时状态：");
+        log.push_back("可用资源向量: " + vec2string(Available));
+        log.push_back("已分配矩阵:\n " + matrix2string(Matrix_Allocation));
+        log.push_back("需求矩阵:\n " + matrix2string(Matrix_Need));
+
+        // 安全性检查
+        vector<int> safeSequence = safetyCheck();
+        if (!safeSequence.empty()) {                                                 //证明有安全序列
+            log.push_back("\n系统处于安全状态！安全序列为: " + seq2string(safeSequence));
+                return true;
+        }
+        else {
+            log.push_back("\n无安全序列存在，系统不安全，回滚分配...");
+            // 恢复现场
+            Available = Available_copy;
+            Matrix_Allocation = Matrix_Allocation_copy;
+            Matrix_Need = Matrix_Need_copy;
+            return false;
+        }
+    }
+
+    string seq2string(vector<int> seq) {
+        string res;
+        for (size_t i = 0; i < seq.size(); i++) {
+            res += "P" + to_string(seq[i]);
+            if (i != seq.size() - 1) res += " -> ";
+        }
+        return res;
+    }
+
+    string vec2string(vector<int> vec)
+    {
+        string s = "[";
+        for (size_t i = 0; i < vec.size(); i++) {
+            s += to_string(vec[i]);
+            if (i != vec.size() - 1) s += ", ";
+        }
+        s += "]";
+        return s;
+    }
+
+    string matrix2string(vector<vector<int>>matrix)
+    {
+        string s;
+        for (size_t i = 0; i < matrix.size(); i++) {
+            s += "P" + to_string(i) + ": " + vec2string(matrix[i]) + "\n";
+        }
+        return s;
+    }
+
+    void displayState()
+    {
+        cout << "\n================当前系统状态================：\n";
+        cout << "可用资源向量: " << vec2string(Available) << endl;
+        cout << "最大需求矩阵:\n" << matrix2string(Matrix_MaxNeed);
+        cout << "已分配矩阵:\n" << matrix2string(Matrix_Allocation);
+        cout << "需求矩阵:\n" << matrix2string(Matrix_Need);
+    }
+
+};
+
+// 从文件读取测试用例的函数
+vector<TestCase> readTestCasesFromFile(const string& filename, vector<string>& log) {
+    vector<TestCase> testCases;
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "错误：无法打开测试用例文件 " << filename << endl;
+        exit(1);
+    }
+
+    string line;
+    while (getline(file, line)) {
+        if (line.empty() || line.substr(0, 4) == "Test") continue; // 跳过空行和测试用例标题
+
+        TestCase tc;
+        // 读取进程数量
+        if (line.substr(0, 11) == "ProcessNum:") {
+            istringstream iss(line.substr(11));
+            iss >> tc.processNum;
+        }
+        // 读取资源种类数
+        getline(file, line);
+        if (line.substr(0, 12) == "ResourceNum:") {
+            istringstream iss(line.substr(12));
+            iss >> tc.resourceNum;
+        }
+        // 读取可用资源向量
+        getline(file, line);
+        if (line.substr(0, 10) == "Available:") {
+            istringstream iss(line.substr(10));
+            int val;
+            while (iss >> val) {
+                tc.Available.push_back(val);
+            }
+        }
+        // 读取最大需求矩阵
+        getline(file, line);
+        if (line == "Max:") {
+            for (int i = 0; i < tc.processNum; i++) {
+                getline(file, line);
+                istringstream iss(line);
+                vector<int> row;
+                int val;
+                while (iss >> val) {
+                    row.push_back(val);
+                }
+                tc.Matrix_MaxNeed.push_back(row);
+            }
+        }
+        // 读取已分配矩阵
+        getline(file, line);
+        if (line == "Allocation:") {
+            for (int i = 0; i < tc.processNum; i++) {
+                getline(file, line);
+                istringstream iss(line);
+                vector<int> row;
+                int val;
+                while (iss >> val) {
+                    row.push_back(val);
+                }
+                tc.Matrix_Allocation.push_back(row);
+            }
+        }
+        // 读取请求信息
+        getline(file, line);
+        if (line.substr(0, 8) == "Request:") {
+            istringstream iss(line.substr(8));
+            iss >> tc.pid;  // 第一个数是进程ID
+            int val;
+            while (iss >> val) {
+                tc.request.push_back(val);
+            }
+        }
+
+        testCases.push_back(tc);
+        getline(file, line); // 读取测试用例分隔空行
+    }
+    return testCases;
+}
+
+// 通用测试执行函数
+void runTestCase(const TestCase& tc, vector<string>& log) {
+    cout << "\n================ 执行测试用例 ================\n";
+    Banker banker(tc.processNum, tc.resourceNum, tc.Available, tc.Matrix_MaxNeed, tc.Matrix_Allocation);
+    banker.displayState();
+
+    bool result = banker.requestResource(tc.pid, tc.request, log);
+
+    cout << "\n操作日志：\n";
+    for (string s : log) cout << s << endl;
+    cout << "最终分配结果：" << (result ? "成功" : "失败") << endl;
+    if (result) banker.displayState();
+    log.clear();
+}
+
+int main() {
+
+    string test_data_file = "C:/Users/skyhappy/Desktop/test4.txt";
+    vector<string> log;
+
+    vector<TestCase> testCases = readTestCasesFromFile(test_data_file, log);
+    for (const auto& tc : testCases) {
+        runTestCase(tc, log);
+    }
+
+	return 0;
+}
+
+\end{lstlisting}
+\end{document}

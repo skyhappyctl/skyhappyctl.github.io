@@ -14,11 +14,12 @@ if (dirname(OUTPUT) !== ROOT || relative(ROOT, OUTPUT) !== "_site") {
 }
 const files = new Set([
   "index.html", "styles.css", "content.js", "app.js", "resume.html", ".nojekyll",
+  "materials.html", "materials.css", "materials.js", "materials-data.js", "materials-utils.js",
   "assets/favicon.svg", "assets/ATTRIBUTION.md",
   "assets/fonts/fonts.css", "assets/fonts/profile-sans-sc.woff2", "assets/fonts/profile-serif-sc.woff2",
   "assets/fonts/profile-sans-sc-OFL.txt", "assets/fonts/profile-serif-sc-OFL.txt"
 ]);
-const context = { window: {} };
+const context = { window: {}, URL };
 vm.runInNewContext(await readFile(resolve(ROOT, "content.js"), "utf8"), context, { timeout: 1000 });
 const profile = context.window.PROFILE;
 if (!profile || !Array.isArray(profile.publications) || !Array.isArray(profile.projects)) {
@@ -68,6 +69,25 @@ if (profile.internships !== undefined && !Array.isArray(profile.internships)) {
 }
 for (const internship of profile.internships || []) addExperienceImages(internship, "Internship");
 
+// Learning materials are opt-in: only declared public resources are copied.
+// Never scan/copy entire materials folders or the parent workspace.
+vm.runInNewContext(await readFile(resolve(ROOT, "materials-utils.js"), "utf8"), context, { timeout: 1000 });
+vm.runInNewContext(await readFile(resolve(ROOT, "materials-data.js"), "utf8"), context, { timeout: 1000 });
+const catalog = context.window.COURSE_MATERIALS;
+const materialsUtils = context.window.MATERIALS_UTILS;
+materialsUtils.validateCatalog(catalog);
+const localMaterials = new Set();
+for (const course of catalog.courses) {
+  for (const resource of course.resources || []) {
+    const info = materialsUtils.resourceInfo(resource);
+    if (!info.external) {
+      files.add(info.url);
+      localMaterials.add(info.url);
+    }
+  }
+}
+
+
 async function assertNoLinks(base, rel, requireFile = true) {
   const absolute = resolve(base, rel);
   const within = relative(base, absolute);
@@ -103,7 +123,15 @@ async function existingFiles(directory, prefix = "") {
   return result;
 }
 await assertNoLinks(ROOT, "_site", false);
-for (const file of files) await assertNoLinks(ROOT, file);
+let totalBytes = 0;
+for (const file of files) {
+  const source = await assertNoLinks(ROOT, file);
+  totalBytes += (await lstat(source)).size;
+  if (localMaterials.has(file) && (await lstat(source)).size > 90 * 1024 * 1024) {
+    throw new Error(`Learning material exceeds the 90 MiB limit: ${file}. Use an authorized external storage link instead.`);
+  }
+}
+if (totalBytes > 950 * 1024 * 1024) throw new Error("Public site exceeds the safe 950 MiB size budget. Review resources before publishing.");
 await mkdir(OUTPUT, { recursive: true });
 const unexpected = (await existingFiles(OUTPUT)).filter(file => !files.has(file));
 if (unexpected.length) {
@@ -115,4 +143,4 @@ for (const file of files) {
   await mkdir(dirname(target), { recursive: true });
   await copyFile(source, target);
 }
-console.log(`Built ${files.size} public files in _site. No dependencies or private directories copied.`);
+console.log(`Built ${files.size} public files (${(totalBytes / 1024 / 1024).toFixed(1)} MiB) in _site. No dependencies or private directories copied.`);

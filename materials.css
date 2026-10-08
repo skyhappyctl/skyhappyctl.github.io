@@ -1,0 +1,59 @@
+﻿/* 学习资料中心：沿用主页的字体变量与学术风格，不使用卡片墙。 */
+.materials-main { padding-block: 34px 42px; }
+.materials-heading { margin-bottom: 26px; }
+.materials-eyebrow { font-size: var(--font-size-meta); color: var(--muted); margin-bottom: 5px; }
+.materials-heading h1 { margin-bottom: 13px; }
+.materials-intro { max-width: 720px; margin-bottom: 10px; }
+.materials-totals { font-size: var(--font-size-detail); margin-bottom: 7px; }
+.materials-notice { color: var(--muted); font-size: var(--font-size-meta); max-width: 760px; margin-bottom: 0; }
+.materials-filters { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 20px; padding-block: 18px; border-block: 1px solid var(--border); }
+.materials-filters label { min-width: 0; font-size: var(--font-size-meta); }
+.materials-filters input, .materials-filters select { display: block; width: 100%; min-width: 0; min-height: 44px; margin-top: 6px; padding: 9px 12px; border: 1px solid #cdd4db; border-radius: 2px; background: var(--paper); color: var(--text); font: inherit; font-size: var(--font-size-detail); }
+.materials-filters input:focus-visible, .materials-filters select:focus-visible, .course-block summary:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+.materials-filters input::placeholder { color: var(--muted); font-size: var(--font-size-meta); }
+.materials-tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 5px 18px; padding-block: 9px; }
+#materials-results { font-size: var(--font-size-meta); color: var(--muted); margin: 0; }
+.materials-tool-buttons { display: flex; flex-wrap: wrap; gap: 14px; }
+.materials-tool-buttons button { min-height: 44px; padding: 5px 0; border: 0; background: transparent; color: var(--link); font-size: var(--font-size-meta); cursor: pointer; }
+.materials-tool-buttons button:disabled { color: var(--muted); opacity: .7; cursor: default; }
+.course-block { border-top: 1px solid var(--border); scroll-margin-top: 24px; }
+.course-block:last-child { border-bottom: 1px solid var(--border); }
+.course-block summary { display: flex; align-items: center; gap: 12px; list-style: none; min-height: 62px; padding-block: 13px; cursor: pointer; }
+.course-block summary::-webkit-details-marker { display: none; }
+.course-block summary::before { content: "+"; color: var(--muted); width: 14px; flex: 0 0 14px; font-size: 19px; }
+.course-block[open] summary::before { content: "−"; }
+.course-heading { min-width: 0; flex: 1; }
+.course-name { display: block; font-size: var(--font-size-entry); font-weight: 500; overflow-wrap: anywhere; }
+.course-semester { display: block; color: var(--muted); font-size: var(--font-size-meta); margin-top: 2px; }
+.course-count { color: var(--muted); font-size: var(--font-size-small); flex: 0 0 auto; text-align: right; }
+.course-body { padding: 0 0 18px 26px; }
+.course-description { font-size: var(--font-size-detail); color: var(--muted); }
+.course-empty, .materials-empty { color: var(--muted); font-size: var(--font-size-detail); margin: 0; }
+.materials-empty { padding-block: 25px; border-top: 1px solid var(--border); }
+.resource-group + .resource-group { margin-top: 20px; }
+.resource-group h3 { font-size: var(--font-size-detail); font-weight: 500; margin-bottom: 5px; }
+.resource-row { display: flex; gap: 20px; align-items: start; padding-block: 9px; }
+.resource-row + .resource-row { border-top: 1px solid var(--border); }
+.resource-info { flex: 1; min-width: 0; }
+.resource-title { font-size: var(--font-size-detail); overflow-wrap: anywhere; }
+.resource-description { font-size: var(--font-size-meta); color: var(--muted); margin: 3px 0 0; overflow-wrap: anywhere; }
+.resource-file-type { color: var(--muted); font-size: var(--font-size-small); margin: 3px 0 0; }
+.resource-download, .resource-external { flex: 0 0 auto; font-size: var(--font-size-meta); min-height: 44px; display: inline-flex; align-items: center; }
+.resource-external { color: var(--muted); }
+@media (max-width: 600px) {
+  .materials-main { padding-block: 27px 32px; }
+  .materials-page .site-nav { display: flex; justify-content: flex-start; gap: 25px; }
+  .materials-page .site-nav a { flex: 0 1 auto; }
+  .materials-filters { grid-template-columns: minmax(0, 1fr); gap: 13px; }
+  .materials-tools { align-items: start; gap: 0; }
+  .materials-tool-buttons { width: 100%; }
+  .course-block summary { gap: 8px; }
+  .course-body { padding-left: 22px; }
+  .course-count { max-width: 80px; }
+  .resource-row { gap: 12px; }
+}
+@media print {
+  .materials-filters, .materials-tools, .resource-download { display: none; }
+  .materials-main { padding-block: 15px; }
+  .course-block { break-inside: avoid; }
+}

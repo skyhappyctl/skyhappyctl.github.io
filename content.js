@@ -1062,6 +1062,7 @@ window.PROFILE = {
 
   // 11 模块标题：修改后同步更新导航和公开简历
   sectionTitles: {
+    learning: { zh: "学习资料中心", en: "Course materials" },
     "reading": {
       "zh": "个人博客",
       "en": "Blog"
@@ -1102,6 +1103,7 @@ window.PROFILE = {
 
   // 12 模块显示开关：true 显示，false 隐藏
   sections: {
+    learning: true,
     "reading": true,
     "about": true,
     "publications": true,
@@ -1235,4 +1237,19 @@ window.PROFILE = {
       "url": "https://mp.weixin.qq.com/s/bE3KzOqpPsLJsVGHPM7vTg"
     }
   ],
+  // 15 学习资料中心：这里只改主页入口；课程与文件清单在 materials-data.js。
+  learning: {
+    "navTitle": {
+      "zh": "学习资料",
+      "en": "Materials"
+    },
+    "intro": {
+      "zh": "按课程整理我学习过的课件、作业与笔记。课程目录和可公开分享的文件集中放在学习资料中心，方便查找与回顾。",
+      "en": "A course-by-course collection of my learning materials, assignments, and notes. Browse the directory and resources cleared for public sharing in the materials center."
+    },
+    "linkLabel": {
+      "zh": "进入学习资料中心 →",
+      "en": "Browse course materials →"
+    }
+  },
 };

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="author" content="Tianle Chen">
+  <meta name="description" content="陈天乐的学习资料中心：按课程整理可公开分享的课件、作业与学习笔记。">
+  <title>学习资料中心 · 陈天乐</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <script>
+    // Direct file previews use system fallbacks; HTTP(S) previews load the bundled fonts.
+    // This avoids browser file:// font restrictions without third-party services.
+    if (location.protocol !== "file:") {
+      const sheet = document.createElement("link");
+      sheet.rel = "stylesheet";
+      sheet.href = "assets/fonts/fonts.css";
+      document.head.appendChild(sheet);
+      for (const font of ["profile-serif-sc.woff2"]) {
+        const preload = document.createElement("link");
+        preload.rel = "preload";
+        preload.as = "font";
+        preload.type = "font/woff2";
+        preload.crossOrigin = "anonymous";
+        preload.href = "assets/fonts/" + font;
+        document.head.appendChild(preload);
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="materials.css">
+  <script src="content.js" defer></script>
+  <script src="materials-utils.js" defer></script>
+  <script src="materials-data.js" defer></script>
+  <script src="materials.js" defer></script>
+</head>
+<body class="materials-page">
+  <a class="skip-link" href="#main">跳转到主要内容 / Skip to content</a>
+  <div id="materials-app"></div>
+  <noscript><main class="no-script"><h1>学习资料中心 / Course materials</h1><p>请启用 JavaScript 浏览课程目录。Enable JavaScript to browse the course directory.</p><a href="index.html">返回主页 / Home</a></main></noscript>
+</body>
+</html>

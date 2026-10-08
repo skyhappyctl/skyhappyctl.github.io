@@ -1,0 +1,1146 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{markdown}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{人工智能赋能的数字集成电路设计 作业二}}
+\author{陈天乐\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{自己修改后的三个Prompt }
+\begin{lstlisting}[frame=shadowbox,caption=Match\_Submodule.md]
+##  Matching Submodule
+
+We are designing a complex digital circuit module. Now there is an implemented RTL IP library. Please select the submodules that may be used from it.
+
+### Problem Description
+
+ModelName: [ModelName]
+
+InputNode: [InputNode]
+
+OutputNode: [OutputNode]
+
+Specification: [Specification]
+
+### Retrieval RTL Submodules
+
+| ID   | Name                        | Description                                                  |
+| :--- | :-------------------------- | :----------------------------------------------------------- |
+| 1    | Multiplexer (MUX)           | Selects one of several input signals and forwards it to a single output line. |
+| 2    | Decoder                     | Converts a binary code into a one-hot representation, activating a single output line. |
+| 3    | Encoder                     | Performs the inverse function of a decoder; converts a one-hot input into a binary code. |
+| 4    | Full Adder                  | Adds three one-bit inputs (A, B, Carry-in) and produces a Sum and Carry-out bit. |
+| 5    | Ripple-Carry Adder          | A multi-bit adder constructed by cascading multiple Full Adders. Simple but slow. |
+| 6    | Carry-Lookahead Adder (CLA) | A high-speed multi-bit adder that calculates carry bits in advance to reduce delay. |
+| 7    | Multiplier                  | A circuit to multiply two binary numbers. Common types include Array and Wallace Tree. |
+| 8    | Comparator                  | Compares two binary numbers and determines their relationship (e.g., A > B, A == B). |
+| 9    | D Flip-Flop                 | A fundamental memory element that stores one bit of data on a clock edge. |
+| 10   | Register                    | A group of D Flip-Flops used to store a multi-bit data word. |
+| 11   | Shift Register              | A register that can shift its stored data left or right on each clock cycle. |
+| 12   | Counter                     | A sequential circuit that cycles through a predetermined sequence of states (e.g., binary count). |
+| 13   | First-In-First-Out (FIFO)   | A memory buffer that manages data flow between modules, ensuring in-order output. |
+| 14   | Clock Divider               | A circuit that generates a clock signal with a lower frequency from a master clock. |
+| 15   | Synchronizer                | A circuit (typically two flip-flops) used to safely pass signals between different clock domains. |
+
+
+Here is an exemplary response, please refer to it, Fill in the answer into the ### Related ID segment
+
+### Related ID
+
+```python
+RelatedID = []
+```
+
+\end{lstlisting}
+
+
+\begin{lstlisting}[frame=shadowbox,caption=Design\_Topmodule.md]
+## Design Topmodule
+
+We are designing a complex digital circuit module. The following is the RTL module that can be used directly with the specific problem description.
+
+### Problem Description
+
+ModelName: [ModelName]
+
+InputNode: [InputNode]
+
+OutputNode: [OutputNode]
+
+Specification: [Specification]
+
+TestBench: [TestSpec]
+
+### Retrieval Submodules
+
+
+
+### Tips
+
+Here is some tips that you need to follow:
+
+1. The module name for RTL is [ModelName], the module name for TestBench is tb_[ModelName].
+2. You can call these retrieval submodules without add their RTL to the response.
+3. Please generate a module code to meet the requirements in the Specification, and TestBench to meet the requirements in TestBench.
+4. Please use verilog for RTL and systemverilog for TestBench.
+5. Fill in the generated RTL into ### RTL, and fill in the generated TestBench into ### TestBench.
+6. We use the -g2005sv specification supported by iverilog for compilation. Please make sure that the verilog used can be supported.
+7. Unpacked structs not supported in iverilog, do not use typedef struct.
+8. When using the $bitstoreal function, please make sure that the parameter is 64bit.
+9. You don't need to save waveform through \$dumpfile and \$dumvars.
+10. In Testbench, please verify whether the function is correct. If you pass all the tests, please output TestSuccessed, otherwise you will output TestFailed.
+11. When executing the testbench simulation, please pay attention to the timing of data verification and confirm whether the output data has stabilized during data verification for the currently designed module. 
+
+
+Your Response Here:
+
+### RTL
+
+```verilog
+
+```
+
+### TestBench
+```systemverilog
+
+```
+\end{lstlisting}
+
+
+\begin{lstlisting}[frame=shadowbox,caption=Correct\_Problem.md]
+## Correct Problem
+
+We are designing a complex digital circuit module. The following is the Problem Description, RTL and TestBench code. We use the -g2005sv specification supported by iverilog for compilation. Please make sure that the verilog used can be supported. Here is the simulation result.
+
+### Problem Description
+
+ModelName: [ModelName]
+
+InputNode: [InputNode]
+
+OutputNode: [OutputNode]
+
+Specification: [Specification]
+
+TestBench: [TestSpec]
+
+### RTL
+
+```verilog
+[RTLCode]
+```
+
+### TestBench
+
+```systemverilog
+[TestBench_code]
+```
+
+### Simulation Result
+
+[SimulationResult]
+
+
+
+Here is your response. Please judge whether the simulation is passed and whether the function is normal through Simulation Result. If all are satisfied, output Success in Result. If one item is not satisfied, output Failed in Result.
+
+### Result
+
+```text
+Success or Failed
+```
+
+If it is Failed in the previous step. Please give the revised RTL or TestBench and fill in the following ### Revised RTL and ### Revised TestBench. If it is Success, this content is not required.
+
+### Revised RTL
+
+```verilog
+
+```
+
+### Revised TestBench
+
+```systemverilog
+
+```
+
+
+### Tips
+
+Here is some tips that you need to follow
+
+1. If RTL does not need to be modified, please do not generate ### Revised RTL Segment. Similarly, if TestBench does not need to be modified, please do not generate ### Revised TestBench Segment.
+2. The module name for RTL is [ModelName], the module name for TestBench is tb_[ModelName].
+3. You don't need to save waveform through \$dumpfile and \$dumvars.
+4. Prioritize fixing compilation errors first (e.g., syntax mistakes, undefined modules) before addressing functional issues.
+5. When modifying, keep InputNode and OutputNode of RTL unchanged unless explicitly allowed by Specification.
+6. Prioritize solving the errors shown in the simulation results. Some system functions like "break" are not supported.
+
+
+
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{1.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{2.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{3.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{4.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{5.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{6.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{7.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{8.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{9.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{10.png}
+\end{figure}
+
+\section{最终设计出来的RTL代码和TestBench}
+整个Agent的工作流程如图：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{子模块匹配.png}
+    \caption{子模块匹配}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{问题纠正.png}
+    \caption{代码迭代纠正}
+\end{figure}
+
+\begin{lstlisting}[frame=shadowbox,caption=async\_fifo.v]
+module async_fifo #(
+    parameter ALMOST_FULL_THRESHOLD = 14,
+    parameter ALMOST_EMPTY_THRESHOLD = 2
+) (
+    input wire wr_clk,
+    input wire rd_clk,
+    input wire rst_n,
+    input wire wr_en,
+    input wire rd_en,
+    input wire [15:0] data_in,
+    output reg [15:0] data_out,
+    output reg full,
+    output reg empty,
+    output reg almost_full,
+    output reg almost_empty
+);
+
+    // FIFO depth and pointer parameters
+    localparam DEPTH = 16;
+    localparam ADDR_WIDTH = 4;
+    localparam PTR_WIDTH = ADDR_WIDTH + 1;
+    
+    // Memory array
+    reg [15:0] mem [0:DEPTH-1];
+    
+    // Pointers in binary and gray code
+    reg [PTR_WIDTH-1:0] wr_ptr_bin, rd_ptr_bin;
+    reg [PTR_WIDTH-1:0] wr_ptr_gray, rd_ptr_gray;
+    
+    // Synchronized pointers
+    reg [PTR_WIDTH-1:0] wr_ptr_gray_sync, rd_ptr_gray_sync;
+    reg [PTR_WIDTH-1:0] wr_ptr_gray_sync2, rd_ptr_gray_sync2;
+    wire [PTR_WIDTH-1:0] wr_ptr_bin_sync, rd_ptr_bin_sync;
+    
+    // Binary to Gray conversion
+    function [PTR_WIDTH-1:0] bin2gray;
+        input [PTR_WIDTH-1:0] bin;
+        bin2gray = bin ^ (bin >> 1);
+    endfunction
+    
+    // Gray to Binary conversion
+    function [PTR_WIDTH-1:0] gray2bin;
+        input [PTR_WIDTH-1:0] gray;
+        reg [PTR_WIDTH-1:0] bin;
+        integer i;
+        begin
+            bin[PTR_WIDTH-1] = gray[PTR_WIDTH-1];
+            for (i = PTR_WIDTH-2; i >= 0; i = i - 1) begin
+                bin[i] = bin[i+1] ^ gray[i];
+            end
+            gray2bin = bin;
+        end
+    endfunction
+    
+    // Convert synchronized Gray codes back to binary
+    assign wr_ptr_bin_sync = gray2bin(wr_ptr_gray_sync2);
+    assign rd_ptr_bin_sync = gray2bin(rd_ptr_gray_sync2);
+    
+    // Two-stage synchronizers
+    always @(posedge rd_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            wr_ptr_gray_sync <= {PTR_WIDTH{1'b0}};
+            wr_ptr_gray_sync2 <= {PTR_WIDTH{1'b0}};
+        end else begin
+            wr_ptr_gray_sync <= wr_ptr_gray;
+            wr_ptr_gray_sync2 <= wr_ptr_gray_sync;
+        end
+    end
+    
+    always @(posedge wr_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            rd_ptr_gray_sync <= {PTR_WIDTH{1'b0}};
+            rd_ptr_gray_sync2 <= {PTR_WIDTH{1'b0}};
+        end else begin
+            rd_ptr_gray_sync <= rd_ptr_gray;
+            rd_ptr_gray_sync2 <= rd_ptr_gray_sync;
+        end
+    end
+    
+    // Write pointer and memory control
+    always @(posedge wr_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            wr_ptr_bin <= {PTR_WIDTH{1'b0}};
+            wr_ptr_gray <= {PTR_WIDTH{1'b0}};
+        end else if (wr_en && !full) begin
+            mem[wr_ptr_bin[ADDR_WIDTH-1:0]] <= data_in;
+            wr_ptr_bin <= wr_ptr_bin + 1'b1;
+            wr_ptr_gray <= bin2gray(wr_ptr_bin + 1'b1);
+        end
+    end
+    
+    // Read pointer and output control
+    always @(posedge rd_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            rd_ptr_bin <= {PTR_WIDTH{1'b0}};
+            rd_ptr_gray <= {PTR_WIDTH{1'b0}};
+            data_out <= 16'b0;
+        end else if (rd_en && !empty) begin
+            data_out <= mem[rd_ptr_bin[ADDR_WIDTH-1:0]];
+            rd_ptr_bin <= rd_ptr_bin + 1'b1;
+            rd_ptr_gray <= bin2gray(rd_ptr_bin + 1'b1);
+        end
+    end
+    
+    // Flag generation in write domain
+    always @(posedge wr_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            full <= 1'b0;
+            almost_full <= 1'b0;
+        end else begin
+            // Full when next write would make write pointer equal to synchronized read pointer
+            if (wr_en && !full) begin
+                full <= ((wr_ptr_bin + 1'b1) == {~rd_ptr_bin_sync[PTR_WIDTH-1], rd_ptr_bin_sync[ADDR_WIDTH-1:0]});
+            end else begin
+                full <= (wr_ptr_bin == {~rd_ptr_bin_sync[PTR_WIDTH-1], rd_ptr_bin_sync[ADDR_WIDTH-1:0]});
+            end
+            
+            // Calculate FIFO count for almost_full
+            if (wr_ptr_bin[PTR_WIDTH-1] == rd_ptr_bin_sync[PTR_WIDTH-1]) begin
+                almost_full <= ((wr_ptr_bin[ADDR_WIDTH-1:0] - rd_ptr_bin_sync[ADDR_WIDTH-1:0]) >= ALMOST_FULL_THRESHOLD);
+            end else begin
+                almost_full <= ((DEPTH - rd_ptr_bin_sync[ADDR_WIDTH-1:0] + wr_ptr_bin[ADDR_WIDTH-1:0]) >= ALMOST_FULL_THRESHOLD);
+            end
+        end
+    end
+    
+    // Flag generation in read domain
+    always @(posedge rd_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            empty <= 1'b1;
+            almost_empty <= 1'b1;
+        end else begin
+            // Empty when read pointer equals synchronized write pointer
+            empty <= (rd_ptr_bin == wr_ptr_bin_sync);
+            
+            // Calculate FIFO count for almost_empty
+            if (wr_ptr_bin_sync[PTR_WIDTH-1] == rd_ptr_bin[PTR_WIDTH-1]) begin
+                almost_empty <= ((wr_ptr_bin_sync[ADDR_WIDTH-1:0] - rd_ptr_bin[ADDR_WIDTH-1:0]) <= ALMOST_EMPTY_THRESHOLD);
+            end else begin
+                almost_empty <= ((DEPTH - rd_ptr_bin[ADDR_WIDTH-1:0] + wr_ptr_bin_sync[ADDR_WIDTH-1:0]) <= ALMOST_EMPTY_THRESHOLD);
+            end
+        end
+    end
+    
+    // Memory initialization for simulation
+    initial begin
+        for (int i = 0; i < DEPTH; i = i + 1) begin
+            mem[i] = 16'b0;
+        end
+    end
+
+endmodule
+    
+\end{lstlisting}
+
+\begin{lstlisting}[frame=shadowbox,caption=tb\_async\_fifo.sv]
+module tb_async_fifo;
+    reg wr_clk, rd_clk, rst_n;
+    reg wr_en, rd_en;
+    reg [15:0] data_in;
+    wire [15:0] data_out;
+    wire full, empty, almost_full, almost_empty;
+    
+    // Test parameters
+    localparam DEPTH = 16;
+    localparam TEST_DATA_COUNT = 20;
+    reg [15:0] test_data [0:TEST_DATA_COUNT-1];
+    reg [15:0] received_data [0:TEST_DATA_COUNT-1];
+    integer write_count = 0;
+    integer read_count = 0;
+    integer error_count = 0;
+    
+    // Instantiate DUT
+    async_fifo #(
+        .ALMOST_FULL_THRESHOLD(10),
+        .ALMOST_EMPTY_THRESHOLD(3)
+    ) dut (
+        .wr_clk(wr_clk),
+        .rd_clk(rd_clk),
+        .rst_n(rst_n),
+        .wr_en(wr_en),
+        .rd_en(rd_en),
+        .data_in(data_in),
+        .data_out(data_out),
+        .full(full),
+        .empty(empty),
+        .almost_full(almost_full),
+        .almost_empty(almost_empty)
+    );
+    
+    // Clock generation
+    initial begin
+        wr_clk = 0;
+        forever #5 wr_clk = ~wr_clk; // 100MHz
+    end
+    
+    initial begin
+        rd_clk = 0;
+        forever #10 rd_clk = ~rd_clk; // 50MHz
+    end
+    
+    // Test data initialization
+    initial begin
+        for (int i = 0; i < TEST_DATA_COUNT; i++) begin
+            test_data[i] = i;
+        end
+    end
+    
+    // Main test sequence
+    initial begin
+        $display("Starting Async FIFO Test...");
+        error_count = 0;
+        
+        // Test 1: Reset Test
+        $display("Test 1: Reset Test");
+        rst_n = 0;
+        wr_en = 0;
+        rd_en = 0;
+        data_in = 0;
+        #100; // Longer reset period for synchronization
+        rst_n = 1;
+        #100;
+        
+        // Check reset values
+        if (empty !== 1'b1 || full !== 1'b0) begin
+            $display("ERROR: Reset test failed - empty=%b, full=%b", empty, full);
+            error_count++;
+        end else begin
+            $display("PASS: Reset Test");
+        end
+        
+        // Test 2: Basic Read-Write Test
+        $display("Test 2: Basic Read-Write Test");
+        write_count = 0;
+        read_count = 0;
+        
+        // Write 8 data items
+        for (int i = 0; i < 8; i++) begin
+            @(negedge wr_clk);
+            wr_en = 1;
+            data_in = test_data[i];
+            @(posedge wr_clk);
+            #1;
+            wr_en = 0;
+            write_count++;
+        end
+        
+        #200; // Longer wait for synchronization
+        
+        // Read 8 data items
+        for (int i = 0; i < 8; i++) begin
+            @(negedge rd_clk);
+            rd_en = 1;
+            @(posedge rd_clk);
+            #2; // Wait for output to stabilize
+            received_data[i] = data_out;
+            if (data_out !== test_data[i]) begin
+                $display("ERROR: Data mismatch at read %0d: expected=%h, got=%h", i, test_data[i], data_out);
+                error_count++;
+            end
+            @(negedge rd_clk);
+            rd_en = 0;
+            read_count++;
+        end
+        
+        if (error_count == 0) begin
+            $display("PASS: Basic Read-Write Test");
+        end
+        
+        // Test 3: Full Condition Test
+        $display("Test 3: Full Condition Test");
+        
+        // Reset and start fresh
+        rst_n = 0;
+        #200;
+        rst_n = 1;
+        #200;
+        
+        // Fill the FIFO
+        for (int i = 0; i < DEPTH; i++) begin
+            @(negedge wr_clk);
+            wr_en = 1;
+            data_in = test_data[i];
+            @(posedge wr_clk);
+            #1;
+            wr_en = 0;
+        end
+        
+        // Wait a few more cycles for full flag to update
+        repeat (4) @(posedge wr_clk);
+        #200; // Wait for synchronization
+        
+        // Check full flag
+        if (full !== 1'b1) begin
+            $display("ERROR: Full flag not asserted after %0d writes", DEPTH);
+            error_count++;
+        end
+        
+        // Try to write when full
+        @(negedge wr_clk);
+        wr_en = 1;
+        data_in = 16'hFFFF;
+        @(posedge wr_clk);
+        #1;
+        wr_en = 0;
+        
+        // Should not be able to write more data
+        if (full !== 1'b1) begin
+            $display("ERROR: Full condition violated");
+            error_count++;
+        end else begin
+            $display("PASS: Full Condition Test");
+        end
+        
+        // Test 4: Empty Condition Test
+        $display("Test 4: Empty Condition Test");
+        
+        // Reset and start fresh
+        rst_n = 0;
+        #200;
+        rst_n = 1;
+        #200;
+        
+        // Empty the FIFO
+        for (int i = 0; i < DEPTH; i++) begin
+            @(negedge rd_clk);
+            rd_en = 1;
+            @(posedge rd_clk);
+            #2;
+            @(negedge rd_clk);
+            rd_en = 0;
+        end
+        
+        #200; // Wait for synchronization
+        
+        // Check empty flag
+        if (empty !== 1'b1) begin
+            $display("ERROR: Empty flag not asserted");
+            error_count++;
+        end else begin
+            $display("PASS: Empty Condition Test");
+        end
+        
+        // Test 5: Almost-Full/Almost-Empty Threshold Test
+        $display("Test 5: Almost-Full/Almost-Empty Threshold Test");
+        
+        // Reset and start fresh
+        rst_n = 0;
+        #200;
+        rst_n = 1;
+        #200;
+        
+        // Write until almost full
+        for (int i = 0; i < 10; i++) begin
+            @(negedge wr_clk);
+            wr_en = 1;
+            data_in = test_data[i];
+            @(posedge wr_clk);
+            #1;
+            wr_en = 0;
+        end
+        
+        #200; // Wait for synchronization
+        
+        if (almost_full !== 1'b1) begin
+            $display("ERROR: Almost-full flag not asserted at threshold 10");
+            error_count++;
+        end
+        
+        // Read until almost empty
+        for (int i = 0; i < 7; i++) begin
+            @(negedge rd_clk);
+            rd_en = 1;
+            @(posedge rd_clk);
+            #2;
+            @(negedge rd_clk);
+            rd_en = 0;
+        end
+        
+        #200; // Wait for synchronization
+        
+        if (almost_empty !== 1'b1) begin
+            $display("ERROR: Almost-empty flag not asserted at threshold 3");
+            error_count++;
+        end else begin
+            $display("PASS: Almost-Full/Almost-Empty Threshold Test");
+        end
+        
+        // Test 6: Concurrent Read-Write Test
+        $display("Test 6: Concurrent Read-Write Test");
+        
+        // Reset and start fresh
+        rst_n = 0;
+        #200;
+        rst_n = 1;
+        #200;
+        
+        fork
+            // Writer thread
+            begin
+                for (int i = 0; i < 12; i++) begin
+                    @(negedge wr_clk);
+                    wr_en = 1;
+                    data_in = test_data[i];
+                    @(posedge wr_clk);
+                    #1;
+                    wr_en = 0;
+                    #20; // Delay between writes
+                end
+            end
+            
+            // Reader thread
+            begin
+                // Wait for first data to be available
+                #100;
+                for (int i = 0; i < 12; i++) begin
+                    @(negedge rd_clk);
+                    rd_en = 1;
+                    @(posedge rd_clk);
+                    #2;
+                    if (data_out !== test_data[i]) begin
+                        $display("ERROR: Concurrent test data mismatch at %0d: expected=%h, got=%h", i, test_data[i], data_out);
+                        error_count++;
+                    end
+                    @(negedge rd_clk);
+                    rd_en = 0;
+                    #20; // Delay between reads
+                end
+            end
+        join
+        
+        if (error_count == 0) begin
+            $display("PASS: Concurrent Read-Write Test");
+        end
+        
+        // Test 7: Edge Case Test
+        $display("Test 7: Edge Case Test");
+        
+        // Reset
+        rst_n = 0;
+        #200;
+        rst_n = 1;
+        #200;
+        
+        // Write 15 entries (one before full)
+        for (int i = 0; i < 15; i++) begin
+            @(negedge wr_clk);
+            wr_en = 1;
+            data_in = test_data[i];
+            @(posedge wr_clk);
+            #1;
+            wr_en = 0;
+        end
+        
+        #200; // Wait for synchronization
+        
+        if (full !== 1'b0 || almost_full !== 1'b1) begin
+            $display("ERROR: Edge case - flags incorrect after 15 writes");
+            error_count++;
+        end
+        
+        // Write 16th entry (full)
+        @(negedge wr_clk);
+        wr_en = 1;
+        data_in = test_data[15];
+        @(posedge wr_clk);
+        #1;
+        wr_en = 0;
+        
+        // Wait a few more cycles for full flag to update
+        repeat (4) @(posedge wr_clk);
+        #200; // Wait for synchronization
+        
+        if (full !== 1'b1) begin
+            $display("ERROR: Edge case - full flag not asserted");
+            error_count++;
+        end
+        
+        // Read 13 entries to reach almost-empty threshold (3 remaining)
+        for (int i = 0; i < 13; i++) begin
+            @(negedge rd_clk);
+            rd_en = 1;
+            @(posedge rd_clk);
+            #2;
+            @(negedge rd_clk);
+            rd_en = 0;
+        end
+        
+        #200; // Wait for synchronization
+        
+        if (almost_empty !== 1'b1) begin
+            $display("ERROR: Edge case - almost empty flag not asserted");
+            error_count++;
+        end
+        
+        // Read all remaining entries (empty)
+        for (int i = 0; i < 3; i++) begin
+            @(negedge rd_clk);
+            rd_en = 1;
+            @(posedge rd_clk);
+            #2;
+            @(negedge rd_clk);
+            rd_en = 0;
+        end
+        
+        #200; // Wait for synchronization
+        
+        if (empty !== 1'b1) begin
+            $display("ERROR: Edge case - empty flag not asserted");
+            error_count++;
+        end else begin
+            $display("PASS: Edge Case Test");
+        end
+        
+        // Final result
+        if (error_count == 0) begin
+            $display("TestSuccessed: All tests passed!");
+        end else begin
+            $display("TestFailed: %0d errors found", error_count);
+        end
+        
+        $finish;
+    end
+    
+    // Monitor
+    initial begin
+        $monitor("Time=%0t: wr_en=%b, rd_en=%b, data_in=%h, data_out=%h, full=%b, empty=%b, almost_full=%b, almost_empty=%b", 
+                 $time, wr_en, rd_en, data_in, data_out, full, empty, almost_full, almost_empty);
+    end
+
+endmodule
+\end{lstlisting}
+
+\section{仿真结果}
+\begin{lstlisting}[frame=shadowbox]
+### Simulation Result
+
+Starting Async FIFO Test...
+Test 1: Reset Test
+Time=0: wr_en=0, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+PASS: Reset Test
+Test 2: Basic Read-Write Test
+Time=200: wr_en=1, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=206: wr_en=0, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=210: wr_en=1, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=216: wr_en=0, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=220: wr_en=1, rd_en=0, data_in=0002, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=226: wr_en=0, rd_en=0, data_in=0002, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=230: wr_en=1, rd_en=0, data_in=0003, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=236: wr_en=0, rd_en=0, data_in=0003, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=240: wr_en=1, rd_en=0, data_in=0004, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=246: wr_en=0, rd_en=0, data_in=0004, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=250: wr_en=1, rd_en=0, data_in=0005, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=256: wr_en=0, rd_en=0, data_in=0005, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=260: wr_en=1, rd_en=0, data_in=0006, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=266: wr_en=0, rd_en=0, data_in=0006, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=270: wr_en=1, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=276: wr_en=0, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=290: wr_en=0, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=480: wr_en=0, rd_en=1, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=500: wr_en=0, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=520: wr_en=0, rd_en=1, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=530: wr_en=0, rd_en=1, data_in=0007, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=0
+Time=540: wr_en=0, rd_en=0, data_in=0007, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=0
+Time=560: wr_en=0, rd_en=1, data_in=0007, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=0
+Time=570: wr_en=0, rd_en=1, data_in=0007, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=0
+Time=580: wr_en=0, rd_en=0, data_in=0007, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=0
+Time=600: wr_en=0, rd_en=1, data_in=0007, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=0
+Time=610: wr_en=0, rd_en=1, data_in=0007, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=0
+Time=620: wr_en=0, rd_en=0, data_in=0007, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=0
+Time=640: wr_en=0, rd_en=1, data_in=0007, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=0
+Time=650: wr_en=0, rd_en=1, data_in=0007, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=660: wr_en=0, rd_en=0, data_in=0007, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=670: wr_en=0, rd_en=0, data_in=0007, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=1
+Time=680: wr_en=0, rd_en=1, data_in=0007, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=1
+Time=690: wr_en=0, rd_en=1, data_in=0007, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=1
+Time=700: wr_en=0, rd_en=0, data_in=0007, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=1
+Time=720: wr_en=0, rd_en=1, data_in=0007, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=1
+Time=730: wr_en=0, rd_en=1, data_in=0007, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=1
+Time=740: wr_en=0, rd_en=0, data_in=0007, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=1
+Time=760: wr_en=0, rd_en=1, data_in=0007, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=1
+Time=770: wr_en=0, rd_en=1, data_in=0007, data_out=0007, full=0, empty=0, almost_full=0, almost_empty=1
+PASS: Basic Read-Write Test
+Test 3: Full Condition Test
+Time=780: wr_en=0, rd_en=0, data_in=0007, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1180: wr_en=1, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1186: wr_en=0, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1190: wr_en=1, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1196: wr_en=0, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1200: wr_en=1, rd_en=0, data_in=0002, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1206: wr_en=0, rd_en=0, data_in=0002, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1210: wr_en=1, rd_en=0, data_in=0003, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1216: wr_en=0, rd_en=0, data_in=0003, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1220: wr_en=1, rd_en=0, data_in=0004, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1226: wr_en=0, rd_en=0, data_in=0004, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=1230: wr_en=1, rd_en=0, data_in=0005, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=1236: wr_en=0, rd_en=0, data_in=0005, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=1240: wr_en=1, rd_en=0, data_in=0006, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=1246: wr_en=0, rd_en=0, data_in=0006, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=1250: wr_en=1, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=1256: wr_en=0, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=1260: wr_en=1, rd_en=0, data_in=0008, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=1266: wr_en=0, rd_en=0, data_in=0008, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=1270: wr_en=1, rd_en=0, data_in=0009, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=1276: wr_en=0, rd_en=0, data_in=0009, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=1280: wr_en=1, rd_en=0, data_in=000a, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=1285: wr_en=1, rd_en=0, data_in=000a, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1286: wr_en=0, rd_en=0, data_in=000a, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1290: wr_en=1, rd_en=0, data_in=000b, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1296: wr_en=0, rd_en=0, data_in=000b, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1300: wr_en=1, rd_en=0, data_in=000c, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1306: wr_en=0, rd_en=0, data_in=000c, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1310: wr_en=1, rd_en=0, data_in=000d, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1316: wr_en=0, rd_en=0, data_in=000d, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1320: wr_en=1, rd_en=0, data_in=000e, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1326: wr_en=0, rd_en=0, data_in=000e, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1330: wr_en=1, rd_en=0, data_in=000f, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=1335: wr_en=1, rd_en=0, data_in=000f, data_out=0000, full=1, empty=0, almost_full=1, almost_empty=0
+Time=1336: wr_en=0, rd_en=0, data_in=000f, data_out=0000, full=1, empty=0, almost_full=1, almost_empty=0
+Time=1580: wr_en=1, rd_en=0, data_in=ffff, data_out=0000, full=1, empty=0, almost_full=1, almost_empty=0
+PASS: Full Condition Test
+Test 4: Empty Condition Test
+Time=1586: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2000: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2020: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2040: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2060: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2080: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2100: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2120: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2140: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2160: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2180: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2200: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2220: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2240: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2260: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2280: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2300: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2320: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2340: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2360: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2380: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2400: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2420: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2440: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2460: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2480: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2500: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2520: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2540: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2560: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2580: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2600: wr_en=0, rd_en=1, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=2620: wr_en=0, rd_en=0, data_in=ffff, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+PASS: Empty Condition Test
+Test 5: Almost-Full/Almost-Empty Threshold Test
+Time=3220: wr_en=1, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3226: wr_en=0, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3230: wr_en=1, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3236: wr_en=0, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3240: wr_en=1, rd_en=0, data_in=0002, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3246: wr_en=0, rd_en=0, data_in=0002, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3250: wr_en=1, rd_en=0, data_in=0003, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3256: wr_en=0, rd_en=0, data_in=0003, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3260: wr_en=1, rd_en=0, data_in=0004, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3266: wr_en=0, rd_en=0, data_in=0004, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=3270: wr_en=1, rd_en=0, data_in=0005, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=3276: wr_en=0, rd_en=0, data_in=0005, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=3280: wr_en=1, rd_en=0, data_in=0006, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=3286: wr_en=0, rd_en=0, data_in=0006, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=3290: wr_en=1, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=3296: wr_en=0, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=3300: wr_en=1, rd_en=0, data_in=0008, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=3306: wr_en=0, rd_en=0, data_in=0008, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=3310: wr_en=1, rd_en=0, data_in=0009, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3316: wr_en=0, rd_en=0, data_in=0009, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3325: wr_en=0, rd_en=0, data_in=0009, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=3520: wr_en=0, rd_en=1, data_in=0009, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=3540: wr_en=0, rd_en=0, data_in=0009, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=3555: wr_en=0, rd_en=0, data_in=0009, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3560: wr_en=0, rd_en=1, data_in=0009, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3570: wr_en=0, rd_en=1, data_in=0009, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3580: wr_en=0, rd_en=0, data_in=0009, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3600: wr_en=0, rd_en=1, data_in=0009, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3610: wr_en=0, rd_en=1, data_in=0009, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3620: wr_en=0, rd_en=0, data_in=0009, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3640: wr_en=0, rd_en=1, data_in=0009, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3650: wr_en=0, rd_en=1, data_in=0009, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3660: wr_en=0, rd_en=0, data_in=0009, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3680: wr_en=0, rd_en=1, data_in=0009, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3690: wr_en=0, rd_en=1, data_in=0009, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3700: wr_en=0, rd_en=0, data_in=0009, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3720: wr_en=0, rd_en=1, data_in=0009, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3730: wr_en=0, rd_en=1, data_in=0009, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3740: wr_en=0, rd_en=0, data_in=0009, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3760: wr_en=0, rd_en=1, data_in=0009, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3770: wr_en=0, rd_en=1, data_in=0009, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3780: wr_en=0, rd_en=0, data_in=0009, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=0
+Time=3790: wr_en=0, rd_en=0, data_in=0009, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=1
+PASS: Almost-Full/Almost-Empty Threshold Test
+Test 6: Concurrent Read-Write Test
+Time=3980: wr_en=0, rd_en=0, data_in=0009, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=4380: wr_en=1, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=4386: wr_en=0, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=4410: wr_en=1, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=4416: wr_en=0, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=4430: wr_en=0, rd_en=0, data_in=0001, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4440: wr_en=1, rd_en=0, data_in=0002, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4446: wr_en=0, rd_en=0, data_in=0002, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4470: wr_en=1, rd_en=0, data_in=0003, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4476: wr_en=0, rd_en=0, data_in=0003, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4480: wr_en=0, rd_en=1, data_in=0003, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4500: wr_en=1, rd_en=0, data_in=0004, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4506: wr_en=0, rd_en=0, data_in=0004, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4520: wr_en=0, rd_en=1, data_in=0004, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4530: wr_en=1, rd_en=1, data_in=0005, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4536: wr_en=0, rd_en=1, data_in=0005, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4540: wr_en=0, rd_en=0, data_in=0005, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4560: wr_en=1, rd_en=1, data_in=0006, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4566: wr_en=0, rd_en=1, data_in=0006, data_out=0001, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4570: wr_en=0, rd_en=1, data_in=0006, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4580: wr_en=0, rd_en=0, data_in=0006, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4590: wr_en=1, rd_en=0, data_in=0007, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4596: wr_en=0, rd_en=0, data_in=0007, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4600: wr_en=0, rd_en=1, data_in=0007, data_out=0002, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4610: wr_en=0, rd_en=1, data_in=0007, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4620: wr_en=1, rd_en=0, data_in=0008, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4626: wr_en=0, rd_en=0, data_in=0008, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4630: wr_en=0, rd_en=0, data_in=0008, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4640: wr_en=0, rd_en=1, data_in=0008, data_out=0003, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4650: wr_en=1, rd_en=1, data_in=0009, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4656: wr_en=0, rd_en=1, data_in=0009, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4660: wr_en=0, rd_en=0, data_in=0009, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4680: wr_en=1, rd_en=1, data_in=000a, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4686: wr_en=0, rd_en=1, data_in=000a, data_out=0004, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4690: wr_en=0, rd_en=1, data_in=000a, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4700: wr_en=0, rd_en=0, data_in=000a, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4710: wr_en=1, rd_en=0, data_in=000b, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4716: wr_en=0, rd_en=0, data_in=000b, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4720: wr_en=0, rd_en=1, data_in=000b, data_out=0005, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4730: wr_en=0, rd_en=1, data_in=000b, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4740: wr_en=0, rd_en=0, data_in=000b, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4760: wr_en=0, rd_en=1, data_in=000b, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4770: wr_en=0, rd_en=1, data_in=000b, data_out=0007, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4780: wr_en=0, rd_en=0, data_in=000b, data_out=0007, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4800: wr_en=0, rd_en=1, data_in=000b, data_out=0007, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4810: wr_en=0, rd_en=1, data_in=000b, data_out=0008, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4820: wr_en=0, rd_en=0, data_in=000b, data_out=0008, full=0, empty=0, almost_full=0, almost_empty=0
+Time=4830: wr_en=0, rd_en=0, data_in=000b, data_out=0008, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4840: wr_en=0, rd_en=1, data_in=000b, data_out=0008, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4850: wr_en=0, rd_en=1, data_in=000b, data_out=0009, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4860: wr_en=0, rd_en=0, data_in=000b, data_out=0009, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4880: wr_en=0, rd_en=1, data_in=000b, data_out=0009, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4890: wr_en=0, rd_en=1, data_in=000b, data_out=000a, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4900: wr_en=0, rd_en=0, data_in=000b, data_out=000a, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4920: wr_en=0, rd_en=1, data_in=000b, data_out=000a, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4930: wr_en=0, rd_en=1, data_in=000b, data_out=000b, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4940: wr_en=0, rd_en=0, data_in=000b, data_out=000b, full=0, empty=0, almost_full=0, almost_empty=1
+Time=4950: wr_en=0, rd_en=0, data_in=000b, data_out=000b, full=0, empty=1, almost_full=0, almost_empty=1
+PASS: Concurrent Read-Write Test
+Test 7: Edge Case Test
+Time=4960: wr_en=0, rd_en=0, data_in=000b, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5360: wr_en=1, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5366: wr_en=0, rd_en=0, data_in=0000, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5370: wr_en=1, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5376: wr_en=0, rd_en=0, data_in=0001, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5380: wr_en=1, rd_en=0, data_in=0002, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5386: wr_en=0, rd_en=0, data_in=0002, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5390: wr_en=1, rd_en=0, data_in=0003, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5396: wr_en=0, rd_en=0, data_in=0003, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5400: wr_en=1, rd_en=0, data_in=0004, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5406: wr_en=0, rd_en=0, data_in=0004, data_out=0000, full=0, empty=1, almost_full=0, almost_empty=1
+Time=5410: wr_en=1, rd_en=0, data_in=0005, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=5416: wr_en=0, rd_en=0, data_in=0005, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=5420: wr_en=1, rd_en=0, data_in=0006, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=5426: wr_en=0, rd_en=0, data_in=0006, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=5430: wr_en=1, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=5436: wr_en=0, rd_en=0, data_in=0007, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=5440: wr_en=1, rd_en=0, data_in=0008, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=5446: wr_en=0, rd_en=0, data_in=0008, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=1
+Time=5450: wr_en=1, rd_en=0, data_in=0009, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=5456: wr_en=0, rd_en=0, data_in=0009, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=5460: wr_en=1, rd_en=0, data_in=000a, data_out=0000, full=0, empty=0, almost_full=0, almost_empty=0
+Time=5465: wr_en=1, rd_en=0, data_in=000a, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5466: wr_en=0, rd_en=0, data_in=000a, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5470: wr_en=1, rd_en=0, data_in=000b, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5476: wr_en=0, rd_en=0, data_in=000b, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5480: wr_en=1, rd_en=0, data_in=000c, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5486: wr_en=0, rd_en=0, data_in=000c, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5490: wr_en=1, rd_en=0, data_in=000d, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5496: wr_en=0, rd_en=0, data_in=000d, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5500: wr_en=1, rd_en=0, data_in=000e, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5506: wr_en=0, rd_en=0, data_in=000e, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5710: wr_en=1, rd_en=0, data_in=000f, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=5715: wr_en=1, rd_en=0, data_in=000f, data_out=0000, full=1, empty=0, almost_full=1, almost_empty=0
+Time=5716: wr_en=0, rd_en=0, data_in=000f, data_out=0000, full=1, empty=0, almost_full=1, almost_empty=0
+Time=5960: wr_en=0, rd_en=1, data_in=000f, data_out=0000, full=1, empty=0, almost_full=1, almost_empty=0
+Time=5980: wr_en=0, rd_en=0, data_in=000f, data_out=0000, full=1, empty=0, almost_full=1, almost_empty=0
+Time=5995: wr_en=0, rd_en=0, data_in=000f, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6000: wr_en=0, rd_en=1, data_in=000f, data_out=0000, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6010: wr_en=0, rd_en=1, data_in=000f, data_out=0001, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6020: wr_en=0, rd_en=0, data_in=000f, data_out=0001, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6040: wr_en=0, rd_en=1, data_in=000f, data_out=0001, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6050: wr_en=0, rd_en=1, data_in=000f, data_out=0002, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6060: wr_en=0, rd_en=0, data_in=000f, data_out=0002, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6080: wr_en=0, rd_en=1, data_in=000f, data_out=0002, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6090: wr_en=0, rd_en=1, data_in=000f, data_out=0003, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6100: wr_en=0, rd_en=0, data_in=000f, data_out=0003, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6120: wr_en=0, rd_en=1, data_in=000f, data_out=0003, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6130: wr_en=0, rd_en=1, data_in=000f, data_out=0004, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6140: wr_en=0, rd_en=0, data_in=000f, data_out=0004, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6160: wr_en=0, rd_en=1, data_in=000f, data_out=0004, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6170: wr_en=0, rd_en=1, data_in=000f, data_out=0005, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6180: wr_en=0, rd_en=0, data_in=000f, data_out=0005, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6200: wr_en=0, rd_en=1, data_in=000f, data_out=0005, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6210: wr_en=0, rd_en=1, data_in=000f, data_out=0006, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6220: wr_en=0, rd_en=0, data_in=000f, data_out=0006, full=0, empty=0, almost_full=1, almost_empty=0
+Time=6235: wr_en=0, rd_en=0, data_in=000f, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6240: wr_en=0, rd_en=1, data_in=000f, data_out=0006, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6250: wr_en=0, rd_en=1, data_in=000f, data_out=0007, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6260: wr_en=0, rd_en=0, data_in=000f, data_out=0007, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6280: wr_en=0, rd_en=1, data_in=000f, data_out=0007, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6290: wr_en=0, rd_en=1, data_in=000f, data_out=0008, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6300: wr_en=0, rd_en=0, data_in=000f, data_out=0008, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6320: wr_en=0, rd_en=1, data_in=000f, data_out=0008, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6330: wr_en=0, rd_en=1, data_in=000f, data_out=0009, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6340: wr_en=0, rd_en=0, data_in=000f, data_out=0009, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6360: wr_en=0, rd_en=1, data_in=000f, data_out=0009, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6370: wr_en=0, rd_en=1, data_in=000f, data_out=000a, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6380: wr_en=0, rd_en=0, data_in=000f, data_out=000a, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6400: wr_en=0, rd_en=1, data_in=000f, data_out=000a, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6410: wr_en=0, rd_en=1, data_in=000f, data_out=000b, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6420: wr_en=0, rd_en=0, data_in=000f, data_out=000b, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6440: wr_en=0, rd_en=1, data_in=000f, data_out=000b, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6450: wr_en=0, rd_en=1, data_in=000f, data_out=000c, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6460: wr_en=0, rd_en=0, data_in=000f, data_out=000c, full=0, empty=0, almost_full=0, almost_empty=0
+Time=6470: wr_en=0, rd_en=0, data_in=000f, data_out=000c, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6660: wr_en=0, rd_en=1, data_in=000f, data_out=000c, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6670: wr_en=0, rd_en=1, data_in=000f, data_out=000d, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6680: wr_en=0, rd_en=0, data_in=000f, data_out=000d, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6700: wr_en=0, rd_en=1, data_in=000f, data_out=000d, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6710: wr_en=0, rd_en=1, data_in=000f, data_out=000e, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6720: wr_en=0, rd_en=0, data_in=000f, data_out=000e, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6740: wr_en=0, rd_en=1, data_in=000f, data_out=000e, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6750: wr_en=0, rd_en=1, data_in=000f, data_out=000f, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6760: wr_en=0, rd_en=0, data_in=000f, data_out=000f, full=0, empty=0, almost_full=0, almost_empty=1
+Time=6770: wr_en=0, rd_en=0, data_in=000f, data_out=000f, full=0, empty=1, almost_full=0, almost_empty=1
+PASS: Edge Case Test
+TestSuccessed: All tests passed!
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{通过.png}
+    \caption{通过}
+\end{figure}
+可以看到，最后的所有测试点均通过。我们通过搭建Agent系统，能让大模型在4步之内正确生成一个异步FIFO。
+\end{document}

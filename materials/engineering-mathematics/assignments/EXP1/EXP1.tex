@@ -1,0 +1,601 @@
+% !TeX program = xelatex
+% Standalone document: the C listing is embedded, with no external inputs.
+\documentclass[UTF8,fontset=fandol,zihao=-4,a4paper]{ctexart}
+\usepackage[a4paper,margin=2.35cm,headheight=16pt]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs,array,longtable}
+\usepackage{enumitem,fancyhdr,lastpage,xcolor,listings}
+\usepackage{hyperref}
+\newcommand{\coursename}{工程硕士数学}
+\newcommand{\studentname}{陈天乐}
+\newcommand{\studentid}{[student ID removed]}
+\newcommand{\classinfo}{深微硕6班}
+\newcommand{\majorinfo}{集成电路工程}
+\newcommand{\reportdate}{2026年10月7日}
+\newcommand{\psif}{\psi}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\abs}[1]{\left|#1\right|}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.3em}
+\linespread{1.2}
+\setlist[enumerate]{itemsep=0.2em,topsep=0.3em}
+\setlist[itemize]{itemsep=0.2em,topsep=0.3em}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\coursename}
+\rhead{实验一：Hamming 级数求和}
+\cfoot{第 \thepage\ 页，共 \pageref{LastPage} 页}
+\renewcommand{\headrulewidth}{0.4pt}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!60!black,
+ pdftitle={工程硕士数学第一次实验报告：Hamming级数求和},pdfauthor={陈天乐}}
+\lstdefinestyle{cprogram}{language=C,basicstyle=\ttfamily\footnotesize,
+ keywordstyle=\color{blue!60!black},commentstyle=\color{green!40!black},
+ stringstyle=\color{red!55!black},numbers=left,numberstyle=\tiny\color{gray},
+ numbersep=7pt,frame=single,rulecolor=\color{gray!50},breaklines=true,
+ columns=fullflexible,keepspaces=true,showstringspaces=false,
+ tabsize=4,xleftmargin=1.6em,framexleftmargin=1.3em,
+ aboveskip=0.7em,belowskip=0.7em}
+\lstset{style=cprogram}
+\ctexset{section={format=\Large\bfseries},subsection={format=\large\bfseries}}
+
+\begin{document}
+\begin{center}
+ {\LARGE\bfseries \coursename\quad 第一次实验报告}\par
+ \vspace{0.55em}
+ {\Large\bfseries Hamming 级数求和}\par
+ \vspace{1em}
+ \begin{tabular}{rl@{\qquad}rl}
+  专业：&\majorinfo & 班级：&\classinfo\\
+  姓名：&\studentname & 学号：&\studentid\\
+  日期：&\reportdate & 实验编号：&EXP1
+ \end{tabular}
+\end{center}
+\vspace{0.5em}\hrule\vspace{0.6em}
+
+\section{实验题目名称}
+\textbf{实验一：Hamming 级数求和。}计算
+\begin{equation}\label{eq:original}
+ \psif(x)=\sum_{k=1}^{\infty}\frac{1}{k(k+x)},
+ \qquad x=0,0.1,0.2,\ldots,300,
+\end{equation}
+共3001个函数值，要求每个结果的\textbf{绝对误差小于 $10^{-10}$}，并研究如何减少计算步骤和运行时间。输出按“$x$、$\psif(x)$”两列排列，函数值保留12位小数。
+
+%\textbf{题目示例校正：}指导材料第一行写为“$0.10\quad1.644934066848$”，但后一个数对应 $x=0$，并非 $x=0.1$。正确值为
+%\[
+% \psif(0)=\frac{\pi^2}{6}=1.644934066848\cdots,\qquad
+% \psif(0.1)=1.534607244905\cdots.
+%\]
+%本实验以题目规定的网格 $x=0,0.1,\ldots,300$ 为准，不沿用该处笔误。
+
+\section{实验目的和意义}
+\begin{enumerate}
+ \item 区分截断误差、浮点舍入误差和输出舍入误差，建立能够检验的误差控制准则。
+ \item 认识正项级数的收敛速度，说明“当前项很小”并不等于“剩余总和很小”。
+ \item 利用函数的递推关系共享计算结果，将3001次独立求和转化为少量初值计算和线性复杂度的递推。
+ \item 掌握 Euler--Maclaurin 尾项修正以及稳定计算小量差值的方法，体会算法设计比单纯提高硬件速度更重要。
+ \item 使用 C 语言完成程序设计、编译、数值检查和计时，通过独立高精度计算验证全部输出。
+\end{enumerate}
+
+本方法的理论意义是将无限求和、解析尾项和稳定递推结合起来；实用价值是在保证精度的同时显著降低计算量。类似思想也适用于具有平移递推关系的特殊函数和数值表生成。
+
+\section{计算公式与算法}
+\subsection{直接截断求和及其误差分析}
+记前N项和为
+\[
+ S_N(x)=\sum_{k=1}^{N}\frac{1}{k(k+x)},\qquad
+ R_N(x)=\psif(x)-S_N(x)
+\]
+
+对 $x\ge0$，$f_x(t)=1/[t(t+x)]$ 是正的单调递减函数，因此由积分比较法可得
+\begin{equation}\label{eq:integralbound}
+ \int_{N+1}^{\infty} f_x(t)\,\dd t
+ \le R_N(x)\le
+ \int_N^{\infty} f_x(t)\,\dd t
+\end{equation}
+
+当 $x>0$ 时，
+\begin{equation}
+ \frac{\log(1+\frac{x}{N+1})}{x}
+ \le R_N(x)\le
+ \frac{\log(1+\frac{x}{N})}{x}
+\end{equation}
+
+当 $x=0$ 时，取极限得到
+\begin{equation}\label{eq:zerotail}
+ \frac{1}{N+1}\le R_N(0)\le\frac{1}{N}
+\end{equation}
+
+由于 $R_N(x)\le R_N(0)$，统一取 $N=10^{10}$ 可以将\textbf{精确算术下}的截断误差控制在 $10^{-10}$ 附近以下，但3001点总共需要约
+\[
+ 3001\times10^{10}=3.001\times10^{13}
+\]
+
+次求和项计算，且尚未控制浮点舍入误差。这就是直接计算速度很慢的主要原因。
+
+%此外，若仅以 $1/[k(k+x)]<10^{-10}$ 作为停止条件，在 $x=0$ 时约 $k=10^5$ 就会停止，而剩余总和仍约为 $10^{-5}$，与要求相差五个数量级。
+
+\subsection{递推链分解}
+对 $x>0$ 作部分分式分解：
+\[
+ \frac{1}{k(k+x)}=\frac{1}{x}\left(\frac1k-\frac1{k+x}\right).
+\]
+令 $F(x)=x\psif(x)$，并规定 $F(0)=0$。对收敛的差级数进行望远镜求和，得到
+\begin{align*}
+ F(x+1)-F(x)
+ &=\sum_{k=1}^{\infty}\left(\frac1{k+x}-\frac1{k+x+1}\right)\\
+ &=\frac1{x+1}.
+\end{align*}
+于是
+\begin{equation}\label{eq:recurrence}
+ \boxed{\psif(x+1)=\frac{x}{x+1}\psif(x)+\frac{1}{(x+1)^2}.}
+\end{equation}
+$\psif(0)$ 单独由 $\pi^2/6$ 计算；其余点分成10条链，起点分别为
+\[
+ 0.1,0.2,\ldots,0.9,1.0.
+\]
+例如 $0.1,1.1,\ldots,299.1$ 属于同一条链，$1,2,\ldots,300$ 属于另一条链。每条链有300点，因此仅需10个初值和 $10\times299=2990$ 次递推。
+
+设 $p_i=\psif(i/10)$，则适于程序实现的形式为
+\begin{equation}\label{eq:indexrec}
+ \boxed{p_i=\frac{i-10}{i}p_{i-10}+\frac{100}{i^2},
+ \qquad i=11,\ldots,3000.}
+\end{equation}
+
+使用整数下标，而不是反复执行 $x\leftarrow x+0.1$，可以避免网格值累积偏移。
+
+\subsection{递推稳定性及整体误差控制}
+若初值误差为 $e_0$，在精确递推下，由式\eqref{eq:recurrence}有
+\[
+ e_{j+1}=\frac{x_0+j}{x_0+j+1}e_j,
+ \qquad e_j=\frac{x_0}{x_0+j}e_0.
+\]
+
+因此初值误差随 $x$ 增大而衰减，\textbf{正向递推不放大初值误差}；反向递推则会乘上大于1的系数，不宜使用。
+
+采用 IEEE 754 双精度时，单位舍入误差 $u=2^{-53}\approx1.11\times10^{-16}$。在本题范围内，整数 $i$ 和 $i^2$ 可精确表示；式\eqref{eq:indexrec}的两个加数均为正，不存在灾难性相消。令 $\gamma_3=3u/(1-3u)$，每步正数递推的局部舍入误差可按 $\gamma_3$ 量级估计。每条链最多299步，且 $\psif(x)<1.65$，递推舍入的保守量级为
+\[
+ 1.65\times299\times\gamma_3<1.65\times10^{-13}.
+\]
+
+结合式\eqref{eq:bound}，若对初值浮点计算另保留 $10^{-14}$ 的预算，则总误差量级仍小于 $2.5\times10^{-13}$；保留12位小数带来的绝对舍入误差不超过 $5\times10^{-13}$，远小于实验限值。
+
+
+\subsection{用 Euler--Maclaurin 公式计算10个初值}
+在 $0<x\le1$ 上，先直接计算前 $N$ 项，再对无限尾项作 Euler--Maclaurin 修正。保留 $B_2,B_4,B_6,B_8$ 四个修正项，有
+\begin{align}
+ \psif(x)
+ ={}&S_N(x)+\int_N^{\infty}f_x(t)\,\dd t-\frac{f_x(N)}2\notag\\
+ &-\sum_{r=1}^{4}\frac{B_{2r}}{(2r)!}f_x^{(2r-1)}(N)
+ +E_4(x,N),\label{eq:EMgeneral}
+\end{align}
+其中
+\[
+ B_2=\frac16,\quad B_4=-\frac1{30},\quad
+ B_6=\frac1{42},\quad B_8=-\frac1{30}.
+\]
+由
+\[
+ f_x^{(j)}(t)=\frac{(-1)^j j!}{x}
+ \left(t^{-j-1}-(t+x)^{-j-1}\right)
+\]
+和
+\[
+ \int_N^{\infty}f_x(t)\,\dd t=\frac{\log(1+x/N)}{x},
+\]
+可得实际使用的近似式
+\begin{equation}\label{eq:EMexplicit}
+ \boxed{\begin{aligned}
+ A_N(x)={}&\sum_{k=1}^{N}\frac1{k(k+x)}
+ +\frac{\log(1+x/N)}{x}-\frac1{2N(N+x)}\\
+ &+\sum_{r=1}^{4}\frac{B_{2r}}{2r\,x}
+ \left(N^{-2r}-(N+x)^{-2r}\right).
+ \end{aligned}}
+\end{equation}
+本实验统一选择 $\boxed{N=20}$。公式仅用于 $0<x\le1$ 的10个初值，$x=0$ 不代入含 $1/x$ 的表达式。
+
+\subsection{初值截断误差的严格上界}
+Euler--Maclaurin 余项的周期 Bernoulli 函数表示给出
+\[
+ |E_4(x,N)|\le\frac{|B_8|}{8!}
+ \int_N^{\infty}|f_x^{(8)}(t)|\,\dd t.
+\]
+
+因为 $f_x^{(8)}(t)>0$，且 $f_x^{(7)}(\infty)=0$，所以
+\begin{align*}
+ |E_4(x,N)|
+ &\le \frac{|B_8|}{8x}\left(N^{-8}-(N+x)^{-8}\right)\\
+ &\le |B_8|N^{-9}=\frac{1}{30N^9}.
+\end{align*}
+
+第二步使用中值定理 $N^{-8}-(N+x)^{-8}\le8xN^{-9}$。代入 $N=20$，得到统一上界
+\begin{equation}\label{eq:bound}
+ \boxed{|E_4(x,20)|\le\frac1{30\cdot20^9}
+ =6.5104166667\times10^{-14}.}
+\end{equation}
+
+该上界适用于全部10个初值，明显小于 $10^{-10}$，为舍入误差和输出舍入保留了充足余量。
+
+\subsection{避免尾项计算中的相消}
+在式\eqref{eq:EMexplicit}中，直接计算 $\log(1+x/N)$ 或两个接近的幂的差，会损失部分有效数字。令 $L=\log(1+x/N)$，则
+\begin{equation}
+ N^{-2r}-(N+x)^{-2r}
+ =N^{-2r}\bigl[-\operatorname{expm1}(-2rL)\bigr].
+\end{equation}
+
+程序用 \texttt{log1p(x/N)} 计算 $L$，用 \texttt{expm1} 计算 $e^z-1$，而不先形成 $1+x/N$ 或 $e^z$ 再相减。
+
+%\textbf{说明：}上述截断误差界是严格的解析界；浮点估计依赖通常的双精度运算模型及近机器精度的数学库。C 标准不为 \texttt{log1p}、\texttt{expm1} 指定统一的误差界，因此本实验还对所有实际结果进行独立80位高精度校验，不把误差预算当作未经验证的跨平台保证。
+
+\section{结构程序设计}
+\subsection{程序模块与流程}
+\begin{center}
+\begin{tabular}{p{3.4cm}p{10.6cm}}
+\toprule
+模块 & 功能\\
+\midrule
+\texttt{base\_value} & 前20项直接求和、解析积分尾项及四个 Bernoulli 修正项，生成初值。\\
+\texttt{compute\_all} & 计算 $\psif(0)$ 和10个初值，分10条链完成2990次递推。\\
+\texttt{direct\_sum} & 普通正向直接求和，仅用于对照实验。\\
+\texttt{now\_seconds} & Windows 下使用高分辨率计时器；其他平台采用标准 C 计时。\\
+\texttt{main} & 检查结果、保存3001点、显示代表点、进行批量计时和对照试验。\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+程序主流程为：
+\begin{enumerate}
+ \item 设置 $N=20$、修正阶数4及网格下标上限3000，使用 \texttt{double}。
+ \item 计算 $p_0=\pi^2/6$。
+ \item 对 $r=1,\ldots,10$，令 $x_0=r/10$，用式\eqref{eq:EMexplicit}求出 $p_r$。
+ \item 对每个 $r$，依次令 $i=r+10,r+20,\ldots\le3000$，按式\eqref{eq:indexrec}更新 $p_i$。
+ \item 检查全部结果是否有限、为正且严格递减；按下标顺序写出文件。
+ \item 对同一可执行程序进行计时，并由独立高精度程序逐点核验。
+\end{enumerate}
+
+
+
+\subsection{数据结构、输出与复杂度}
+使用长度3001的 \texttt{double} 数组保存结果，内存约为 $3001\times8=24008$ bytes，即23.45 KiB。算法实际计算200个直接求和项、40个尾项修正和2990个递推步骤。设网格点数为 $M$，初值直接求和长度为 $N$，则计算复杂度为
+\[
+ O(10N+M),\qquad \text{空间复杂度为 }O(M).
+\]
+
+若只需顺序输出，可只保存10条链的最新值，将工作存储降到常数级；本实验为方便检查和计时，保留全部数组。
+
+程序生成以下文件：
+\begin{itemize}
+ \item \texttt{hamming\_results.txt}：3001行、两列，函数值保留12位小数，与题目输出形式一致。
+ \item \texttt{hamming\_results.csv}：除12位小数外，另保存17位有效数字，供独立校验和数据处理使用。
+ \item \texttt{benchmark.txt}：计时方式、计算次数、批量耗时和直接求和对照数据。
+\end{itemize}
+完整可编译 C 程序见附录，同时作为 \texttt{hamming.c} 独立保存。
+
+
+高精度校验使用 Python 3.14 与 mpmath 1.3.0，十进制工作精度设为80位。独立参考表达式为
+\begin{equation}\label{eq:reference}
+ \psif(x)=\frac{\operatorname{digamma}(1+x)+\gamma}{x}\quad(x>0),
+ \qquad \psif(0)=\zeta(2),
+\end{equation}
+
+其中 $\gamma$ 是 Euler 常数，$\operatorname{digamma}$ 是对数 Gamma 函数的导数。
+
+
+%\subsection{编译与实际验证环境}
+%本次运行环境为 Windows x64，编译器为 Microsoft Visual C 14.44.35207，采用优化设置 \texttt{/O2 /std:c11 /fp:precise}，未启用不保留标准浮点语义的快速数学优化。程序已编译并运行，所有3001个结果均由此 C 程序生成，而非仅列出理论值。
+
+%高精度校验使用 Python 3.14 与 mpmath 1.3.0，十进制工作精度设为80位。独立参考表达式为
+%\begin{equation}\label{eq:reference}
+% \psif(x)=\frac{\operatorname{digamma}(1+x)+\gamma}{x}\quad(x>0),
+% \qquad \psif(0)=\zeta(2),
+%\end{equation}
+%其中 $\gamma$ 是 Euler 常数，$\operatorname{digamma}$ 是对数 Gamma 函数的导数。此式仅用于\textbf{独立验证}，未在 C 求值算法中调用。参考网格用精确有理数 $i/10$ 构造，以免把二进制网格近似当成真值。
+
+\section{结果讨论和分析}
+\subsection{代表性计算结果}
+3001个结果全部已保存，下面列出代表点。
+\begin{center}
+\begin{tabular}{r@{\qquad}r|r@{\qquad}r}
+\toprule
+$x$ & $\psif(x)$ & $x$ & $\psif(x)$\\
+\midrule
+0.00 & 1.644934066848 & 10.00 & 0.292896825397\\
+0.10 & 1.534607244905 & 20.00 & 0.179886982857\\
+0.20 & 1.440878841547 & 50.00 & 0.089984106767\\
+0.50 & 1.227411277760 & 100.00 & 0.051873775176\\
+1.00 & 1.000000000000 & 150.00 & 0.037274537258\\
+2.00 & 0.750000000000 & 200.00 & 0.029390154741\\
+5.00 & 0.456666666667 & 250.00 & 0.024402700998\\
+\multicolumn{2}{c|}{} & 300.00 & 0.020942212934\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+当 $x=m\in\mathbb{N}_{+}$ 时，可由望远镜求和得到
+\[
+ \psif(m)=\frac{H_m}{m},\qquad H_m=\sum_{k=1}^{m}\frac1k.
+\]
+
+因此 $\psif(1)=1$、$\psif(2)=3/4$，与程序输出一致。全部值为正，且严格递减，这也与
+\[
+ \psif'(x)=-\sum_{k=1}^{\infty}\frac1{k(k+x)^2}<0
+\]
+
+相符。特别地，$x=300$ 的结果是 $0.020942212934$，而并非直接用粗略的 $\log(x)/x$ 代替。
+
+\subsection{全部3001点的精度核验}
+以式\eqref{eq:reference}的80位计算结果为参考，分别比较 C 内部双精度值和实际写出的12位小数值，得到：
+\begin{center}
+\begin{tabular}{p{7.3cm}r@{\quad}l}
+\toprule
+校验项目 & 数值 & 位置或说明\\
+\midrule
+初值解析截断误差统一上界 & $6.51042\times10^{-14}$ & $0<x\le1$\\
+10个初值的最大实际解析截断误差 & $3.56980\times10^{-16}$ & $x=0.1$\\
+全部内部值的最大绝对误差 & $5.23537\times10^{-16}$ & $x=0.9$\\
+12位小数输出的最大绝对误差 & $4.99948\times10^{-13}$ & $x=160.8$\\
+满足绝对误差小于 $10^{-10}$ 的点数 & 3001 & 全部通过\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+这里的“实际解析截断误差”是以80位算术计算 $A_{20}(x)$ 再与参考值比较，因而不与 C 程序舍入误差混淆。内部值的最大误差约为限值的 $1/191000$；最终文本输出的最大误差约为限值的 $1/200$。
+
+\subsection{直接求和对照试验}
+取 $x=0$，直接用 \texttt{double} 从 $k=1$ 向上累加；误差仍使用80位参考值计算。实际结果如下。
+\begin{center}
+\small
+\begin{tabular}{r r r r}
+\toprule
+截断项数 $N$ & 直接和（约15位小数） & 实际绝对误差 & 单点耗时（秒）\\
+\midrule
+$10^3$ & 1.643934566681562 & $9.99500\times10^{-4}$ & $7.64080\times10^{-7}$\\
+$10^4$ & 1.644834071848065 & $9.99950\times10^{-5}$ & $7.63094\times10^{-6}$\\
+$10^5$ & 1.644924066898242 & $9.99995\times10^{-6}$ & $7.65704\times10^{-5}$\\
+$10^6$ & 1.644933066848770 & $9.99999\times10^{-7}$ & $7.72392\times10^{-4}$\\
+$10^8$ & 1.644934057834575 & $9.01365\times10^{-9}$ & $7.59942\times10^{-2}$\\
+$2\times10^8$ & 1.644934057834575 & $9.01365\times10^{-9}$ & $1.53569\times10^{-1}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+前四行符合 $R_N(0)\approx1/N$。最后两行直接和完全相同，尽管计算量增加一倍。
+
+其原因是，当部分和约为1.64时，相邻双精度浮点数的间隔约为 $2.22\times10^{-16}$。一项 $1/k^2$ 小于半个间隔后，加到部分和上会被舍掉，发生于
+\[
+ k\gtrsim\left(1.11\times10^{-16}\right)^{-1/2}
+ \approx9.49\times10^7.
+\]
+
+因此，普通从大项到小项的累加不仅速度慢，后期还会停滞，不能靠无限增加 $N$ 来保证 $10^{-10}$ 精度。倒序求和、成对求和或 Kahan 补偿求和可减轻舍入损失，但\textbf{不能消除原级数 $1/N$ 级别的截断尾项}，仍需尾项修正或其他加速算法。
+
+\subsection{运行时间与计算量比较}
+加速程序重复计算整张3001点表10000次，测得总耗时为 $0.074388900$ 秒，平均每张表
+\[
+ \boxed{7.43889\times10^{-6}\ \text{秒，约 }7.44\ \text{微秒}.}
+\]
+
+计时采用 Windows 的 \texttt{QueryPerformanceCounter}，不包含文件写入和高精度校验；为减少短时测量误差使用重复批量计时，并以 \texttt{volatile} 读取和累加结果防止无用计算被优化掉。对照试验前三类及 $10^6$ 项试验也采用重复计时，$10^8$ 与 $2\times10^8$ 项各测一次。计时反映本机本次运行，不作为跨机器的固定性能指标。
+
+\begin{center}
+\begin{tabular}{p{4.1cm}p{4.6cm}p{5.2cm}}
+\toprule
+方法 & 计算量/每张表 & 精度与特点\\
+\midrule
+直接截断到 $10^6$ 项 & 约 $3.001\times10^9$ 项 & 截断误差约 $10^{-6}$，不达标。\\
+直接截断到 $10^{10}$ 项 & 约 $3.001\times10^{13}$ 项 & 仅在精确算术下控制尾项；普通双精度累加会停滞。\\
+尾项修正与正向递推 & 200项、40个修正项、2990步 & 3001点实际输出误差均小于 $10^{-10}$。\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+按本机 $N=10^6$ 的\emph{单点}计时外推，3001点独立直接求和需约 $2.32$ 秒，而加速方法计算整表约 $7.44$ 微秒。该约 $3.1\times10^5$ 的比值只是操作量相近时的\textbf{估计}，并非实测整表直接求和的加速比；且对照的 $10^6$ 项方法尚未达标，不能将两者视为同精度算法。真正重要的是加速方法既降低了计算量，又具有明确的尾项误差界。
+
+\subsection{参数、算法特点及可改进之处}
+\begin{enumerate}
+ \item \textbf{初值精度：}初值误差沿递推链乘上 $x_0/x$，不会放大，但较小的 $x$ 最接近初值精度，因此应优先控制10个初值的误差。
+ \item \textbf{截断长度：}四个修正项的统一余项界为 $1/(30N^9)$。例如 $N=10$ 时为 $3.33\times10^{-11}$，理论上已接近达标；选择 $N=20$ 可显著增加舍入余量，而只多计算100个求和项。
+ \item \textbf{递推方向：}采用正向递推。反向递推会放大误差，且靠近 $x=0$ 时还需额外处理。
+ \item \textbf{准确性与成本：}不必对每个 $x$ 独立调用高精度函数；仅在实验验证阶段用高精度参考值检查程序，不把验证成本计入求值速度。
+ \item \textbf{进一步优化：}可直接用 $\psif(1)=1$ 替代第10个初值求和；若只需流式输出，可用10个工作值而不是完整数组；也可按目标精度自动选择 $N$ 与修正阶数。
+ \item \textbf{应用边界：}本算法利用步长0.1网格中相差1的点共享递推。若改为无规律的任意采样点，需要重新组织初值与递推链，而不是机械复用当前索引关系。
+\end{enumerate}
+
+\subsection{程序实现和调试中的问题及处理}
+\begin{enumerate}
+ \item \textbf{$x=0$ 的除零问题：}初值尾项公式含 $1/x$，不能直接代入0。将 $\psif(0)=\pi^2/6$ 单独计算。
+ %\item \textbf{示例首行不一致：}通过解析特殊值和高精度计算确认，$1.644934066848$ 应对应 $x=0$，输出采用正确网格。
+ \item \textbf{网格漂移：}用整数索引 $i$ 生成 $i/10$，递推也直接使用索引公式，避免连续加0.1造成累计偏移。
+ \item \textbf{相消及输出误差：}尾项中使用 \texttt{log1p}/\texttt{expm1}；既校验17位有效数字保存的内部值，也校验最终12位小数文本，不以显示小数位数代替误差证明。
+ \item \textbf{计时被优化：}初次重复计时中，直接求和的相同输入调用被优化为重复使用已知结果，使时间读数接近零。改用 \texttt{volatile} 输入并保留计时累加结果后，得到随 $N$ 增长而近似线性增加的实际耗时。
+ \item \textbf{大 $N$ 累加停滞：}通过 $10^8$、$2\times10^8$ 项对照确认舍入造成停滞。解决办法不是继续增加项数，而是更换为解析尾项修正与稳定递推。
+\end{enumerate}
+
+\subsection{实验结论}
+本实验采用“\textbf{20项直接求和＋四个 Euler--Maclaurin 尾项修正＋10条正向递推链}”计算 Hamming 级数。初值解析截断误差统一不超过 $6.51042\times10^{-14}$，全网格实际内部最大绝对误差为 $5.23537\times10^{-16}$，12位小数输出的最大绝对误差为 $4.99948\times10^{-13}$，3001点全部满足 $10^{-10}$ 的精度要求。
+
+直接求和之所以效率低难以计算，原因在于尾项仅按 $1/N$ 的速率衰减，并且3001个点有大量重复计算，以及普通浮点累加后期停滞。实验表明，利用解析关系得到递推式、明确控制尾项并选取稳定计算方式，可以同时改善精度与效率。
+
+\clearpage
+\appendix
+\section{源代码}
+\begin{lstlisting}
+/* Hamming series: 3001 values on x = i/10, absolute target 1e-10.
+   C99, double precision, no external libraries beyond the C math library. */
+#if defined(_MSC_VER)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
+#define LAST_INDEX 3000
+#define N_BASE 20
+#define EM_ORDER 4
+#define FAST_REPEATS 10000
+#if defined(_MSC_VER)
+#define NOINLINE __declspec(noinline)
+#elif defined(__GNUC__) || defined(__clang__)
+#define NOINLINE __attribute__((noinline))
+#else
+#define NOINLINE
+#endif
+
+static volatile double benchmark_sink = 0.0;
+static volatile double direct_benchmark_x = 0.0;
+
+static double now_seconds(void)
+{
+#if defined(_WIN32)
+    LARGE_INTEGER ticks, frequency;
+    QueryPerformanceCounter(&ticks);
+    QueryPerformanceFrequency(&frequency);
+    return (double)ticks.QuadPart/(double)frequency.QuadPart;
+#else
+    return (double)clock()/(double)CLOCKS_PER_SEC;
+#endif
+}
+
+/* First N terms, followed by an Euler-Maclaurin tail. */
+static double base_value(double x)
+{
+    const double B[EM_ORDER] = {1.0/6.0, -1.0/30.0,
+                               1.0/42.0, -1.0/30.0};
+    const double n = (double)N_BASE;
+    const double l = log1p(x / n);
+    double sum = 0.0, correction = 0.0;
+    int k, r;
+    for (k = 1; k <= N_BASE; ++k)
+        sum += 1.0 / ((double)k * ((double)k + x));
+    for (r = 1; r <= EM_ORDER; ++r) {
+        double diff = pow(n, -2.0*r) * (-expm1(-2.0*r*l));
+        correction += B[r-1] * diff / (2.0*r*x);
+    }
+    return sum + log1p(x/n)/x - 1.0/(2.0*n*(n+x))
+               + correction;
+}
+
+/* Ten residue classes: exact integer indices avoid drifting x += 0.1. */
+static NOINLINE void compute_all(double values[LAST_INDEX + 1])
+{
+    const double pi = acos(-1.0);
+    int r, i;
+    values[0] = pi*pi/6.0;
+    for (r = 1; r <= 10; ++r) {
+        values[r] = base_value((double)r/10.0);
+        for (i = r+10; i <= LAST_INDEX; i += 10)
+            values[i] = ((double)(i-10)/(double)i)*values[i-10]
+                      + 100.0/((double)i*(double)i);
+    }
+}
+
+static NOINLINE double direct_sum(double x, int n)
+{
+    double sum = 0.0;
+    int k;
+    for (k = 1; k <= n; ++k)
+        sum += 1.0/((double)k*((double)k+x));
+    return sum;
+}
+
+int main(void)
+{
+    double values[LAST_INDEX + 1];
+    const int selected[] = {0,1,2,5,10,20,50,100,200,500,
+                            1000,1500,2000,2500,3000};
+    const int ns[] = {1000,10000,100000,1000000,100000000,200000000};
+    FILE *txt, *csv, *bench;
+    double begin, end;
+    double seconds;
+    int i, j, repeat;
+    compute_all(values);
+    for (i = 0; i <= LAST_INDEX; ++i) {
+        if (!isfinite(values[i]) || values[i] <= 0.0 ||
+            (i > 0 && values[i] >= values[i-1])) {
+            fprintf(stderr, "Invalid or nondecreasing result at index %d\n", i);
+            return EXIT_FAILURE;
+        }
+    }
+    txt = fopen("hamming_results.txt", "w");
+    csv = fopen("hamming_results.csv", "w");
+    bench = fopen("benchmark.txt", "w");
+    if (!txt || !csv || !bench) {
+        fprintf(stderr, "Cannot create output files.\n");
+        if (txt) fclose(txt);
+        if (csv) fclose(csv);
+        if (bench) fclose(bench);
+        return EXIT_FAILURE;
+    }
+    fprintf(csv, "x,psi_12dp,psi_full_precision\n");
+    for (i = 0; i <= LAST_INDEX; ++i) {
+        fprintf(txt, "%6.2f  %.12f\n", (double)i/10.0, values[i]);
+        fprintf(csv, "%.1f,%.12f,%.17g\n", (double)i/10.0,
+                values[i], values[i]);
+    }
+    printf("Selected results (all 3001 values saved in TXT and CSV):\n");
+    for (j = 0; j < (int)(sizeof(selected)/sizeof(selected[0])); ++j) {
+        i = selected[j];
+        printf("%6.2f  %.12f\n", (double)i/10.0, values[i]);
+    }
+    fprintf(bench, "algorithm=Euler-Maclaurin + forward recurrence\n");
+#if defined(_WIN32)
+    fprintf(bench, "timer=Windows QueryPerformanceCounter (elapsed time)\n");
+#else
+    fprintf(bench, "timer=C clock (CPU time)\n");
+#endif
+    fprintf(bench, "N=%d\nEM_order=%d\nbase_values=10\n", N_BASE, EM_ORDER);
+    fprintf(bench, "base_term_evaluations=%d\nrecurrence_steps=2990\n",
+            10*N_BASE);
+    fprintf(bench, "truncation_bound=%.17g\n", 1.0/(30.0*pow((double)N_BASE,9.0)));
+    begin = now_seconds();
+    for (repeat = 0; repeat < FAST_REPEATS; ++repeat) {
+        compute_all(values);
+        benchmark_sink += values[repeat % (LAST_INDEX+1)];
+    }
+    end = now_seconds();
+    seconds = end-begin;
+    fprintf(bench, "fast_repeats=%d\nfast_batch_seconds=%.9f\n",
+            FAST_REPEATS, seconds);
+    fprintf(bench, "fast_seconds_per_3001_values=%.12g\n",
+            seconds/(double)FAST_REPEATS);
+    fprintf(bench, "direct_x=0\nN,sum_17digits,repeats,total_seconds,seconds_per_value\n");
+    for (j = 0; j < (int)(sizeof(ns)/sizeof(ns[0])); ++j) {
+        int n = ns[j];
+        int repetitions = 100000000/n;
+        if (repetitions < 1) repetitions = 1;
+        double s = direct_sum(0.0, n);
+        begin = now_seconds();
+        for (repeat = 0; repeat < repetitions; ++repeat)
+            /* Volatile input prevents the optimizer hoisting a pure call. */
+            benchmark_sink += direct_sum(direct_benchmark_x, n);
+        end = now_seconds();
+        seconds = end-begin;
+        fprintf(bench, "%d,%.17g,%d,%.9f,%.12g\n", n,s,repetitions,
+                seconds,seconds/(double)repetitions);
+    }
+    i = (fclose(txt) != 0);
+    i |= (fclose(csv) != 0);
+    i |= (fclose(bench) != 0);
+    if (i) {
+        fprintf(stderr, "Output write failure.\n");
+        return EXIT_FAILURE;
+    }
+    printf("Checks passed: finite, positive and strictly decreasing.\n");
+    printf("Benchmark saved in benchmark.txt (excludes file output).\n");
+    return EXIT_SUCCESS;
+}
+\end{lstlisting}
+
+\section{附带文件清单}
+\begin{itemize}
+ \item \texttt{EXP1.tex}：本报告的独立 LaTeX 源文件，程序已内嵌，编译不依赖外部代码文件。
+ \item \texttt{hamming.c}、\texttt{hamming.exe}：完整 C 源码及本机生成的 Windows 可执行程序。
+ \item \texttt{hamming\_results.txt}、\texttt{hamming\_results.csv}：全部3001点的正式结果。
+ \item \texttt{benchmark.txt}：本次运行的原始计时记录。
+ \item \texttt{verify\_results.py}：独立80位高精度校验程序；需要 mpmath。
+ \item \texttt{validation\_summary.json} 与逐点误差表：保存在“验证记录”文件夹，记录全部点的参考值和误差。
+\end{itemize}
+\end{document}

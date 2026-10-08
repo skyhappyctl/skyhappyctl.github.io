@@ -1,0 +1,559 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{实验一：进程间同步/互斥问题}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{实验目的}
+\begin{description}
+    \item[1.] 通过对进程间通信同步/互斥问题的编程实现，加深理解信号量和 P、V 操作的原理；
+    \item[2.]  对 Windows 或 Linux 涉及的几种互斥、同步机制有更进一步的了解;
+    \item[3.]  熟悉 Windows 或 Linux 中定义的与互斥、同步有关的函数。
+\end{description}
+
+\section{实验题目：银行柜员服务问题}
+本实验选择了银行柜员服务问题，操作系统平台选为Windows，实现语言为C++。
+
+\subsection{问题描述}
+银行有 n 个柜员负责为顾客服务，顾客进入银行先取一个号码，然后等着叫号。当某个
+柜员空闲下来，就叫下一个号。
+
+编程实现该问题，用 P、V 操作实现柜员和顾客的同步。
+
+\subsection{实现要求}
+\begin{description}
+    \item[1.] 某个号码只能由一名顾客取得；
+    \item[2.] 不能有多于一个柜员叫同一个号；
+    \item[3.] 有顾客的时候，柜员才叫号；
+    \item[4.] 无柜员空闲的时候，顾客需要等待；
+    \item[5.] 无顾客的时候，柜员需要等待。
+\end{description}
+
+\subsection{输出要求}
+对于每个顾客需输出进入银行的时间、开始服务的时间、离开银行的时间和服务柜员号。
+
+\subsection{程序设计思路}
+首先，将顾客封装成一个Customer类，这个类中会有顾客的序号、拿到的号、到达时间、服务时间、离开时间等信息。然后对于问题要求，因为一个号只可以由一个
+顾客取得，因此需要一个信号量用于管理取号操作；一个柜员叫一个号，因此设定一个信号量管理叫号，只允许有一个柜员叫这个顾客的号；设定一个到达顾客队列的统计信号量，
+当该信号量为0时柜员需要等待；设定一个空闲柜员的统计信号量，当无空闲柜员时，到达的顾客需要等待。
+
+由于需要输出入银行的时间、开始服务的时间、离开银行的时间和服务柜员号，需要设计相关函数，记录顾客到达银行的时间（这个一般是输入数据给出），然后根据
+等待时间来计算开始服务的时间和离开银行的时间。以下是代码的分块解读。
+
+\subsubsection{顾客类定义}
+\begin{lstlisting}[frame=shadowbox, language=C]
+class Customer {
+private:
+	int id;							// 顾客序号
+	int num;						// 取号
+	int enter_time;					// 进入银行时间
+	int service_time;				// 需要服务的时间
+	int start_time;					// 开始服务时间
+	int leave_time;					// 离开银行时间
+	int server_id;					// 服务柜员号
+
+public:
+	Customer(int id = 0, int enter_time = 0, int service_time = 0)
+		: id(id), enter_time(enter_time), service_time(service_time),
+		num(-1), start_time(0), leave_time(0), server_id(0) {}
+
+	//private信息接口
+	int	get_id() const{	return id;}
+	int get_num() const { return num;}
+	int get_enter_time() const { return enter_time; }
+	int get_service_time() const { return service_time; }
+	int get_start_time() const { return start_time; }
+	int get_leave_time() const { return leave_time; }
+	int get_server_id() const { return server_id; }
+
+
+	//设置服务接口
+	void set_id(int idx) { id = idx; }
+	void set_num(int number) { num = number; }
+	void set_enter_time(int t) { enter_time = t; }
+	void set_service_time(int t) { service_time = t; }
+	void set_start_time(int t) { start_time = t; }
+	void set_leave_time(int t) { leave_time = t; }
+	void set_server_id(int id) { server_id = id; }
+};
+\end{lstlisting}
+
+这一部分代码定义了顾客类，该类中有所有顾客的序号、时间信息。
+
+\subsubsection{全局信号量}
+\begin{lstlisting}[frame=shadowbox, language=C]
+// 全局共享资源（保持不变）
+int current_num = 0;                      // 当前最大取号数（用于生成唯一号码）
+std::mutex mtx_num;                     // 保护取号操作的互斥锁
+std::queue<Customer> wait_queue;          // 等待服务的顾客队列
+std::mutex mtx_queue;                   // 保护队列操作的互斥锁
+
+// 同步变量
+int customer_num = 0;					  // 等待服务的顾客数量（替代customer_waiting信号量）
+std::condition_variable cv_customer;	  // 顾客到达的条件变量（通知柜员）
+int available_servers;					  // 可用柜员数量
+std::condition_variable cv_server;		  // 柜员空闲的条件变量 (通知顾客)
+\end{lstlisting}
+
+这一部分定义了信号量，用于做互斥操作和队列同步操作。
+
+\subsubsection{顾客到达处理函数}
+\begin{lstlisting}[frame=shadowbox, language=C]
+    // 顾客到达事件处理函数
+void customer_enter(Customer& customer) {
+	// 取号（互斥操作，确保号码唯一）
+	{
+		std::lock_guard<std::mutex> lock(mtx_num);
+		customer.set_num(++current_num); 
+	}
+
+	// 等待可用柜员（无空闲柜员时阻塞）
+	{
+		std::unique_lock<std::mutex> lock(mtx_queue);  
+		cv_server.wait(lock, [&] { return available_servers > 0; });  // 等待柜员空闲
+		available_servers--; 
+	}
+
+	// 加入等待队列（互斥操作）
+	{
+		std::lock_guard<std::mutex> lock(mtx_queue);
+		wait_queue.push(customer);
+		customer_num++;
+	}
+
+	// 通知有新顾客等待
+	cv_customer.notify_one();		// 唤醒一个柜员
+}
+\end{lstlisting}
+
+这一部分定义的函数是负责给到达的顾客进行取号、判断是否有无空闲柜员并唤醒空闲柜员的。在取号时先将mtx\_num信号量锁住，
+然后取号；然后在加入队列时先将mtx\_queue锁住，如果没有空闲柜员则需要wait等到空闲柜员数量大于0，如果有则直接占用一个空闲柜员；如果队列是空闲的，那么该顾客会唤醒一个柜员。
+
+\subsubsection{柜员处理函数}
+\begin{lstlisting}[frame=shadowbox, language=C]
+    void server(int server_id) {
+	thread_local int last_leave_time = 0;  // 线程局部变量，记录该柜员上次服务结束时间
+
+	while (true) {
+		//  等待有顾客需要服务
+		Customer customer;
+		{
+			std::unique_lock<std::mutex> lock(mtx_queue);
+			cv_customer.wait(lock, [&] { return customer_num > 0; });  // 等待顾客到达，无顾客时阻塞
+			customer = wait_queue.front();
+			wait_queue.pop();
+			customer_num--; 
+		}
+
+		// 计算服务时间
+		int start_time = customer.get_enter_time() > last_leave_time ? customer.get_enter_time() : last_leave_time;
+		int leave_time = start_time + customer.get_service_time();
+
+		// 记录服务信息
+		customer.set_start_time(start_time);
+		customer.set_leave_time(leave_time);
+		customer.set_server_id(server_id);
+
+		// 输出结果
+		cout << "-------------------------------------------------------" << endl;
+		cout << "The " << customer.get_id() << " customer come! His requiring service time is: " << customer.get_service_time() << endl;
+		cout << "The enter time: " << customer.get_enter_time() << endl;
+		cout << "The service start time: " << customer.get_start_time() << endl;
+		cout << "The leave time: " << customer.get_leave_time() << endl;
+		cout << "The server's id: " << customer.get_server_id() << endl;
+
+		// 模拟服务耗时
+		std::this_thread::sleep_for(std::chrono::seconds(customer.get_service_time()));
+
+		// 服务完成，释放柜员
+		{
+			std::lock_guard<std::mutex> lock(mtx_queue);
+			available_servers++;  
+		}
+		cv_server.notify_one();  // 通知顾客有柜员空闲
+
+		// 更新柜员空闲时间
+		last_leave_time = leave_time;
+	}
+}
+\end{lstlisting}
+
+这一部分定义的函数，是柜员用于叫号、等待顾客到达、服务顾客并在服务结束后输出该名顾客的信息。在某个柜员准备叫号时，先将mtx\_queue信号量锁住，如果队列没有人那么就一直等待直到
+顾客到来，如果队列有人则将服务队首的顾客，等待队列的数量-1；依次计算完开始服务时间和顾客离开时间，输出结果，在服务过程中使用sleep让该线程休眠，模拟服务用时；在服务结束后会通知顾客有空闲柜员产生。
+
+
+\subsubsection{主函数}
+\begin{lstlisting}[frame=shadowbox, language=C]
+int main() { 
+	int server_num = 2;					//柜员数量
+	string test_data_file = "C:/Users/skyhappy/Desktop/test.txt";
+
+
+	//从文件中读取顾客的数据
+	std::vector<Customer> customers;
+	ifstream file;
+	string line;
+	file.open(test_data_file, std::ios::in);
+	while (getline(file, line))
+	{
+		istringstream iss(line);
+		int id_customer, enter_time, service_time;
+		iss >> id_customer >> enter_time >> service_time;
+		customers.push_back(Customer(id_customer, enter_time, service_time));
+	}
+
+	std::sort(customers.begin(), customers.end(),
+		[](const Customer& a, const Customer& b) {
+			return a.get_enter_time() < b.get_enter_time();
+		});
+
+	std::vector<std::thread> servers;
+	for (int i = 0; i < server_num; i++) {
+		servers.emplace_back(server, i + 1);
+	}
+
+	int last_enter_time = 0;
+	available_servers = server_num;   //初始化
+
+	for (auto& customer : customers) {
+		int interval = customer.get_enter_time() - last_enter_time;
+		if (interval > 0) {
+			std::this_thread::sleep_for(std::chrono::seconds(interval));
+		}
+		last_enter_time = customer.get_enter_time();
+		customer_enter(customer);
+	}
+
+	for (auto& t : servers) {
+		t.join();
+	}
+
+	return 0;
+}
+\end{lstlisting}
+
+在主函数中，可以定义银行柜员个数，并完成从文件中读取测例，并得到输出结果的。
+
+\subsection{实验测例}
+测试文件由若干记录组成，记录的字段用空格分开。记录第一个字段是顾客序号，第二
+字段为顾客进入银行的时间，第三字段是顾客需要服务的时间。
+在该实验中，设计的测例为：
+\begin{lstlisting}[frame=shadowbox, language=C]
+1 1 10
+2 5 2
+3 6 3
+4 1 4
+5 1 5
+6 1 3
+7 2 2
+8 2 7
+9 3 1
+10 3 6
+\end{lstlisting}
+
+\section{实验结果}
+在本实验中设置的柜员数量为2，实验结果如下图：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{res.png}
+    \caption{实验结果}
+\end{figure}
+
+可以自行验证，该程序结果是正确的。该结果应该是不可复现的，因为抢占顾客的柜员是随机的，不能保证每次都是同一个柜员抢占同一个顾客。
+\section{思考题}
+
+\question{1.}{\textbf{柜员人数和顾客人数对结果分别有什么影响？}}
+
+柜员人数直接决定系统的并发服务能力，是影响顾客等待时间、队列长度和柜员利用率的关键因素。柜员人数越少，总时间长度越长，人均等待时间也越长；柜员人数越多，总时间长
+度越短，但柜员的利用率不高。因此，柜员人数很少或者很多在现实中都不是最优的。
+
+顾客人数决定系统的负载压力，其变化会显著影响队列长度和等待时间，甚至导致系统崩溃。如果顾客个数远大于柜员数，或者是同一时刻到来特别多顾客，会导致
+等待队列大量的积累，使得人均等待时间的延长。
+
+因此，系统的最优状态是柜员人数与顾客人数匹配，像银行的“弹性窗口”机制就是用来动态调整柜员数量的。\\
+
+\question{2.}{\textbf{实现互斥的方法有哪些?各自有什么特点?效率如何?}}
+
+实现互斥的方法有很多，可以归类为软件和硬件方法。
+\begin{description}
+    \item[1.] 软件方法 
+    \begin{description}
+        \item[a.] 互斥/自旋锁变量
+        
+            使用共享变量 lock，通过循环检查 lock 的值实现互斥，问题是可能违反“忙则等待”原则，并且在极端情况下两个线程同时申请锁变量，可能同时进入临界区。由于忙等待机制，效率极低。
+        \item[b.] 轮转法
+        
+        使用共享变量turn指示轮到哪个进程进入，但是由于强制严格轮转进入，会违反“空闲则进”原则。由于强制轮转，效率较低。
+        \item[c.] Peterson算法
+        
+        在轮转法的基础上，结合 turn 和 interested 数组实现互斥，解决了互斥问题，并且不要求严格轮流。但是仍然无法避免忙等待问题，效率也较低。
+        \item[d.] 信号量
+        
+        对不同的临界资源设定信号量，通过原语 P（down）和 V（up）修改操作系统内核实现的计数器，若计数器为 0 则阻塞当前进程切换到内核，释放时唤醒其他进程。因为涉及到频繁的
+        内核态-用户态切换，并且要更改上下文，使得这一方法的效率适中，但是使得编程复杂度大大提高，同步逻辑分散在代码中，可读性差。
+        \item[e.] 管程
+        
+        独立出一个线程专门管理信号量，通过编译器生成 “入口队列” 和 “条件变量”，底层通常依赖互斥锁或信号量。
+
+
+    \end{description}
+    \item[2.] 硬件方法
+        \begin{description}
+        \item[a.] 禁止中断
+        
+        在单处理器系统中，通过屏蔽 CPU 中断（如 x86 的 cli 指令）保证临界区执行期间无其他进程抢占，CPU无法接收到中断信号，也就不会进行进程切换。
+        该方法实现起来难度较低，但是只适合单处理器系统，多处理器系统中其他CPU仍然可以执行进程。
+
+        \item[b.] 硬件指令
+        
+        CPU 提供原子操作指令（如 TSL、CAS），保证 “读取内存→修改内存” 操作的原子性。例如：
+TSL、CAS。该方法效率较高，是现代多线程互斥的核心实现基础。
+
+
+
+    \end{description}
+\end{description}
+
+\section{实验总结}
+
+本次实验中，我通过银行柜员问题对进程间同步、互斥问题有了更近一步的了解，明白了信号量的作用，并且将其更加具体地通过C++语言实现出来。
+在课上主要学习到了一些理论，但是对于具体实现只是一个方法上的指导，在真实实现中往往比预期要困难的多。本次实验用到了以前编写C++程序时
+从未使用过的库函数，感觉比较陌生，但是在查阅网络资料以及AI辅助后也顺利得以解决。在最后做思考题时也对课上所学的互斥、同步的知识做了回顾。
+
+最后，感谢老师和助教的批阅！
+
+\newpage
+\section{源代码}
+
+\begin{lstlisting}[frame=shadowbox, caption=main.cpp,language=C]
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <thread>
+#include <chrono>
+#include <mutex>
+#include <condition_variable>
+#include <vector>
+#include <queue>
+#include <algorithm>
+#include <Windows.h>
+#include <string>
+
+using namespace std;
+
+class Customer {
+private:
+	int id;							// 顾客序号
+	int num;						// 取号
+	int enter_time;					// 进入银行时间
+	int service_time;				// 需要服务的时间
+	int start_time;					// 开始服务时间
+	int leave_time;					// 离开银行时间
+	int server_id;					// 服务柜员号
+
+public:
+	Customer(int id = 0, int enter_time = 0, int service_time = 0)
+		: id(id), enter_time(enter_time), service_time(service_time),
+		num(-1), start_time(0), leave_time(0), server_id(0) {}
+
+	//private信息接口
+	int	get_id() const{	return id;}
+	int get_num() const { return num;}
+	int get_enter_time() const { return enter_time; }
+	int get_service_time() const { return service_time; }
+	int get_start_time() const { return start_time; }
+	int get_leave_time() const { return leave_time; }
+	int get_server_id() const { return server_id; }
+
+
+	//设置服务接口
+	void set_id(int idx) { id = idx; }
+	void set_num(int number) { num = number; }
+	void set_enter_time(int t) { enter_time = t; }
+	void set_service_time(int t) { service_time = t; }
+	void set_start_time(int t) { start_time = t; }
+	void set_leave_time(int t) { leave_time = t; }
+	void set_server_id(int id) { server_id = id; }
+};
+
+// 全局共享资源（保持不变）
+int current_num = 0;                      // 当前最大取号数（用于生成唯一号码）
+std::mutex mtx_num;                     // 保护取号操作的互斥锁
+std::queue<Customer> wait_queue;          // 等待服务的顾客队列
+std::mutex mtx_queue;                   // 保护队列操作的互斥锁
+
+// 同步变量
+int customer_num = 0;					  // 等待服务的顾客数量（替代customer_waiting信号量）
+std::condition_variable cv_customer;	  // 顾客到达的条件变量（通知柜员）
+int available_servers;					  //可用柜员数量
+std::condition_variable cv_server;		  // 柜员空闲的条件变量 (通知顾客)
+
+// 顾客到达事件处理函数
+void customer_enter(Customer& customer) {
+	// 取号（互斥操作，确保号码唯一）
+	{
+		std::lock_guard<std::mutex> lock(mtx_num);
+		customer.set_num(++current_num); 
+	}
+
+	// 等待可用柜员（无空闲柜员时阻塞）
+	{
+		std::unique_lock<std::mutex> lock(mtx_queue);  
+		cv_server.wait(lock, [&] { return available_servers > 0; });  // 等待柜员空闲
+		available_servers--; 
+	}
+
+	// 加入等待队列（互斥操作）
+	{
+		std::lock_guard<std::mutex> lock(mtx_queue);
+		wait_queue.push(customer);
+		customer_num++;
+	}
+
+	// 通知有新顾客等待
+	cv_customer.notify_one();		// 唤醒一个柜员
+}
+
+void server(int server_id) {
+	thread_local int last_leave_time = 0;  // 线程局部变量，记录该柜员上次服务结束时间
+
+	while (true) {
+		//  等待有顾客需要服务
+		Customer customer;
+		{
+			std::unique_lock<std::mutex> lock(mtx_queue);
+			cv_customer.wait(lock, [&] { return customer_num > 0; });  // 等待顾客到达，无顾客时阻塞
+			customer = wait_queue.front();
+			wait_queue.pop();
+			customer_num--; 
+		}
+
+		// 计算服务时间
+		int start_time = customer.get_enter_time() > last_leave_time ? customer.get_enter_time() : last_leave_time;
+		int leave_time = start_time + customer.get_service_time();
+
+		// 记录服务信息
+		customer.set_start_time(start_time);
+		customer.set_leave_time(leave_time);
+		customer.set_server_id(server_id);
+
+		// 输出结果
+		cout << "-------------------------------------------------------" << endl;
+		cout << "The " << customer.get_id() << " customer come! His requiring service time is: " << customer.get_service_time() << endl;
+		cout << "The enter time: " << customer.get_enter_time() << endl;
+		cout << "The service start time: " << customer.get_start_time() << endl;
+		cout << "The leave time: " << customer.get_leave_time() << endl;
+		cout << "The server's id: " << customer.get_server_id() << endl;
+
+		// 模拟服务耗时
+		std::this_thread::sleep_for(std::chrono::seconds(customer.get_service_time()));
+
+		// 服务完成，释放柜员
+		{
+			std::lock_guard<std::mutex> lock(mtx_queue);
+			available_servers++;  
+		}
+		cv_server.notify_one();  // 通知顾客有柜员空闲
+
+		// 更新柜员空闲时间
+		last_leave_time = leave_time;
+	}
+}
+
+int main() { 
+	int server_num = 2;					//柜员数量
+	string test_data_file = "C:/Users/skyhappy/Desktop/test.txt";
+
+
+	//从文件中读取顾客的数据
+	std::vector<Customer> customers;
+	ifstream file;
+	string line;
+	file.open(test_data_file, std::ios::in);
+	while (getline(file, line))
+	{
+		istringstream iss(line);
+		int id_customer, enter_time, service_time;
+		iss >> id_customer >> enter_time >> service_time;
+		customers.push_back(Customer(id_customer, enter_time, service_time));
+	}
+
+	std::sort(customers.begin(), customers.end(),
+		[](const Customer& a, const Customer& b) {
+			return a.get_enter_time() < b.get_enter_time();
+		});
+
+	std::vector<std::thread> servers;
+	for (int i = 0; i < server_num; i++) {
+		servers.emplace_back(server, i + 1);
+	}
+
+	int last_enter_time = 0;
+	available_servers = server_num;   //初始化
+
+	for (auto& customer : customers) {
+		int interval = customer.get_enter_time() - last_enter_time;
+		if (interval > 0) {
+			std::this_thread::sleep_for(std::chrono::seconds(interval));
+		}
+		last_enter_time = customer.get_enter_time();
+		customer_enter(customer);
+	}
+
+	for (auto& t : servers) {
+		t.join();
+	}
+	return 0;
+}
+\end{lstlisting}
+\end{document}

@@ -1,0 +1,245 @@
+\documentclass[UTF8]{ctexart}
+
+\usepackage{amsmath}
+\usepackage{cases}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{tablefootnote}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{marvosym}
+\usepackage{subfigure}
+\usepackage{float}
+\geometry{a4paper}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+
+
+\title{大模型调研报告}
+\author{陈天乐\quad 无25\quad [student ID removed]\\ \href{mailto:ctl22@mails.tsinghua.edu.cn}{ctl22@mails.tsinghua.edu.cn}}
+\date{\today}
+\pagenumbering{arabic}
+
+\begin{document}
+
+\fancyhead[L]{陈天乐\quad 无25}
+\fancyhead[C]{数字图像处理：大模型调研报告}
+\fancyfoot[C]{\thepage}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{调研背景}
+随着人工智能的迅速发展，大模型不仅在自然语言处理领域取得了突破性进展，还在计算机视觉等多模态任务中展现出强大的潜力。近年来，大模型与图像处理技术的融合成为研究热点，为图像增强、目标检测和人脸识别等任务提供了新的解决方案。
+本次作业旨在探索大模型在图像处理任务中的适用性，分析其在不同任务下的性能表现，培养对跨模态AI技术的理解与批判性思维能力。
+
+\section{模型选取}
+
+\subsection{文心一言}
+\subsubsection{模型背景}
+文心一言（英文名：ERNIE Bot）是百度全新一代知识增强大语言模型，文心大模型家族的新成员，能够与人对话互动、回答问题、协助创作，高效便捷地帮助人们获取信息、知识和灵感。
+
+\subsubsection{模型架构}
+\begin{description}
+    \item[Transformer模型] \leavevmode \\
+    文心一言的核心架构采用了Transformer模型，该模型是一种基于自注意力机制的神经网络结构。它能够处理变长序列，并通过自注意力机制捕捉输入序列中单词之间的依赖关系。
+Transformer模型是文心一言的基础，它由编码器（Encoder）和解码器（Decoder）两部分组成。编码器负责处理输入文本，将其转化为一系列的向量表示（称为“嵌入”或“嵌入向量”）。这些向量不仅包含了文本中单词的信息，还融入了上下文语境的信息。解码器则根据这些向量表示生成输出文本。
+
+在Transformer模型中，自注意力机制（Self-Attention Mechanism）是关键。它允许模型在处理文本时，同时关注文本中的每个单词，并计算它们之间的相关性。这使得模型能够捕捉文本中的长距离依赖关系，从而更准确地理解文本的含义。
+\end{description}
+
+\subsubsection{核心技术}
+\begin{description}
+    \item[1.知识增强]\leavevmode \\
+    文心一言融合了知识图谱和百科知识等先验知识，将这些知识引入模型训练中。通过知识增强，模型能够更准确地理解文本中的实体、概念及其关系，提高生成文本的准确性和丰富性。
+    \item[2.上下文感知] \leavevmode \\
+    模型能够充分考虑文本的上下文信息，理解文本中的语义和语境。在处理文本时，模型会关注文本中的每个单词，并计算它们之间的相关性。这使得模型能够捕捉文本中的长距离依赖关系，并理解文本中的语义和语境。因此，模型能够生成连贯、流畅的文本，避免语义上的矛盾和冲突。
+    \item[3.监督精调] \leavevmode \\
+    在预训练的基础上，文心一言会针对特定的任务进行微调。微调是通过在标注数据上训练模型来完成的，目的是让模型更好地适应特定任务的需求。微调过程可以进一步优化模型的性能。
+    \item[4.人类反馈的强化学习（RLHF）​] \leavevmode \\
+    RLHF的核心思想是将人类反馈作为奖励信号，指导模型在环境中采取合适的动作。通过不断的试错和反馈，模型可以优化其行为策略，以实现特定目标或任务。
+    
+\end{description}
+\subsection{豆包}
+\subsubsection{模型背景}
+豆包是字节跳动公司基于云雀模型开发的AI工具，提供多种功能，旨在帮助用户获取信息并提高工作效率。
+
+\subsubsection{模型架构}
+\begin{description}
+    \item[混合专家（MoE）架构] \leavevmode \\
+    豆包的核心架构采用了MoE架构，并且基于字节跳动团队提出的UltraMem 稀疏模型架构，豆包对传统 MoE 进行了创新优化。MoE 通过稀疏激活专家（Expert）将计算与参数解耦，训练阶段可降低计算量。但在推理时，由于模型需逐 token 生成（batch size 小），少量 token 即可激活所有专家，导致访存压力剧增，推理速度变慢且成本高昂。
+    而UltraMem架构将单一 Memory Layer 拆分为多层，均匀分布在 Transformer 中，并引入 skip-layer 机制，使访存与计算并行，减少延迟。并且采用Tucker 分解查询 - 键检索（TDQKR），提升 value 检索的准确性和复杂度，确保稀疏参数高效利用。同时通过虚拟内存扩展（IVE），在不增加物理显存的前提下，隐式扩展稀疏参数规模（如 4 倍扩展），提升模型容量。
+\end{description}
+
+\subsubsection{核心技术}
+\begin{description}
+    \item[1.UltraMem 混合专家模型]\leavevmode \\
+    基于字节跳动自研的UltraMem 稀疏模型架构，通过分层 Memory Layer 设计、TDQKR 检索增强和 IVE 虚拟内存扩展，解决传统 MoE 推理效率瓶颈。
+    \item[2.纯视觉动态建模] \leavevmode \\
+    业内首个无需语言依赖的视频生成模型，采用 \textbf{潜在动态模型（LDM)}压缩帧间冗余，结合自回归 Transformer 与 VQ-VAE，实现复杂任务推理（如围棋 5 段水平）。
+    \item[3.STRING 算法与 300 万窗口] \leavevmode \\
+    通过STRING 上下文关联算法和稀疏化分布式方案，实现百万 tokens 处理延迟仅 15 秒，支持海量文献分析等场景。
+    \item[4.多模态生成​] \leavevmode \\
+    语言、视觉、语音、视频、音乐五大模态协同，支持复杂场景（如自动驾驶、智能座舱）。
+    
+\end{description}
+
+\section{实验测试与分析}
+
+\subsection{任务1：图像增强（低照度增强、对比度增强、去噪）}
+选取了三张照片，分别让文心一言和豆包模型对其进行图像增强，由于测试发现豆包模型无法在原图的基础上进行图像增强，因此只给出了文心一言的结果。
+\subsubsection{文心一言}
+首先让文心一言对一张模糊照片进行去噪操作，结果如下：
+\begin{figure}[H]
+    \centering
+     
+    \subfigure{
+        \begin{minipage}[t]{0.5\linewidth}
+            \centering
+            \includegraphics[width=0.5\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/模糊照片.jpg}
+            \vspace{0.6cm}
+            \caption{模糊照片原图}
+        \end{minipage}
+    }%
+    \subfigure{
+        \begin{minipage}[t]{0.5\linewidth}
+            \centering
+            \includegraphics[width=1\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/去噪结果.png}
+            \vspace{0cm}
+            \caption{文心一言生成结果}
+        \end{minipage}
+    }%
+     
+    \centering
+    \end{figure}
+
+    从照片质量来看，去噪效果还是非常不错的，生成图片比原图片清晰很多。但是模型给出的图片并不和原图一模一样，而是基于原图生成了一个类似的清晰图片。
+
+    将一张雾霾天气的城市图片输入给文心一言，令其增强对比度，得到的结果如下：
+    \begin{figure}[H]
+        \centering
+         
+        \subfigure{
+            \begin{minipage}[t]{0.5\linewidth}
+                \centering
+                \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/雾霾.jpg}
+                \vspace{0.7cm}
+                \caption{雾霾照片原图}
+            \end{minipage}
+        }%
+        \subfigure{
+            \begin{minipage}[t]{0.5\linewidth}
+                \centering
+                \includegraphics[width=1\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/对比度结果.png}
+                \vspace{0cm}
+                \caption{文心一言生成结果}
+            \end{minipage}
+        }%
+         
+        \centering
+        \end{figure}
+
+        这个任务中，文心一言生成出的照片和原有图片相去甚远，虽然是完成了增强对比度的任务，但是这并不是我们希望得到的。
+
+        最后，将一张低照度的照片输入给文心一言，令其进行图像增强，得到的结果如下：
+        \begin{figure}[H]
+            \centering
+             
+            \subfigure{
+                \begin{minipage}[t]{0.5\linewidth}
+                    \centering
+                    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/低照度.png}
+                    \vspace{0.7cm}
+                    \caption{低照度照片原图}
+                \end{minipage}
+            }%
+            \subfigure{
+                \begin{minipage}[t]{0.5\linewidth}
+                    \centering
+                    \includegraphics[width=1\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/低照度结果.png}
+                    \vspace{0cm}
+                    \caption{文心一言生成结果}
+                \end{minipage}
+            }%
+             
+            \centering
+            \end{figure}
+
+            同样，从照片质量看，文心一言生成的图片在尽量和原图相近下也提高了照片的质量，增强低照度，但是仍然不是在原图的基础上做的图像增强。
+    \subsection{任务2：物体检测}
+
+    在这个任务中，分别将一张包含多个水果的图片输入给文心一言和豆包，进行物体检测，分析其识别准确性。
+\subsubsection{文心一言}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/物体检测_wxyy.png}
+    \caption{文心一言识别结果}
+\end{figure}
+
+可以看到，文心一言对这张包含多个物体的识别结果还是较为准确的，不仅识别出来各种水果、蔬菜的种类，还精准地定位了各个物体的位置。
+
+\subsubsection{豆包}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/物体检测_db.png}
+    \caption{豆包识别结果}
+\end{figure}
+
+可以看到，豆包同样对这张包含多个物体的识别较为准确。但是和文心一言相比，其对物体的方位描述比较模糊，但是给出了一些关于图中物体的其他相关信息。
+
+
+\subsection{任务3：人脸识别}
+在这个任务中，输入了三张合照给文心一言和豆包，由于涉及到隐私等问题，这两个大模型无法直接在原图上框选出人脸位置，因此采用prompt的方式令其告知照片中一共有多少人，分别有几个男生和几个女生。
+\subsubsection{文心一言}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/人脸识别1_wxyy.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/人脸识别2_wxyy.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/人脸识别3_wxyy.png}
+\end{figure}
+
+可以看到，文心一言对三张照片的表现还算不错，除了第二张照片对男生个数的识别出错之外，识别的还是非常精准的。
+\subsubsection{豆包}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/人脸识别1_db.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/人脸识别2_db.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字图像处理/大模型调研/人脸识别3_db.png}
+\end{figure}
+可以看到，豆包对三张照片的表现还算不错，除了第一张照片对总人数和男生个数的识别出错之外，识别的还是非常精准的。并且相较于文心一言，豆包在
+第三张家庭合照中还准确识别了图中男性、女性的年龄。
+
+\section{模型评估与改进建议}
+\subsection{文心一言}
+对于文心一言模型，其巨大的优势在于多模态处理非常好，在图像增强、物体检测和人脸识别等任务中表现都很出色，但不足之处也很明显：在图像增强任务中无法在原图的基础上做处理，只能根据prompt和图片生成
+新图片，这会缩小其适用范围。同时，其在处理一些物体比较密集的图片时可能会出现错误（例如人脸识别的第二个任务）。在处理复杂场景或具有特殊要求的图像时，可能也无法完全理解用户的需求，导致生成的图像与预期不符。
+
+根据其表现，我认为文心一言模型在图像处理领域可以用来帮助检测物体，或者是根据所需生成一个对应的图片，至于图像增强功能，如果不要求一定要在原图的基础上做处理，也是可以使用的。
+目前一个巨大的局限就是在对原图的直接处理上，这需要未来多进行反馈训练。同时，可以增加更多样化、高质量的训练数据，提高生成图像的质量和多样性。还可以建立一个有效的用户反馈机制，及时收集用户对生成图像的评价和建议。
+
+
+\subsection{豆包}
+对于豆包模型，其优势在于可以处理多模态任务，在物体检测和人脸识别等任务中表现都很出色，同时还具有更强的联想能力。但不足之处也很明显：因未集成图像像素级处理模型，无法直接执行图像编辑（如裁剪、调色）、生成（如 AI 绘图）、修复等操作。同时在人脸识别任务中对密集人群图片的识别
+不太准确。
+
+根据其表现，我认为豆包模型在图像处理领域可以用来帮助检测物体，依托自然语言处理能力，可解析图像文本描述，辅助用户快速获取图像语义内容。同时在图文混合场景中，能整合文本与图像信息，根据用户文本指令分析图像元素，为图像生成文字说明。
+目前一个巨大的局限正如上文所言，还无法完成在对原图的直接处理上。因此，未来可以集成多模态模型，扩展图像生成、精准识别等能力，实现 “语义理解 + 视觉处理” 的深度融合。并且可以结合大语言模型对多模态数据的训练，提升图像细节分析能力（如情感识别、复杂场景逻辑推理），优化图像内容解析的精准度与丰富度。
+
+
+
+\end{document}

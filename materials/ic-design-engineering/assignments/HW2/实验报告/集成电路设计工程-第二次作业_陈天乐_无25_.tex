@@ -1,0 +1,291 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{《集成电路设计工程》第二次作业——基于TSMC 65nm工艺的数字设计与仿真}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{三八译码器的电路设计与仿真}
+\subsection{合适尺寸的最小反相器}
+
+在数大课程中我们学到，设计反相器中，$\frac{W_p}{W_n}\approx 2$是比较合适的。对此，我使用了pch\_lvt和nch\_lvt管子，并且两个管子的L都为60nm，且nch\_lvt管子的$W_n=400nm$。当输出负载电容大小为200fF时，对PMOS管子的宽度扫描参数，得到如下结果：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/反相器tb.png}
+    \caption{反相器testbench原理图}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/反相器tb仿真设置.png}
+    \caption{反相器testbench仿真设置}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/反相器仿真结果.png}
+    \caption{反相器testbench仿真结果}
+\end{figure}
+
+从仿真结果以及数集的知识可以得到，当$W_p=2W_n=800nm$时，波形和尺寸都是比较合适的。
+
+\subsection{3输入与门设计}
+
+根据最小尺寸的反相器设计，结合数集的知识，设计一个3输入的与门，原理图如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/AND3电路图.png}
+    \caption{3输入与门原理图}
+\end{figure}
+
+因为下拉网络中有3个NMOS管进行堆叠，因此在3输入与门中的设计里，$W_p:W_n=2:3$,我们取$W_p=265nm$,$W_n=400nm$。搭建好3AND门后，搭建其testbench和仿真，其中我们用三个频率不同的方波做输入信号：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/AND3tb.png}
+    \caption{3输入与门testbench原理图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/AND3tb仿真设置.png}
+    \caption{3输入与门testbench仿真设置}
+\end{figure}
+
+得到的仿真结果如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/AND3仿真结果.png}
+    \caption{3输入与门仿真结果}
+\end{figure}
+
+从仿真结果可以看出，该3输入与门的功能是正确的。
+
+
+\subsection{三八译码器设计}
+
+三八译码器的电路原理图可以从真值表获得，根据其电路图，以及我自己设计的与门、非门，设计的三八译码器原理图如下。该设计中一共用到了8个三输入与门和6个非门。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/38decoder电路图.png}
+    \caption{三八译码器电路原理图}
+\end{figure}
+
+搭建三八译码器的testbench电路，令LSB（A0）的输入频率为200MHz，A1和A2的输入频率为100MHz和50MHz，这样在A2输入信号的一个输入周期内，可以遍历输入信号的所有输入条件（从000到111）。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/38decoder-tb.png}
+    \caption{三八译码器testbench原理图}
+\end{figure}
+
+仿真设置和仿真结果如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/38decoder仿真设置.png}
+    \caption{三八译码器testbench仿真设置}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第一部分/38decoder仿真结果.png}
+    \caption{三八译码器仿真结果}
+\end{figure}
+
+从仿真波形可以看到，该三八译码器的功能是正确的。测量8个端口在一个大周期内的平均功耗，得到的结果如下表：
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+    \hline
+        端口 & Y0 & Y1 & Y2 & Y3 & Y4 & Y5 & Y6 & Y7 \\ \hline
+        平均功耗($10^{-18}$J) & 107.8 & 105.8 & 111.6 & 97.9 & 115.7 & 104.8 & 114.3 & 114.9 \\ \hline
+    \end{tabular}
+\end{table}
+
+
+
+\section{6T SRAM单元设计}
+
+一个常规的6T SRAM单元的电路图如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第二部分/sram原理图.png}
+    \caption{6T SRAM单元的电路图}
+\end{figure}
+
+根据最小反相器的尺寸，设计其原理图如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第二部分/6tsram电路图.png}
+    \caption{6T SRAM单元原理图}
+\end{figure}
+
+
+\subsection{写入数据的testbench仿真}
+
+输入信号源采用vbit信号源，依次输出01001101。同时在写入数据时，需要将WL，BL和$\bar{BL}$分别接vbit和vbit取反后的输出。testbench原理图和仿真设置如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第二部分/6tsram写tb.png}
+    \caption{6T SRAM单元写testbench原理图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第二部分/6tsram写tb仿真设置.png}
+    \caption{6T SRAM单元写testbench仿真设置}
+\end{figure}
+
+得到的仿真结果如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第二部分/6tsram写tb仿真结果.png}
+    \caption{6T SRAM单元写仿真结果}
+\end{figure}
+
+
+可以看到，我们成功将01001101写入到SRAM里，写功能正确。
+
+\subsection{读出数据的testbench仿真}
+
+对于读出数据的testbench，我们需要做一些调整。首先是预写入电路，我们通过PW控制信号来对SRAM写入数据，使得SRAM初始状态为OUT=0，OUT\_N=1（预写入电路我们使用vbit信号源）。然后我们通过PC控制信号
+将BL和$\bar{BL}$预充电到0.5V（我们使用vdc电压源对其预充电），再将WL置高（使用vpulse信号源产生方波信号），从而读出数据，并观察BL和$\bar{BL}$端的电压变化。在BL和$\bar{BL}$接10fF的负载电容。testbench的原理图和仿真设置如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第二部分/6tsram读tb.png}
+    \caption{6T SRAM单元读testbench原理图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第二部分/6tsram读tb仿真设置.png}
+    \caption{6T SRAM单元读testbench仿真设置}
+\end{figure}
+
+得到的仿真结果如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第二部分/6tsram读tb仿真结果.png}
+    \caption{6T SRAM单元读仿真结果}
+\end{figure}
+
+从仿真结果可以看出，BL端在WL置高后很快放电为0，也就是读出了OUT=0；而$\bar{BL}$在WL置高后会缓慢充电，也就是读出了OUT\_N=1。因此SRAM的读功能也是正确的。（有一个疑惑，为什么BL放电速度和$\bar{BL}$的充电速度差异这么大呢？）
+
+\section{亚稳态型真随机数发生器熵源电路设计与仿真}
+该单元的电路图如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第三部分/RNG.png}
+    \caption{亚稳态型真随机数发生器熵源电路设计图}
+\end{figure}
+
+\subsection{使用理想开关搭建}
+
+用理想开关（switch）搭建该单元，电路原理图如下:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第三部分/RNG理想电路.png}
+    \caption{随机数发生器（理想开关）原理图}
+\end{figure}
+
+使用100MHz的方波信号控制开关通断。testbench仿真设置以及得到的仿真结果如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第三部分/RNG理想电路tb仿真设置.png}
+    \caption{随机数发生器（理想开关）testbench仿真设置}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第三部分/RNG理想电路tb仿真结果.png}
+    \caption{随机数发生器（理想开关）仿真结果}
+\end{figure}
+
+从仿真结果可以看到，A和B的输出一直稳定在500mV。我认为其产生的原因是：首先，这个电路没有外接驱动，在A和B处是悬浮态，电路中的寄生电容、电阻会将这两个电平拉至
+中间值，并且因为没有不确定的电平跳变，因此也不会因为开关闭合形成正反馈通路而发生随机跳变。
+
+\subsection{噪声仿真}
+将瞬态仿真里的noise设置打开，并设置noise的最大频率为20GHz。仿真设置及结果如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第三部分/RNG理想电路tb噪声仿真设置.png}
+    \caption{随机数发生器（理想开关）testbench噪声仿真设置}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第三部分/RNG理想电路tb仿真噪声结果.png}
+    \caption{随机数发生器（理想开关）噪声仿真结果}
+\end{figure}
+
+加入噪声仿真后，因为出现了不确定的电平跳变，一旦在开关断开时，噪声通过正反馈通路会不断放大，使得A、B两个点的电位变成0或1。由于噪声的跳变是随机的，因此A和B的状态产生也是随机的。
+
+\subsection{使用传输门搭建}
+首先，先搭建一个传输门单元，其中PMOS的$W_p=2*400nm=800nm$,$W_n=400nm$。原理图如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第三部分/TG电路图.png}
+    \caption{传输门电路原理图}
+\end{figure}
+
+用设计好的传输门替换理想开关。搭建电路图和仿真结果如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第三部分/RNG-TG.png}
+    \caption{随机数发生器（传输门）原理图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW2/第三部分/RNG-TG仿真结果.png}
+    \caption{随机数发生器（传输门）噪声仿真结果}
+\end{figure}
+
+\end{document}

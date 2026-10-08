@@ -12,3 +12,6 @@ originals/
 *.zip
 .DS_Store
 Thumbs.db
+
+# Public lab-code bundles reconstructed from reviewed source files only.
+!materials/**/*.zip

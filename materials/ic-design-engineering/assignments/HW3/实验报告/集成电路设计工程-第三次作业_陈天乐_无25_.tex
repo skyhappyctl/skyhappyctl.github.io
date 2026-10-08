@@ -1,0 +1,203 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{《集成电路设计工程》第三次作业：版图设计}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+
+\section{Digital 电路Power网格版图}
+要求：
+\begin{description}
+    \item[1.] M8/M9组成的网格，线宽为2$\mu$m，间距为2$\mu$m
+    \item[2.] 横纵为VDD/GND相间，网格规模30+30根线
+    \item[3.] 交点处打VIA，并在两侧加Label
+\end{description}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第一部分/power_grid版图.png}
+    \caption{Digital 电路Power网格版图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第一部分/power_grid_drc2.png}
+    \caption{Digital 电路Power网格版图DRC结果}
+\end{figure}
+
+DRC中只有DRM.R.1报错，询问过助教说可以忽略此报错信息，因此该版图通过DRC验证。这种 VDD/GND 交替 + 网格的布线设计，是数字电路电源布线的典型优化，是为了
+降低电源网络的阻抗，降低IR Drop；同时在写入数据时这样均匀的电源分布可以让每个数字单元都能就近取电，保证数字信号的电平稳定。如果是模拟电路，因为其对噪声的
+敏感度很高，这种数字式电源布线带来的电源噪声耦合、共模噪声等会严重破坏模拟电路的性能。
+
+\section{标签}
+要求：
+\begin{description}
+    \item[1.] 用M7画32根间距为0.4$\mu$m，线宽为0.2$\mu$m的金属线（长度不限），并命名label为IN<0>,IN<1>,...,IN<31>
+    \item[2.] Label要加到线的边缘
+\end{description}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第二部分/label_版图.png}
+    \caption{Label版图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第二部分/label_drc2.png}
+    \caption{Label版图DRC结果}
+\end{figure}
+
+DRC中只有DRM.R.1报错，因此该版图通过DRC验证。
+\section{屏蔽差分线}
+要求：
+\begin{description}
+    \item[1.] 两根M5差分线，线宽1$\mu$m，两线之间间距1$\mu$m，线到边缘M5地线的间距1.5$\mu$m
+    \item[2.] 两侧M5的地线宽度1$\mu$m
+    \item[3.] 底部用M1金属覆盖，并和两侧地线用via相连。M1的宽度为整体宽度
+    \item[4.] 长度为10$\mu$m，加ruler并截图DRC（无error）
+\end{description}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第三部分/差分线_版图.png}
+    \caption{差分线版图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第三部分/差分线_drc2.png}
+    \caption{差分线版图DRC结果}
+\end{figure}
+
+
+这个DRC还出现了M1.DN.2的报错，大概意思是M1的密度不能太大，询问过助教说可以忽略此错误。因此差分线的版图也通过了DRC验证。
+\section{三八译码器版图绘制}
+\subsection{反相器版图}
+
+该设计的路径为：data2/class/zay/zay10/skyhappy/ic\_work/skyhappy\_homework/INV
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/INV原理图.png}
+    \caption{反相器设计原理图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/INV版图.png}
+    \caption{反相器版图}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/INV_drc.png}
+    \caption{反相器版图DRC结果}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/INV_lvs.png}
+    \caption{反相器版图LVS结果}
+\end{figure}
+
+\subsection{四输入与门版图}
+
+该设计的路径为：data2/class/zay/zay10/skyhappy/ic\_work/skyhappy\_homework/AND4
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/AND4原理图.png}
+    \caption{四输入与门设计原理图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/AND4版图.png}
+    \caption{四输入与门版图}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/AND4_drc.png}
+    \caption{四输入与门版图DRC结果}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/AND4_lvs.png}
+    \caption{四输入与门版图LVS结果}
+\end{figure}
+
+\subsection{三八译码器版图}
+
+该设计的路径为：data2/class/zay/zay10/skyhappy/ic\_work/skyhappy\_homework/3\_8\_decoder\_en
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/38_decoder_原理图.png}
+    \caption{三八译码器设计原理图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/38_decoder_版图.png}
+    \caption{三八译码器版图}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/38_decoder_drc.png}
+    \caption{三八译码器版图DRC结果}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/集成电路设计工程/HW3/第四部分/38_decoder_lvs.png}
+    \caption{三八译码器版图LVS结果}
+\end{figure}
+
+\section{实验总结}
+通过本次练习，我了解到了一些基础的版图设计知识，同时逐渐熟练掌握了Cadence工具版图绘制的方法技巧。虽然一开始画版图的速度很慢，而且有很多地方出现了问题，整体版图
+观感也不是很好，但是通过慢慢的学习，还是有很多经验的积累和版图优化的方法学习。助教和老师的ppt非常详细，感谢助教们和老师的辛苦准备和悉心指导！
+
+\end{document}

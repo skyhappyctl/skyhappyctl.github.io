@@ -162,7 +162,7 @@ h3 { font-size: var(--font-size-entry); font-weight: 600; line-height: 1.65; mar
   .site-header { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 0; padding-top: 6px; }
   .site-name { grid-column: 1; grid-row: 1; font-size: var(--font-size-meta); }
   #language-toggle { grid-column: 2; grid-row: 1; font-size: var(--font-size-small); }
-  .site-nav { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; gap: 8px; padding-bottom: 4px; }
+  .site-nav { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 8px; padding-bottom: 4px; }
   .site-nav a { font-size: var(--font-size-small); white-space: normal; line-height: 1.4; text-align: center; justify-content: center; flex: 1; min-width: 0; }
   .site-nav a[href="#publications"] { flex: 1.6; }
   .hero { grid-template-columns: minmax(0, 1fr) 96px; grid-template-areas: "identity photo" "intro intro" "education education" "links links"; gap: 0 20px; padding-block: 28px; }
@@ -184,7 +184,7 @@ h3 { font-size: var(--font-size-entry); font-weight: 600; line-height: 1.65; mar
   .honor { grid-template-columns: 55px minmax(0, 1fr); gap: 12px; font-size: var(--font-size-detail); }
   .hero.no-portrait .intro { margin-top: 16px; }
 }
-/* 极窄屏幕：五个导航入口分两行，避免英文名称互相重叠。 */
+/* 极窄屏幕：导航分两行，避免英文名称互相重叠。 */
 @media (max-width: 380px) {
   .site-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 8px; }
 }

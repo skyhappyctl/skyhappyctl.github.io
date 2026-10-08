@@ -1,0 +1,353 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{ADS仿真实验}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{实验目的}
+\begin{description}
+    \item[1.] 熟悉 ADS 软件的基本操作；
+    \item[2.] 掌握微带线的基本原理；
+    \item[3.] 掌握基本元件和匹配电路的设计。
+
+\end{description}
+
+\section{实验原理：微带线工作原理}
+
+微带线是当前广泛应用的微波传输线，其结构如下图所示，其工作模式是准TEM模。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{yuanli1.png}
+    \caption{微带线结构及电磁力线分布}
+\end{figure}
+
+微带电路基本参数有
+
+\begin{description}
+    \item[$\bullet $] 宽高比
+    $$
+    \frac{W}{h}=0.1\sim 5
+    $$
+    \item[$\bullet $] 有效介电常数
+    $$
+    \varepsilon_e = (0.5\sim 0.8)\varepsilon_r
+    $$
+    \item[$\bullet $] 特性阻抗$Z_c$
+    \item[$\bullet $] 微带线中的波长
+    $$
+    \lambda_g = \frac{\lambda_0}{\sqrt{\varepsilon_e}}=\frac{c}{f\sqrt{\varepsilon_e}}
+    $$
+    \item[$\bullet $] 微带线中的相速
+    $$
+    v_p=\frac{c}{\sqrt{\varepsilon_e}}
+    $$
+\end{description}
+
+微带电路的基本元件特性有
+
+\begin{description}
+    \item[$\bullet $] 微带终端短路线段的特性
+    $$
+    Z = jZ_C tg(\frac{2\pi}{\lambda_g}l)
+    $$
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{yuanli2.png}
+        \caption{微带终端短路线段的特性}
+    \end{figure}
+    \item[$\bullet $] 微带终端开路线段的特性
+    $$
+    Z = -jZ_C ctg(\frac{2\pi}{\lambda_g}l)
+    $$
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{yuanli3.png}
+        \caption{微带终端开路线段的特性}
+    \end{figure}
+    \item[$\bullet $] 微带电路接地：通常采用打沉铜孔的方式，使上层的金属与下层的地板相连。微波电路中各接地点都要就近接地，通过一段线再接地和直接接地的效果是不同的。
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{yuanli4.png}
+        \caption{沉铜孔接地}
+    \end{figure}
+\end{description}
+
+\section{实验内容}
+
+
+\begin{description}
+    \item[1.] 计算微带线的基本参数
+    
+    \item[2.] 短路/开路传输线的特性仿真 
+
+    \item[3.] 设计匹配电路\\3.1 对纯阻负载，使用 1/4 波长变阻器实现匹配；\\
+3.2 对复数阻抗的负载，使用单分支线实现匹配。
+
+\end{description}
+
+
+\section{实验步骤}
+\subsection{计算微带线的基本参数}
+按照实验指导书的基本设计步骤，使用微带线计算工具计算微带线的基本参数：
+$$
+W = 1.917410mm
+$$
+$$
+L = 13.853500mm
+$$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{setup.png}
+\end{figure}
+
+
+\subsection{短路/开路线的特性仿真}
+\subsubsection{终端短路传输线特性仿真}
+根据实验指导书，搭建的原理图与仿真条件如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{simulation_setup.png}
+
+\end{figure}
+
+设定画图的计算公式如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{eqn.png}
+
+\end{figure}
+仿真得到的结果如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{plot2.png}
+
+\end{figure}
+
+从仿真结果可以看到，在电长度为 0的短路端，电抗和电压均为 0，电流最大。电抗随着电长
+度增大呈现出以半波长为周期，在感性和容性之间转换的变化规律。
+
+\subsubsection{终端开路传输线特性仿真}
+根据实验指导书，将终端短路的原理图中的最后加上一个很大的电阻模拟开路情况，得到的仿真结果如下：
+
+仿真得到的结果如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{plot3.png}
+
+\end{figure}
+
+从仿真结果可以看到，开路传输线的仿真结果就是终端短路时仿真结果平移半波长而得到的结
+果。电长度为 0 时（开路端），电抗达到无穷大，电压最大，电流为 0。
+
+\subsection{设计匹配电路}
+\subsubsection{对纯阻 75Ohm 负载，使用 1/4 波长变阻器实现匹配——DA\_QWMatch}
+
+使用1/4波长匹配器设计匹配电路，搭建的原理图与仿真条件如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{simulation_setup_2.png}
+
+\end{figure}
+
+
+经过自动设计匹配电路后，得到的下层电路结构为：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{underlying circuit.png}
+
+\end{figure}
+
+仿真后得到的结果如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{plot4.png}
+
+\end{figure}
+
+
+从图中可以看出，在中心频点上 $S_{11} = −39.404dB$，几乎没有反射，可见该匹配效果很好。
+\subsubsection{对纯阻 75Ohm 负载，使用 1/4 波长变阻器实现匹配——原理计算}
+根据公式计算1/4波长变阻器的特性阻抗$Z_0=\sqrt{Z_c\times Z_F}=61.24\Omega$，利用微带线计算工具，可以得到对应的线宽与线长为：
+$$
+W=1.33mm
+$$
+$$
+L=14.05mm
+$$
+
+根据计算得到的结果，搭建的原理图与仿真条件如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{simulation_setup_3.png}
+
+\end{figure}
+
+仿真结果为：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{plot5.png}
+
+\end{figure}
+
+从图中可以看出，在中心频点上 $S_{11} = −47.849dB$，匹配效果比QWMatch 更好，但带宽比 QWMatch 更窄。
+
+
+\subsubsection{对复数阻抗，使用单分支线实现匹配——DA\_SSMatch}
+
+根据实验指导书，使用DA\_SSMatch进行匹配，搭建的原理图与仿真条件如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{simulation_setup_5.png}
+
+\end{figure}
+
+经过自动设计匹配电路后，得到的下层电路结构为：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{underlying circuit2.png}
+
+\end{figure}
+
+仿真后得到的结果如下：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{plot6.png}
+
+\end{figure}
+
+
+从图中可以看出，在中心频点上 $S_{11} = −35.994dB$，几乎没有反射，可见该匹配效果很好。
+
+\subsubsection{对复数阻抗，使用单分支线实现匹配——原理计算}
+通过史密斯导纳原图的计算，得到$l_1=0.303\lambda=16.751mm$，$l_2=0.129\lambda=7.132mm$。微带线的线宽与线长为：
+$$
+W=1.909mm
+$$
+
+$$
+L=55.284mm
+$$
+
+
+
+根据计算得到的结果，搭建的原理图与仿真条件如下：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{simulation_setup_6.png}
+
+\end{figure}
+
+仿真结果为：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{plot7.png}
+
+\end{figure}
+
+从图中可以看出，在中心频点上 $S_{11} = −21.647dB$，几乎没有反射，整体匹配效果较好。但相较于自动匹配网络得到的结果
+而言， $S_{11}$ 的最低点对应频率与中心频点存在一定偏差，在中心频点处未取到
+所有频率下的最小值。
+
+
+\subsection{对比自动匹配和原理计算两种方法的仿真结果}
+
+\begin{table}[H]
+	\centering
+    \renewcommand{\arraystretch}{1.5}
+	\caption{对于纯阻$75\Omega$，自动匹配与原理计算结果对比(单位：mm)}
+	\begin{tabular}{ c c c c c  }\hline
+        &TL1线长&TL1线宽&S11参数(dB)&归一化阻抗\\\hline
+		自动匹配网络&13.968	&1.366	&-39.404	&0.979+j*0.004\\\hline
+        原理计算	&14.05&	1.33&	-47.849	&1.007+j*0.004\\\hline
+	\end{tabular}
+\end{table}
+对于纯阻负载，原理计算得到的 $S_{11}$ 在中心频点处的数值更小，匹配点处的归一化阻抗更接
+近 1，因此整体上性能更佳。
+
+\begin{table}[H]
+	\centering
+    \renewcommand{\arraystretch}{1.5}
+	\caption{对于复数阻抗，自动匹配与原理计算结果对比(单位：mm)}
+	\begin{tabular}{ c c c c c c c }\hline
+        &TL1线长&TL1线宽&TL2线长&TL2线宽&S11参数(dB)&归一化阻抗\\\hline
+		自动匹配网络&7.747	&1.949	&15.916	&1.949	&-35.994	&1.016-j*0.028\\\hline
+        原理计算	&7.132&	1.909&	16.751&	1.909&	-21.647	&0.876+j*0.094\\\hline
+	\end{tabular}
+\end{table}
+对于复数负载，自动匹配网络得到的 $S_{11}$ 在中心频点处的数值更小，匹配点处的归一化阻抗更接
+近 1，因此整体上性能更佳。
+
+从操作角度来说，自动匹配网络更简单方便，即便是没有相关专业知识的人也可以
+使用该EDA工具进行匹配电路的设计。
+
+
+\section{实验总结}
+
+整个实验都在实验指导书的指导下顺利的完成，让我学到了一个新的EDA工具的使用方法，感受到了ADS软件强大的实用性，整体收获非常大。虽然没有接着做剩下的
+微带功分器的设计，但是在机房花了点时间把原理图搭了出来，感觉十分有趣：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{simulation_setup_6.png}
+
+\end{figure}
+
+最后，感谢凌丹老师和助教在实验中提供的指导和帮助！
+
+\end{document}

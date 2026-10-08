@@ -1,0 +1,397 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{电磁场与微波第二次实验}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{实验目的}
+\begin{description}
+    \item[1.] 研究右旋、左旋圆极化波的形成、辐射和接收过程。
+    \item[2.] 研究右旋、左旋圆极化波的反射和折射特性及其测试方法。
+    \item[3.] 了解网络分析仪的组成及工作原理，熟悉 Smith 圆图的应用。
+    \item[4.] 了解不同封装结构的电路元件的阻抗-频率特性，建立分布参数的概念。
+    \item[5.] 掌握阻抗测量及调匹配的方法。
+    \item[6.]理解微带线匹配网络的原理。
+\end{description}
+
+\section{实验原理}
+\subsection{圆极化喇叭的工作原理}
+\subsubsection{辐射过程}
+
+实验中采用圆极化天线是由矩-圆波导转换、充有介质片的圆波导和圆锥喇叭连接而成。其中
+圆波导内的介质片可做360°旋转，并有刻度指示转动的角度。
+
+电磁波向$+z$方向传播，当圆极化波辐射装置矩-圆波导使矩形波导的$TE_{10}$模过渡到圆波导的$TE_{11}$模后，在装有介质片的圆波导段
+内，电场$\vec{E}_T$分解成$\vec{E}_t$和$\vec{E}_n$两个正交分量，介质片的法线方向$\hat{n}$与Y轴成45°角，若介质片的损耗略去
+不计，则有
+
+$$
+\left|\vec{E}_t\right|=\left|\vec{E}_n\right|=\frac{\left|\vec{E}_T\right|}{\sqrt{2}}
+$$
+
+$\vec{E}_t$在介质内传播，$\vec{E}_n$在腔内传播，故两者的传播速度不同，即
+
+$$
+V_n=V_c>V_t=\frac{V_c}{\sqrt{\epsilon_r}}
+$$
+
+其中$V_c$和$V_t$分别为电磁波在真空与介质中的传播速度，$\epsilon_r$为介质片相对介电常数。当介质片的长度$L$选择合适，使得$\vec{E}_n$波的相位与$\vec{E}_t$波的相位相差90°。这样两正交分量$\vec{E}_n$和$\vec{E}_t$满足形
+成圆极化波的幅度和相位条件，并且由于$\vec{E}_n$、$\vec{E}_t$与$z$轴符合右手螺旋规则，可以形成右旋圆极化波。同理可实现左旋圆极化波的辐射。
+
+本组件中介质片长$L$已定在适合于$9370MHz \pm 50MHz$的带宽范围内工作，圆极化喇叭的椭圆度$\geq 0.9$。
+\subsubsection{接收过程}
+
+接收喇叭的介质片与发射喇叭的介质片互成90°夹角，$\hat{n}'\perp\hat{n}$。此时$\vec{E}_n$处于
+介质片切向$\hat{t}'$的方向上，成为$\vec{E}_t'$， $\vec{E}_t$处于介质片法线$\hat{n}'$的方向上，成为$\vec{E}_n'$
+选择合适的介质片长度$L'$，使$\vec{E}_n'$波的相位超前$\vec{E}_t'$波的相位90°，这样在通过内含介
+质片的圆波导传播后$\vec{E}_n'$、$\vec{E}_t'$等幅同相，合成场为$\vec{E}_R$，形成圆波导中的$TE_{11}$模，
+并通过圆-矩形波导转换结构，$TE_{11}$模转换为矩形波导中的$TE_{10}$模，从而完成了右旋圆极化波的接收，
+同理也可实现左旋圆极化波的接收。需要注意的是，无论是右旋还是左旋圆极化波的接收，都必须满足$\hat{n}'\perp\hat{n}$的条件。
+当$\hat{n}'\parallel\hat{n}$时，就无法接收到右旋（或左旋）圆极化波。
+
+\subsubsection{圆极化波的特性}
+
+右旋圆极化波投射到介质（或良导体）表面，反射波成为左旋圆极化波，此时须用左旋接收喇叭接收，而折射波仍属右旋圆极化波，
+这时用右旋接收喇叭接收。
+
+同理，左旋圆极化波投射到介质（或良导体）表面，反射波成为右旋圆极化波，折射波为左旋圆极化波。均需要使用对应的极化接收喇叭接收。
+
+此外，入射波、反射波、折射波之间满足能量守恒定理。即有：
+$$
+\mbox{入射波（右旋）=反射波（左旋）+折射波（右旋）}
+$$
+\subsection{不同封装电路元件阻抗的频率特性}
+在微波频段，不同封装的电路元件受封装结构引起的分布参数的影响，在不同频率将呈
+现不同的阻抗值。测量电路元件的阻抗-频率特性将有助于建立分布参数的概念。
+
+\subsection{微带线匹配网络的测量研究}
+使用本实验提供的微带线匹配电路，在频点2.4GHz将150欧姆负载匹配到$Z_{in}=50\Omega$，使用Smith导纳圆图可分析计算匹配的线长$l_1$和$l_2$。
+
+
+\section{实验步骤}
+\subsection{圆极化波椭圆度的调整与测试}
+实验中，在发射信号频率为9370MHz时，适当微调$\alpha_0$使得$e\le0.9$，测量其椭圆度。再保持$\alpha_0$不变，改变信号频率，测量此时圆极化波的椭圆度，分析比较在同一$\alpha_0$下不同信号频率行程不同椭圆度的原因。
+
+\subsection{圆极化喇叭的极化特性研究}
+发射喇叭使用圆极化喇叭，接收喇叭使用矩形喇叭。当开缝金属板的窄缝分别平行和垂直地面放置时，测试矩形喇叭分别为垂直极化和水平极化时的接收情况，从而分析极化特性
+
+\subsection{圆极化波反射、折射特性的测试（研究入射角为30°的情况）}
+将接收喇叭换为圆喇叭，分别选择导体板和介质板作为反射板，对圆极化波的特性进行研究。考虑到接收用晶体检波器按照平方律检波，因此圆极化波接收能量应该满足：
+$$
+I_i=I_r+I_t
+$$
+
+这里$I_i$,$I_r$,$I_t$分别表示入射、反射和折射波的功率。
+
+
+
+
+\subsection{不同封装电路元件阻抗和频率特性研究、负载阻抗的测量和调匹配}
+\begin{description}
+    \item[1.] 测量研究常规(管脚)封装和表面贴装的电阻元件在500KHz$\sim$1.5GHz范围内的阻抗-频率特性，分别在Smith圆图上显示。
+    \item[2.] 对微带线匹配网络进行测量研究。
+    \item[3.] 测量给定电路在给定频点的阻抗和电压驻波比。并观察其 Smith 圆图对其调匹配，测量匹配后的阻抗和电压驻波比。
+\end{description}
+\section{实验数据整理分析}
+
+\subsection{圆极化波椭圆度调试}
+实验中固定$\alpha_0=46°$,得到的数据如下：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{圆极化波椭圆度的调整与测试}
+    \begin{tabular}{|c|c|c|c|}\hline
+        频率($GHz$)&接收$I_{min}(\mu A)$&接收$I_{max}(\mu A)$&椭圆度$e=\sqrt{\frac{I_{max}}{I_{min}}}$\\\hline
+        9.32&64&78&0.906\\\hline
+        9.37&54&85&0.797\\\hline
+    \end{tabular}
+\end{table}
+
+对于同一$\alpha_0$但是却有不同椭圆度的原因可能如下：该测试装置形成椭圆极化的重点在于对特定频率选择合适的介质片长度$L$，使得在该频率下电磁波经过介质板作用后两个分量$\vec{E_n}$和$\vec{E_t}$的电磁波相位差为90°。
+    因此，其他条件不变时，只改变电磁波频率会使得电磁波通过介质片时间不变，但相速度变大，从而使得介质板作用后的两分量上的相位差不再是90°，从而导致椭圆度下降。
+
+\subsection{圆极化喇叭的极化特性研究}
+实验得到的数据如下：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{圆极化喇叭的极化特性研究}
+    \begin{tabular}{|c|c|c|}\hline
+        接收$I(\mu A)$&窄缝平行于地面放置&窄缝垂直于地面放置\\\hline
+        矩形喇叭垂直极化的接收情况&28&0\\\hline
+        矩形喇叭水平极化的接收情况&0&52\\\hline
+    \end{tabular}
+\end{table}
+
+当矩形喇叭窄缝平行于地面放置时，接收喇叭的极化方向是垂直极化方向，和发射喇叭的极化方向一致，因此可以接收到，而发射的水平极化波就无法接收；同理，
+当矩形喇叭窄缝垂直于地面放置时，接收喇叭的极化方向是水平极化方向，和发射喇叭的极化方向一致，因此可以接收到，而发射的垂直极化波就无法接收。
+
+但从实验数据中可以看出，
+窄缝垂直和平行于地面时接收到的强度并不相同。一方面，有可能因为产生的圆极化波椭圆度不够好；另一方面，可能也与实验室较复杂的电磁环境有关（并非自由空间）。
+
+\subsection{圆极化波反射、折射特性的测试}
+固定圆极化波的入射角为30°，实验得到的数据如下：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{圆极化波反射、折射特性的测试}
+    %\begin{tabular}{|p{2.5cm}<{\centering}|p{2.7cm}<{\centering}|p{2.5cm}<{\centering}|p{2.7cm}<{\centering}|p{2.5cm}<{\centering}|}\hline
+    \begin{tabular}{|c|p{3cm}<{\centering}|p{3cm}<{\centering}|}\hline
+        圆极化波辐射状态&\multicolumn{2}{c|}{介质片$\alpha=+45°$}\\\hline
+        $\hat{n}'$与$\hat{n}$相对位置&$\hat{n}'\perp\hat{n}$&$\hat{n}'\parallel\hat{n}$\\\hline
+        接收直射波$I_i(\mu A)$&92&0\\\hline
+        接收导体板反射波$I_r(\mu A)$&2&93\\\hline
+        接收介质板反射波$I_r(\mu A)$&1&40\\\hline
+        接收介质板折射波$I_t(\mu A)$&33&0\\\hline
+    \end{tabular}
+\end{table}
+
+
+当$\hat{n}'\perp\hat{n}$时，发射喇叭与接收喇叭的相位正交，在直射和折射时都可以接收；但是反射会使得圆极化的极化情况反转，因此不管是使用
+导体板还是介质板，都接收不到反射电磁波。
+
+同理，当$\hat{n}'\parallel\hat{n}$时，只有当反射后极化反转时才能接收到电磁波，折射时接收不到电磁波。
+
+但是从实验数据来看，接收到的圆极化波并不满足能量守恒：$I_i=I_r+I_t$。当使用导体板时，$93>92$，当使用介质板时，$33+40+1=74<92$，可见能量在空间中有一定的损失。这是由于实验室的环境不理想，存在多径效应
+和很多电磁噪声。此外，还可以观察到介质板的能量损失大于导体板的能量损失，这可能是因为电磁波在通过介质板时也额外引入了一部分能量损失。
+
+
+\subsection{研究管脚封装和贴片封装电阻的阻抗-频率特性}
+Smith阻抗圆图在文末的原始实验数据中，实验得到的数据如下：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{不同封装电路元件阻抗的频率特性原始数据记录}
+    \begin{tabular}{|c|c|c|}\hline
+        频率&常规封装电阻/$\Omega$&表面贴装电阻/$\Omega$\\\hline
+        $500kHz$&50.68+1.28j&49.64+1.27j\\\hline
+        $50MHz$&52.65+2.50j&51.50+0.3542j\\\hline
+        $100MHz$&53.91+6.78j&52.27+2.36j\\\hline
+        $1GHz$&129.64+12.48j&57.56+5.68j\\\hline
+        $1.5GHz$&97.98-82.41j&64.74+6.99j\\\hline
+    \end{tabular}
+\end{table}
+
+
+\subsection{微带线匹配网络的测量研究}
+实验测量的Smith圆图在文末的原始实验数据中，测量得到的数据如下：
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+
+    \caption{微带线匹配网络的测量研究}
+    \begin{tabular}{|c|c|c|}\hline
+        频率/GHz&驻波比SWR&阻抗/$\Omega$\\\hline
+        2.4&1.57&57.72+23.17j\\\hline
+        2.236&1.29&39.51-4.33j\\\hline
+    \end{tabular}
+\end{table}
+
+对于单分支短路线匹配网络，使用Smith导纳圆图匹配过程如下：
+首先在阻抗圆图上找到$\bar{z_F}=3$即$r=3$的点，由于并联，将其作极对称变换成为导纳点$\bar{y_F}$。再沿过$\bar{y_F}$的等$\rho$圆向电源方向旋转与$g=1$的圆交于两点。查得$\bar{y_B}=1+1.7j$,所以要求
+分支短路线提供的$\bar{y_s}=-1.7j$。查得：
+
+$$
+l_1=(0.335-0.25)\lambda_g = 0.185\lambda_g=12.802mm
+$$
+
+$$
+l_2 = 0.18\lambda_g = 12.456mm
+$$
+
+另一组解为：
+$$
+l_1=0.335\lambda_g = 23.182mm
+$$
+
+$$
+l_2 = 0.175\lambda_g = 12.11mm
+$$
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{导纳圆图.jpg}
+    \caption{管脚封装电阻的阻抗-频率特性}
+\end{figure}
+  
+\subsection{调匹配}
+实验测量的Smith圆图在文末的原始实验数据中，测量得到的数据如下：
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+
+    \caption{调匹配原始数据记录}
+    \begin{tabular}{|c|c|c|}\hline
+        &驻波比SWR&阻抗/$\Omega$\\\hline
+        调匹配前&2.60&97.63-50.52j\\\hline
+        调匹配后&1.02&50.78-0.24509j\\\hline
+    \end{tabular}
+\end{table}
+
+可以看到，调匹配的效果还是十分良好的。
+\section{思考题}
+
+\question{1.}{\textbf{如何实现左旋圆极化波的辐射与接收？}}
+
+为了实现左旋圆极化波的辐射，可以将发射喇叭中的介质片角度在原有基础上旋转90°，使得其从右旋圆极化波变为左旋圆极化波。
+
+为实现左旋圆极化波的接收，同理右旋圆极化波的接收，需要满足接收喇叭的介质片的法向方向与发射喇叭的介质片法向方向垂直即可。\\
+
+\question{2.}{\textbf{请设计采用电磁波综合测试仪（配置矩形喇叭、开缝金属板）形成圆极化波的方案}}
+
+采用实验一中曾使用过的装置：
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{装置.png}
+    \caption{电磁波综合测试仪装置}
+\end{figure}
+
+思路是产生两个相位差90°、幅度一致的线偏振电磁波，即可产生圆极化波。因此
+用矩形喇叭发射线极化波，使矩形喇叭极化方向与地面成45°，在介质板上产生反射波和透射波。
+
+接着在透射和反射电磁波路径上放置开缝金属板，并且金属板的开缝方向分别与地面垂直和平行，
+这样由开缝金属板反射回来的波满足幅度相等、极化方向互相垂直的要求。
+
+最后调整开缝金属板与介质板的距离，使两束电磁波在叠加时的相位差为90°，叠加后的电磁波即为圆极化波。\\
+
+
+
+\question{3.}{\textbf{如何改善圆极化波的椭圆度？}}
+
+改善圆极化波的椭圆度，需要使得电磁波沿介质片径向和法向两个分量的大小相同，因此可采用的方法是：
+\begin{description}
+    \item[1.] 调节介质片的材料进而减小介质片损耗，调整介质片角度使其与原线极化波的角度更加接近于45°。
+    \item[2.] 调节介质片的角度、长度和材料，使得法向与切向分量的相位差更加接近于90°
+\end{description}
+
+
+\question{4.}{\textbf{圆极化波在工程中有什么应用？}}
+
+由于圆极化波受雨雪衰减小，且不会受到大气电离层对于电磁波各向异性的干扰，因此可以广泛应用在卫星、电视通信，雷达等领域。
+
+同时，因为圆极化波的线极化接收不存在正交方向无法接收的情况，便于接收，因此也广泛应用于发射天线上。\\
+
+\question{5.}{\textbf{试分析不同封装的元件的阻抗-频率特性，解释原因。}}
+
+从实验数据可以看出，管脚封装电阻的阻抗随频率变大有明显的变大趋势，而贴片封装电阻的阻抗随频率变大也会变大，但是变化较为缓慢。两种电阻的阻抗都会变大是因为当频率升高后，趋肤效应、寄生电感电容等产生的影响越来越明显。
+而贴片封装电阻没有管脚封装电阻的现象明显也说明了好的封装技术能够有效地降低元件的寄生电容电感等影响因素，使得元件在高频下的表现更加稳定。\\
+
+\question{6.}{\textbf{在图4-5中，器件调匹配后，哪个界面输入阻抗的归一化值为1？负载端面的输入阻抗为多少？}}
+
+调匹配后，在矢量网络分析仪的电缆接口处输入阻抗归一化值为 1，负载端面的输入阻抗与负载的实际阻抗相一致，为150欧姆。
+
+
+\section{实验总结}
+
+在本次实验中，我对圆极化波的反射、折射特性有了更进一步的了解，并且在对微带线调匹配网络中再次使用了Smith圆图，对其使用更加熟练，也
+愈发体会到其在工程应用中带来的方便。
+
+实验中记录的数据也会出现和理论相悖的情况，这种情况并不是说明理论和实验结果冲突，而是可能有很多非理想因素没有考虑，这也是对今后我们的科研生活
+的启发。
+
+最后，感谢凌丹老师和助教在实验中提供的指导和帮助！
+
+\newpage
+\section{实验原始数据}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.2\textwidth]{1.jpg}
+\end{figure}
+\newpage
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.2\textwidth]{2.jpg}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{4.1.1.jpg}
+    \caption{管脚封装电阻的阻抗-频率特性}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{4.1.2.jpg}
+    \caption{贴片封装电阻的阻抗-频率特性}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{4.2.jpg}
+    \caption{微带线匹配网络的驻波比测量}
+\end{figure}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{4.2..jpg}
+        \caption{微带线匹配网络的阻抗测量}
+    
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{4.3.1.jpg}
+    \caption{调匹配前}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{4.3..jpg}
+    \caption{调匹配后}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{4.3.jpg}
+    \caption{调匹配后的驻波比}
+\end{figure}
+
+
+\end{document}

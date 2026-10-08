@@ -1,0 +1,368 @@
+%!TEX program = xelatex
+\documentclass[12pt,a4paper]{article}% 文档格式
+\usepackage{ctex,hyperref}% 输出汉字
+\usepackage{times}% 英文使用Times New Roman
+\setmainfont{TeX Gyre Termes}
+\title{\fontsize{18pt}{27pt}\selectfont% 小四字号，1.5倍行距
+	{\heiti% 黑体 
+    高算力芯片创新发展路径调研:架构、存储、封装、生态多维协同}}% 题目
+        \author{陈天乐 \\
+        (无25\,\,\,\,\,\,\,[student ID removed]\,\,\,\,\,\,\,e-mails:ctl22@mails.tsinghua.edu.cn)
+        }
+\date{}% 日期（这里避免生成日期）
+\usepackage{amsmath,amsfonts,amssymb}% 为公式输入创造条件的宏包
+\usepackage{graphicx}% 图片插入宏包
+\usepackage{subfigure}% 并排子图
+\usepackage{float}% 浮动环境，用于调整图片位置
+\usepackage[export]{adjustbox}% 防止过宽的图片
+\usepackage{bibentry}
+\usepackage{natbib}% 以上2个为参考文献宏包
+\usepackage{abstract}% 两栏文档，一栏摘要及关键字宏包
+\renewcommand{\abstracttextfont}{\fangsong}% 摘要内容字体为仿宋
+\renewcommand{\abstractname}{\textbf{摘\quad 要}}% 更改摘要二字的样式
+\usepackage{xcolor}% 字体颜色宏包
+\newcommand{\red}[1]{\textcolor[rgb]{1.00,0.00,0.00}{#1}}
+\newcommand{\blue}[1]{\textcolor[rgb]{0.00,0.00,1.00}{#1}}
+\newcommand{\green}[1]{\textcolor[rgb]{0.00,1.00,0.00}{#1}}
+\newcommand{\darkblue}[1]
+{\textcolor[rgb]{0.00,0.00,0.50}{#1}}
+\newcommand{\darkgreen}[1]
+{\textcolor[rgb]{0.00,0.37,0.00}{#1}}
+\newcommand{\darkred}[1]{\textcolor[rgb]{0.60,0.00,0.00}{#1}}
+\newcommand{\brown}[1]{\textcolor[rgb]{0.50,0.30,0.00}{#1}}
+\newcommand{\purple}[1]{\textcolor[rgb]{0.50,0.00,0.50}{#1}}% 为使用方便而编辑的新指令
+\usepackage{url}% 超链接
+\usepackage{bm}% 加粗部分公式
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{epstopdf}
+\usepackage{epsfig}
+\usepackage{longtable}% 长表格
+\usepackage{supertabular}% 跨页表格
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{changepage}% 换页
+\usepackage{enumerate}% 短编号
+\usepackage{caption}% 设置标题
+\usepackage{multicol}
+\setlength\columnsep{1cm}  % 设置两栏之间的间距为1cm
+\columnseprule=0.1pt           % 实现插入分隔线，用于分栏 
+\captionsetup[figure]{name=\fontsize{10pt}{15pt}\selectfont Figure}% 设置图片编号头
+\captionsetup[table]{name=\fontsize{10pt}{15pt}\selectfont Table}% 设置表格编号头
+
+\usepackage{indentfirst}% 中文首行缩进
+\usepackage[left=2.00cm,right=2.00cm,top=2.80cm,bottom=2.50cm]{geometry}% 页边距设置
+\renewcommand{\baselinestretch}{1.5}% 定义行间距（1.5）
+\usepackage{fancyhdr} %设置全文页眉、页脚的格式
+\pagestyle{fancy}
+\hypersetup{colorlinks=true,linkcolor=black}% 去除引用红框，改变颜色
+
+\begin{document}% 以下为正文内容
+	\maketitle% 产生标题，没有它无法显示标题
+	\lhead{}% 页眉左边设为空
+	\chead{}% 页眉中间设为空
+	\rhead{}% 页眉右边设为空
+	\lfoot{}% 页脚左边设为空
+	\cfoot{\thepage}% 页脚中间显示页码
+	\rfoot{}% 页脚右边设为空
+	\begin{onecolabstract}
+		随着 Transformer 架构推动大模型参数量向千亿、万亿级爆发，算力需求呈现 “超指数” 增长，而摩尔定律放缓与物理瓶颈导致传统芯片性能提升难以匹配该需求。高算力芯片作为人工智能、科学计算等领域的核心支撑，已从单一晶体管微缩转向 “架构 + 存储 + 封装 + 生态” 的协同创新。
+        本文系统回顾高算力芯片的六大关键技术路线：本文在系统梳理国际与国内代表性技术路线的基础上，围绕指令集架构、数据流处理器、可重构加速、存内计算、晶圆级、全光计算等方向展开分析同时，本文展望了量子计算与 AI 融合、计算超节点集群化、AI4S 场景定制三大未来趋势。
+        研究表明，高算力芯片的发展核心在于通过多维协同优化，针对不同场景实现专用化设计，其技术演进将持续推动 AI 大模型与科学计算的创新突破。
+        
+	\end{onecolabstract}
+	
+	\begin{adjustwidth}{1.06cm}{1.06cm}
+		\fontsize{10.5pt}{15.75pt}\selectfont{\heiti{关键词：}\fangsong{高算力芯片；人工智能；数据流架构；存内计算；晶圆级芯片；先进封装；可重构计算}}
+		\bigskip
+	\end{adjustwidth}
+	
+	\begin{center}% 居中处理
+		{\textbf{Abstract}}% 英文摘要
+	\end{center}
+	\begin{adjustwidth}{1.06cm}{1.06cm}% 英文摘要内容
+		\hspace{1.5em}
+        
+    \end{adjustwidth}
+	\begin{adjustwidth}{1.06cm}{1.06cm}
+		\fontsize{10.5pt}{15.75pt}\selectfont{\heiti{Key words：}\fangsong{HPC Chips； Artificial Intelligence; Dataflow Architecture; Computing-In-Memory; Wafer-Scale Chip; Advanced Packaging; Reconfigurable Computing}}
+		\bigskip
+	\end{adjustwidth}
+    %页码格式
+	\thispagestyle{empty}
+
+	% 目录
+	\newpage
+	\begin{center} 
+		\tableofcontents
+	\end{center}
+	\setcounter{page}{0}
+    % 设置当前页面格式 empty表示无页码
+	\thispagestyle{empty}
+
+	\newpage% 从新的一页继续
+	%第一段
+	\section{引言}
+    自2012年ImageNet挑战赛开启深度学习热潮以来，人工智能技术的每一次突破都伴随着算力需求的爆炸式增长。近年来，随着Transformer架构的注意力机制的显著成功，模型规模呈现“超指数”的增长趋势。
+    以GPT等系列为代表的生成式超大模型将参数规模从亿级推至千亿乃至万亿，在训练端对高精度算力与互连带宽的要求空前提高，而推理端则要求在低比特与低时延条件下维持模型表现质量。
+    \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{0.png}
+    \caption{大模型参数量和算力需求[1]}
+    \end{figure}
+    
+    然而，高算力芯片作为人工智能大模型、科学计算、自动驾驶等前沿领域的核心硬件支撑，面临 着“微缩、功耗、存储” 三重物理瓶颈，并且随着集成电路中“摩尔定律”的持续放缓，仅从提升芯片的晶体管密度这一“以功耗换性能” 的发展方式提高算力是显然无法弥补
+    算力和硬件需求之间的供需缺口的。因此，突破算力壁垒的关键不再是单一环节，而是架构、存储、封装与生态的协同创新，把算力靠近数据、减少数据搬移，提升整体系统级吞吐与能效。
+
+    本文拟从高算力芯片发展概述、关键技术路线回顾与分析、未来发展新趋势三个主要方向，调研高算力芯片的发展历程。
+
+    \section{高算力芯片发展概述}
+    在许多 ASIC 的 AI 芯片出现以前，国际上绝大多数研究人员均是在英伟达（NVIDIA）的
+GPU 显卡上进行模型训练与推理。就在前不久，英伟达推出了 Blackwell Ultra GPU，288GB
+HBM3e 显存、15PetaFLOPS FP4 算力以及液冷散热技术是其核心创新点，是专门为大规模 AI
+推理及训练设计的训推芯片，在 4000 亿参数的 Meta Llama 4 Maverick 模型上首次实现每用户
+每秒生成 1000 个 token 的性能里程碑，成功打破了 LLM 推理速度世界纪录。因为英伟达的垄
+断性 CUDA 编译栈生态系统和芯片的高拓展性，国际上许多公司、实验室开始推出以 CPU、
+FPGA 和一系列 ASIC 的 AI 芯片。现代 CPU 可以通过集成 DSA 单元来提高 AI 训推性能，比
+如苹果公司的 M2 Ultra、骁龙 8 Gen3 的 NPU、Intel 的 AVX/AMX 的指令集拓展等等；AMD
+旗下的赛灵思公司推出了 Zynq、Virtex 和 Versal 等系列的 FPGA 产品；以及 Grop 的 LPU、
+Cerebras 的晶圆级 WSE-3 系列、Google 的 TPU、华为的昇腾 910B 等 ASIC AI 加速芯片等。
+
+可以看出，许多 AI 训推加速芯片正百花齐放，但大部分面向的并不专门于基于 Transformer
+架构的大模型，更多的侧重于传统的神经网络模型，通用性更强。目前，AI 训推加速芯片逐
+渐从通用向更专用化发展，并体现出软硬件协同优化设计的发展趋势；此外，例如像清微智
+能的 RPU 等可重构计算架构，支持动态调整硬件逻辑以适配不同规模的模型；同时端侧推理
+芯片也推动着大模型训推朝着边缘化计算方向发展。下面拟从一些目前国际研究中常用于大
+模型训推加速芯片中的技术进行讲解，从中感受“架构+封装+存储+生态”的综合创新特色。
+
+
+
+    \section{关键技术路线回顾与分析}
+    \subsection{指令集架构型}
+    图形处理单元（GPU）和机器学习处理器（MLU）是两种经典的指令集架构型芯片。
+    
+    GPU 采用SIMD（单指令多数据）/SIMT（单指令多线程）架构与张量核心，通过底层指令驱动并行计算，
+    构建了从编译器、框架到行业应用的完整生态，工具链成熟度领先 [16]。NVIDIA H100 白皮书显示，其搭载 480 个 Tensor Core，支持 BF16/TF32/FP8 混合精度计算，
+    配合第四代 NVLink（900 GB/s 链路带宽）与 PCIe 5.0（128 GB/s 总带宽），单卡 FP8 算力达 2000 TFLOPS，较 A100 提升6.4 倍。其架构核心如图1所示，通过分布式共享内存与线程束调度机制，实现大规模并行任务的高效执行。图2展示了其与A100性能的对比。
+
+    \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{3.png}
+    \caption{配备 144 个 SM 的完整 GH100 GPU 核心}
+    \end{figure}
+
+    \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{2.png}
+    \caption{H100与A100在AI任务中的表现对比}
+    \end{figure}
+
+    MLU的特点是是聚焦指令集定制化创新。其代表为寒武纪提出面向神经网络的专用 ISA，将卷积、全连接等算子抽象为张量指令（如向量 - 矩阵乘指令），直接映射硬件计算单元，使软件栈到硬件的翻译路径缩短 40\%，
+    硬件利用率提升至 85\% 以上 [4]。该指令集支持动态精度切换，可根据任务需求灵活配置 INT4-INT16/FP16/BF16 精度。
+
+        \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{1.png}
+    \caption{寒武纪加速芯片范式}
+    \end{figure}
+
+    这种依靠指令驱动模式需额外承担 “取指-译码-发射” 开销，控制逻辑在芯片面积中占比较高，会挤压算力单元的面积空间。
+
+    \subsection{数据流处理器}
+    Eyeriss是一款典型的依靠数据编排的处理器芯片，其以 “空间架构 + 行固定（Row Stationary, RS）数据流” 为核心，通过优化数据复用与移动路径，成为深度学习加速器能效比的标杆设计 [56。
+    
+
+        \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{4.png}
+    \caption{Eyeriss芯片架构[6]}
+    \end{figure}
+
+    通过图6的数据流我们可以看到，Eyeriss的核心目标是解决CNN计算中 “数据搬运能耗远超计算能耗” 的痛点，通过架构与数据流协同，每个 PE 处理 1D 卷积基元，PE 组通过对角线复用 ifmap 行、水平复用 filter 行、垂直累加 psum，最大化片上数据复用，显著降低数据移动。
+
+       \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{5.png}
+    \caption{Eyeriss芯片数据流[6]}
+    \end{figure}
+
+    这种大大降低了访存开销和重计算冗余，但是架构专用性过强，对 Transformer等非卷积型模型的负载适配性不足。同时，数据流优化依赖离线配置，对动态形状的多模态模型支持有限。
+
+    \subsection{可重构计算}
+
+    可重构计算芯片的特色是在保持编程灵活性的同时逼近 ASIC 能效，成为面向多模态深度学习任务的标杆方案。Thinker 系列芯片是一种高能效可重构计算芯片，通过三级可重构架构
+    实现全维度灵活适配。同时，其异构异构 PE 阵列设计：包含通用 PE 与专用 PE 两类核心。通用 PE 负责基础乘加运算，专用 PE 增强了注意力机制、池化、激活函数等专用操作，通过动态分区实现多任务并行处理。[27]
+
+           \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{7.png}
+    \caption{Thinker芯片总体架构[27]}
+    \end{figure}
+
+           \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{6.png}
+    \caption{Thinker芯片可重构配制[27]}
+    \end{figure}
+
+    这类可重构型芯片全栈支持 CNN/RNN/Transformer/多模态模型，算子覆盖率极大，同时比特级自适应计算适配不同量化需求，是一种非常灵活的高算力芯片架构。但是其仍需解决   解决任务拆解、资源冲突、时序收敛等复杂问题，配套
+    工具链的开发复杂度高于通用处理器。
+
+    \subsection{存内计算}
+    “存储墙” 是冯・诺依曼架构的核心瓶颈，而解决路径分为两类：近存计算（PNM）将计算单元部署于内存芯片附近，缩短数据搬运距离；存内计算（CIM）直接在存储单元内完成计算，彻底消除数据搬运 。
+
+               \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{8.png}
+    \caption{存算分离和存算一体架构对比[1]}
+    \end{figure}
+
+模拟 CIM利用物理特性实现并行计算：基于RRAM的交叉阵列通过调节阻变单元编码权重，根据欧姆定律和基
+尔霍夫定律，输入特征用存储阵列的字线上的电压表示，输
+出特征会表示为位线上的电流大小，因此能够一次性完成矩
+阵乘加操作。同时，由于在计算过程中仅进行输入输出的搬
+运，权重系数一直固定在存储阵列中，所以能够显著减少数
+据搬移开销。[1]
+
+
+
+
+
+数字 CIM通过逻辑嵌入突破精度限制：在 SRAM bitcell 或灵敏放大器（SA）中集成与非门、全加器等数字逻辑，直接在存储阵列内执行数字乘加运算，避免 ADC/DAC 转换。
+
+    
+但是目前存算一体架构中一个很明显的问题是灵活性较低，可以实现
+的运算操作少，对运算精度和能耗效率的这些不同需求的定制化不够灵活。此外，随着 MoE
+模型架构的广泛运用，针对其部署在边端的存算一体方案仍待优化。
+    \subsection{晶圆级芯片与先进封装}
+
+    晶圆级芯片（WSC）是后摩尔时代突破单芯片物理限制的核心技术路线，通过整晶圆拼接或芯粒（Chiplet）异构集成，将芯片面积扩展至晶圆级（超 10,000 mm²），
+    实现算力、带宽与存储的规模化提升 [3]。其核心设计理念是打破传统单 Die 的光刻掩膜面积上限（858 mm²），通过先进封装、容错互连与分布式架构，
+    构建 “算力 - 带宽 - 存储” 协同优化的一体化系统，适配大模型训推等重型任务。
+
+    \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{9.png}
+    \caption{Dojo晶圆级芯片整体架构[3]}
+    \end{figure}
+
+    晶圆级芯片的核心设计逻辑是 “规模化集成 + 分布式协同”，其实现有两种方式：光刻字段拼接和芯粒异构集成。光刻字段拼接采用标准掩膜（525 mm²）重复曝光，通过偏移掩膜 “缝合” 相邻字段，直接生成整晶圆级芯片，无需芯粒组装，
+    Cerebras的WSE系列晶圆级芯片所采用的就是这种技术。而Tesla Dojo芯片采用的是芯粒集成技术。Chiplet 芯粒技术本质是异构集成，是将复杂芯片拆解为多个功能独立的“小芯片”，分块
+实现、制造后再通过先进的先进封装技术组合成完整系统。Dojo将 25 颗 D1 芯粒通过 RDL（重新分布层）集成于有机基板，形成 Tile 模块，总面积超 16,125 $mm^2$。
+
+    晶圆级芯片的实现离不开先进的封装与集成技术，以及专门的功耗、散热与容错设计。优势也非常显著：片内通信带宽极高，高算力密度，以及高可编程度。当然，由于晶圆级芯片的
+    硬件面积巨大，所带来的设计复杂度和良率问题也是这种颠覆性架构的挑战。
+
+
+    \subsection{全光计算}
+    
+        自进入了后摩尔定律时代，电互联技术在功耗、速率和密度等方面的瓶颈日益凸显，光
+    互联与光计算新范式被越来越多研究人员所看重。
+
+        \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{10.png}
+    \caption{光计算芯片范式[5]}
+    \end{figure}
+
+    在大模型训推芯片系统中，芯片间和模块间的高速数据交互是核心需求，光互联能够有
+    效降低数据传输延迟，提升系统整体性能。除了目前在多卡通
+    信中广泛运用的光纤通信技术外，还有例如在计算芯片中将传统 HBM 系统分离出来，利用硅光子
+    互联技术，形成独立的多堆叠 HBM 模块，通过光纤与计算芯片连接，实现三维集成。
+    光计算则是利用光的线性、并行、高速特性进行大模型训推中的卷积、矩阵运算。
+
+    但是光计算的劣势同样突出：由于光的线性物理特性，难以实现高效非线性运算，需搭配电子器件完成激活函数等操作，系统复杂度增加，所以未来的发展趋势肯定是光电混合架构。
+
+
+    \section{未来发展新趋势展望} 
+
+    \subsection{量子计算 +AI}
+
+    量子计算和机器学习都是当前最炙手可热的前言研究领域。在量子计算方面，随着理论
+和硬件的一个个突破性进展，人们大规模通用量子计算机的脚步也越来越近。通过量子算法
+（如量子退火算法）使某些在经典计算机上不可计算的问题变为可计算的, 从而大幅降低机器
+学习算法的计算复杂度。目前还有混合量子机器学习模型，如 Tensorflow Quantum，将量子计
+算与机器学习结合在一起，集成了许多量子算法和逻辑，并提供与现有 TensorFlow API 兼容
+的量子计算原函数，以及高性能量子电路模拟器，在未来肯定可以助推大模型训推系统实现
+进一步算力解放。
+
+    
+    \subsection{计算超节点}
+
+    前段时间，华为云在在生态大会上发布了中国 AI 领域的突破——CloudMatrix 384 超节
+点。以 384 张芯片，300P 算力的硬核技术开启 AI 训推算力新纪元。华为在分析其发展技术
+路线后指出，尽管每一张单卡的表现性能弱于英伟达，但是用户端所感受的是一个多卡集群
+的“超节点”，通过增加一个多卡集群中训推芯片的数量，集群规模使得超节点所表现出来
+的性能可以大幅超越业界同类产品。当然堆叠芯片数量的基础是华为利用了其强处：先进的
+通信技术。每一张卡通过光纤互联，实现超节点算力的反超。这种超节点同样也是目前类如
+Deepseek 模型中 MoE 混合专家架构的最优选择，通过高速互联总线，能够实现一卡一专家高
+效分布式推理。
+
+可见，未来 AI 训推云计算系统的一大发展趋势是从优化单卡性能转向优化超
+节点的整体表现性能，训推系统一定会从追求scale-up网络向scale-out网络发展。
+
+
+
+\subsection{定制大模型推动 AI4S 应用场景创新}
+
+如今太多的工作都侧重于大模型训推芯片与系统，即 Chips for AI，但是反过来思考，AI
+for Science 同样非常重要，如何高效地在各种科研平台上部署大模型，发挥其强大的表现性能
+是未来一大产业发展趋势。近期，北京科学智能研究院联合深势科技推出的 AI4S 科研知识库
+与 AI 学术搜索平台 Science Navigator 正式上线，支持“Auto 智能匹配”与“手动选择”两种
+模型调用方式，为科研人员提供了前所未有的智能化工具组合。这一平台的成功推出代表着
+科研工具向“智能化、场景化”转型的关键节点。
+
+不仅如此，在材料科学、生物医药、地球宏观系统科学、芯片设计、辅助 EDA 工具等方
+面均有广泛运用。具体到集成电路产业，EDA 技术是极具专业化与技术化的行业，而大模型
+技术能够在分析设计案例后对广阔的设计空间进行评价与优化，如何高效利用 AI for Chips 已
+经受到了国内外学者、企业的高度重视。英伟达研发了 ChipNeMo 的定制大语言模型供内部
+使用，以回答有关 GPU 架构和设计的问题，并且已经帮助许多工程师在早期测试中快速找到
+技术文档。除此之外，还有一系列如 DSO.ai、VSO.ai、TSO.ai 等模型，均可以帮助芯片研发
+人员搜索设计空间，提高设计流程效率，加快芯片可靠性测试进度。未来，辅助芯片设计的
+定制化大模型也一定将是一大产业趋势，AI4S 会成为科学发现的“第五范式”。
+    \section{总结}
+
+    后摩尔时代，高算力的提升不再依赖工艺单一维度，而是通过架构、存储、封装与生态的协同推进。只有打通架构设计、存储优化、先进封装与软件生态的全链条，针对不同场景实现专用化、精细化设计，才能持续弥合算力供需缺口，为人工智能与科学技术的持续突破提供坚实硬件支撑。
+    中国在双重工艺墙与出口管制约束下，更需以“封装为主轴、架构为抓手、存储为抓手、生态为牵引”的策略，围绕工程可达性与产业闭环，形成可持续的竞争新优势。
+
+
+\clearpage
+	
+% 参考文献
+	\begin{thebibliography}{99}  
+		\bibitem{ref1} 何斯琪, 穆琛, 陈迟晓 基于存算一体集成芯片的大语言模型专用硬件架构[M/OL]//中兴通讯技术: 卷 30. 复旦大学,中国 上海 200433, 2024: 37-42. DOI:10.12142/ZTETJ.202402006.
+        \bibitem{ref2} CHEN T, DU Z, SUN N等. DianNao: a small-footprint high-throughput accelerator for ubiquitous machine-learning[C/OL]//Proceedings of the 19th international conference on Architectural support for programming languages and operating systems. New York, NY, USA: ACM, 2014: 269-284. DOI:10.1145/2541940.2541967.
+		\bibitem{ref3} HU Y, LIN X, WANG H等. Wafer-scale Computing: Advancements, Challenges, and Future Perspectives[J/OL]. 2023. DOI:10.48550/arxiv.2310.09568.
+		\bibitem{ref4} SHAOLI LIU, ZIDONG DU, JINHUA TAO等. Cambricon: An Instruction Set Architecture for Neural Networks[C/OL]//Proceedings - International Symposium on Computer Architecture. IEEE, 2016: 393-405. DOI:10.1109/ISCA.2016.42.
+		\bibitem{ref5} SHEN Y, HARRIS N C, SKIRLO S等. Deep learning with coherent nanophotonic circuits[J/OL]. Nature photonics, 2017, 11(7): 441-446. DOI:10.1038/nphoton.2017.93.
+		\bibitem{ref6} YU-HSIN CHEN, KRISHNA T, EMER J S等. Eyeriss: An Energy-Efficient Reconfigurable Accelerator for Deep Convolutional Neural Networks[J/OL]. IEEE journal of solid-state circuits, 2017, 52(1): 127-138. DOI:10.1109/JSSC.2016.2616357.
+		\bibitem{ref7} CAO Y, CHEN Y, FAN X等. Advanced Design for High-Performance and AI Chips[J/OL]. Nano-micro letters, 2026, 18(1): 13-31. DOI:10.1007/s40820-025-01850-w.
+        \bibitem{ref8} SHARMA H, DHINGRA P, DOPPA J等. A Heterogeneous Chiplet Architecture for Accelerating End-to-End Transformer Models[J/OL]. ACM transactions on design automation of electronic systems, 2025, 30(3): 1-24. DOI:10.1145/3718487.
+        \bibitem{ref9} ZHANG Y, ZHANG N, ZHAO T等. SARA: scaling a reconfigurable dataflow accelerator[C/OL]//Proceedings - International Symposium on Computer Architecture. Piscataway, NJ, USA: IEEE Press, 2021: 1041-1054. DOI:10.1109/ISCA52012.2021.00085.
+        \bibitem{ref10} KHAN A A, FARZANEH H, FRIEBEL K F A等. CINM (Cinnamon): A Compilation Infrastructure for Heterogeneous Compute In-Memory and Compute Near-Memory Paradigms[J/OL]. 2022. DOI:10.48550/arxiv.2301.07486.
+        \bibitem {ref11} 尹首一，唐漾，涂锋斌。大模型芯片与系统专题简介。中国科学：信息科学，2024, 54: 2905–2906, doi: 10.1360/SSI-2024-0322
+        \bibitem {ref12} J.Lee, W.Lee, J.Sim, “Tender: Accelerating Large Language Models via Tensor Decomposition and Runtime Requantization”, in ACM/IEEE 51st Annual International Symposium on Computer Architecture (ISCA), 2024.
+        \bibitem {ref13} Y.Zhao, D.Wu, J.Wang, “ALISA: Accelerating Large Language Model Inference via Sparsity-Aware KV Caching”, in ACM/IEEE 51st Annual International Symposium on Computer Architecture (ISCA), 2024.
+        \bibitem {ref14} Y.Qin, Y.Wang, Z.Zhao, X.Yang, Y.Zhou, S.Wei, Y.Hu, S.Yin, "MECLA: Memory-Compute-Efficient LLM Accelerator with Scaling Sub-matrix Partition", in ACM/IEEE 51st Annual International Symposium on Computer Architecture (ISCA), 2024.
+        \bibitem {ref15} LIU Z, LUO X, GUO J 等. VQ-LLM: High-performance Code Generation for Vector Quantization Augmented LLM Inference [J/OL]. 2025.
+        \bibitem {ref16} MOON S, LI M, CHEN G 等. T-REX: A 68-to-567μs/Token 0.41-to-3.95μJ/Token Transformer Accelerator with Reduced External Memory Access and Enhanced Hardware Utilization in 16nm FinFET [J/OL]. 2025.
+        \bibitem {ref17} LEE J, LEE W, SIM J. Tender: Accelerating Large Language Models via Tensor Decomposition and Runtime Requantization [J/OL]. 2024.
+        \bibitem {ref18} ZHAO Y, WU D, WANG J. ALISA: Accelerating Large Language Model Inference via Sparsity-Aware KV Caching [J/OL]. 2024.
+        \bibitem {ref19} WANG H, FANG J, TANG X, etc. SOFA: A Compute-Memory Optimized Sparsity Accelerator via Cross-Stage Coordinated Tiling [J/OL]. 2024
+        \bibitem {ref19} QIN Y, WANG Y, ZHAO Z, etc . MECLA: Memory-Compute-Efficient LLM Accelerator with Scaling Sub-matrix Partition, [J/OL]. 2024.
+        \bibitem {ref19} WANG H, LI Y, XU H, etc . LAD: Efficient Accelerator for Generative Inference of LLM with Locality Aware Decoding, [J/OL]. 2025.
+        \bibitem {ref20} Z.Xu, T.Zhou, M.Ma, C.Deng, Q.Dai, L.Fang: Large-scale photonic chiplet Taichi empowers160-TOPS/W artificial general intelligence [J/OL]. Science (American Association for the Advancement of Science), 2024, 384 (6692): 202-209.
+        \bibitem {ref21} Y.Ou, H.Zhang, A.Rovinski, D.Wentzlaff, C.Batten: Optically Connected Multi-Stack HBM Modules for Large Language Model Training and Inference [J/OL]. IEEE computer architecture letters, 2025, 24 (1): 49-52.
+        \bibitem {ref22} MELKO R G, CARRASQUILLA J. Language models for quantum simulation [J/OL]. Nature Computational Science, 2024, 4 (1): 11-18. DOI:10.1038/s43588-023-00578-0.
+        \bibitem {ref23} LIU Y, LI X, YIN S. Review of chiplet-based design: system architecture and interconnection [J/OL]. Science China. Information sciences, 2024, 67 (10): 200401. DOI:10.1007/s11432-023-3926-8.
+        \bibitem {ref24} CHEN H, ZHANG J, DU Y 等. Understanding the Potential of FPGA-based Spatial Acceleration for Large Language Model Inference [J/OL]. ACM transactions on reconfigurable technology and systems, 2024, 18 (1): 1-29. DOI:10.1145/3656177.
+        \bibitem {ref25} ZHAO C, DENG C, RUAN C 等. Insights into DeepSeek-V3: Scaling Challenges and Reflections on Hardware for AI Architectures [J/OL]. 2025. DOI:10.48550/arxiv.2505.09343.
+        \bibitem {ref26} LI J, XU J, HUANG S 等. Large Language Model Inference Acceleration: A Comprehensive Hardware Perspective [J/OL]. 2024. DOI:10.48550/arxiv.2410.04466.
+        \bibitem {ref27} S. Yin et al., "A 1.06-to-5.09 TOPS/W reconfigurable hybrid-neural-network processor for deep learning applications," 2017 Symposium on VLSI Circuits, Kyoto, Japan, 2017, pp. C26-C27, doi: 10.23919/VLSIC.2017.8008534. 
+    \end{thebibliography}
+	
+    % 用来设置正文文献引用
+	\bibliographystyle{plain}
+	\bibliography{ref}
+\end{document}% 结束文档编辑，后面写啥都编译不出来
+

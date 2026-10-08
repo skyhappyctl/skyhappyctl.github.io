@@ -1,0 +1,3850 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage{tocloft}
+\usepackage[bigfiles]{pdfbase}
+\usepackage{amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\newcommand\question[2]{\noindent\fbox{\parbox[t]{\linewidth}{\hspace{0pt}{\textbf{#1\quad}#2}}}}
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\geometry{a4paper,left=3cm,right=3cm,top=2cm,bottom=2cm} 
+
+
+\CTEXsetup[format={\Large \bfseries}]{section}
+\title{\textbf{神经网络量化实验}}
+\author{陈天乐\ \ 无25\ \ [student ID removed] }
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{实验目的}
+通过对一个简单的卷积神经网络的量化，掌握对神经网络量化的基本方法，更加深入地感受量化对神经网络训练和推理的影响，并对比PTQ和QAT两种训练方法的联系与区别。
+
+\section{基本任务}
+\subsection{可视化权重分布}
+\begin{description}
+    \item[1.] 工程中已给出了如何得到当前网络参数的直方图、最大最小值、以及3-sigma范围的代码。记录这些数据，你有什么发现？
+    
+    记录的数据和直方图如下所示：
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/conv1.png}
+        \caption{conv1的权重分布直方图}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/conv2.png}
+        \caption{conv2的权重分布直方图}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/fc1.png}
+        \caption{fc1的权重分布直方图}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/fc2.png}
+        \caption{fc2的权重分布直方图}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/fc3.png}
+        \caption{fc3的权重分布直方图}
+    \end{figure}
+
+    \begin{table}[!ht]
+        \renewcommand{\arraystretch}{1.5}
+    
+        \centering
+        \begin{tabular}{|c|c|c|}
+        \hline
+            \textbf{层} & \textbf{最大值范围} & \textbf{3-sigma范围} \\ \hline
+            \textbf{conv1} &  [-0.69379, 0.52103]  & [-0.69379, 0.52103]  \\ \hline
+            \textbf{conv2} & [-0.37755, 0.43689] & [-0.33182, 0.33182]  \\ \hline
+            \textbf{fc1} &  [-0.23190, 0.25502]  & [-0.14487, 0.14487]  \\ \hline
+            \textbf{fc2} & [-0.21480, 0.23412] & [-0.18090, 0.18090]  \\ \hline
+            \textbf{fc3} & [-0.33725, 0.45266]  &  [-0.33725, 0.37426]  \\ \hline
+        \end{tabular}
+    \end{table}
+    \item[2.] 你会更倾向于选择绝对值最大值作为量化scale，还是3-sigma range，为什么？
+
+    观察分布直方图和记录的结果之后，我更倾向于选择3-sigma范围作为量化scale。有以下几个原因：
+    \begin{enumerate}
+        \item 首先，3-sigma范围中已经包含了99.73\%的数据，而这个范围会把一些占极少数边缘值的影响给去除掉，同时又能包含绝大多数数据的量化准确性
+        \item 其次，3-sigma范围相较于最大值范围更加对称，同时范围更小，也就意味着量化时不同值之间的间隔会更大，我认为这样可以降低量化误差对模型准确度的影响
+    \end{enumerate}
+\end{description}
+
+
+
+\subsection{量化网络权重}
+\begin{description}
+    \item[1.]工程文件中已经给出了对网络权重参数的量化代码，工程里使用的是3-sigma range，你可以自己尝试更换其他range，来看看效果。（不考虑bias） 
+    
+    使用3-sigma range量化后，模型推理的准确率为54.29\%（完全不量化时模型准确率是54.4\%)；使用最大值范围量化后，模型推理的准确率为51.1\%，发生了明显的下降，因此还是3-sigma范围的效果更好。
+    
+    \item[2.]记录仅量化权重后的模型精度。当我们把float32的权重量化到8bit整数时，发生了什么变化？网络参数乘以scaling factor后，参数的绝对大小发生了很大变化，为什么我们可以不管weight的绝对大小，只需要保留相对的大小就行了？这样操作是不是对所有任务都适用呢？
+
+    仅量化权重后，模型推理精度为54.29\%，可以发现，把float32的权重量化到8bit整数时，除了模型的绝对大小发生了变化，其权重的相对大小关系是不变的，模型的准确率也没有明显的变化。我们之所以可以只关注weight的绝对大小的原因是因为，
+    目前的网络都会有BatchNorm层做处理，同时使用的激活函数ReLU也可以自适应调整，因此绝对大小不会影响其功能。但并不是所有任务都适用，如果是高精度的回归任务，对数值精度异常敏感，又或者是无归一层的模型，或是低比特量化（1，2，4bit），那么这样的操作很有可能会让模型breakdown。
+\end{description}
+
+\subsection{量化激活层}
+
+\begin{description}
+    \item[1.]请仿照1.1的代码，记录激活层直方图，最大最小值，3-sigma范围的代码。
+    
+    补全的代码如下：
+
+\begin{lstlisting}[frame=shadowbox,caption = lab1\_PTQ.ipynb,language=python]
+## Question 3.1:
+
+# Plot histograms of the input images and the outputs of every convolutional and fully-connected layer. 
+# Record any observations you make about the distribution of the values.
+# ADD YOUR CODE HERE 
+Activation_border = 2**(bitwidth_A-1)
+input_activations = net_q3.input_activations # 输入数据
+conv1_output_activations = net_q3.conv1.activations # 第一层卷积层的输出数据
+conv2_output_activations = net_q3.conv2.activations # 第二层卷积层的输出数据
+fc1_output_activations = net_q3.fc1.activations # 同上类推
+fc2_output_activations = net_q3.fc2.activations
+fc3_output_activations = net_q3.fc3.activations
+
+
+# to plot distributions of activations
+# Plot histograms of the following variables, and calculate their ranges and 3-sigma ranges:
+# 拼接上面的数据成一个group，方便循环遍历
+activation_groups = [
+    (input_activations, "input_activations"),
+    (conv1_output_activations, "conv1_output_activations"),
+    (conv2_output_activations, "conv2_output_activations"),
+    (fc1_output_activations, "fc1_output_activations"),
+    (fc2_output_activations, "fc2_output_activations"),
+    (fc3_output_activations, "fc3_output_activations"),
+]
+
+for activation_data, name in activation_groups: # 遍历类的成员
+    print(name + ": the range is [{:.5f}, {:.5f}]".format(activation_data.min(), activation_data.max()))
+
+    # find 3-sigma range (u-3s, u+3s), 该范围能囊括99.73%参数
+    sigma3 = int(np.size(activation_data)*0.0027+0.5) 
+    sigma3_value = np.abs(activation_data)[np.argpartition(np.abs(activation_data), -sigma3)[-sigma3]]
+    print(name + ": the 3-sigma range is [{:.5f}, {:.5f}]".format(max(-sigma3_value, activation_data.min()), min(sigma3_value,activation_data.max())))
+
+    plt.hist(activation_data, bins=50, facecolor="green", edgecolor="black", alpha=0.7) # 画直方图
+    plt.xlabel("range")
+    plt.ylabel("frequency")
+    plt.title(name+"_distribution")
+    plt.show()
+        
+
+# You can get a flattened vector of the weights of fc1 like this:
+#   fc1_weights = net.fc1.weight.data.cpu().view(-1)
+\end{lstlisting}
+
+记录的数据和直方图如下所示：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/conv1_output_activations.png}
+    \caption{conv1的激活值分布直方图}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/conv2_output_activations.png}
+    \caption{conv2的激活值分布直方图}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/fc1_output_activations.png}
+    \caption{fc1的激活值分布直方图}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/fc2_output_activations.png}
+    \caption{fc2的激活值分布直方图}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/fc3_output_activations.png}
+    \caption{fc3的激活值分布直方图}
+\end{figure}
+
+\begin{table}[!ht]
+    \renewcommand{\arraystretch}{1.5}
+
+    \centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+        \textbf{层} & \textbf{最大值范围} & \textbf{3-sigma范围} \\ \hline
+        \textbf{input} & [-1.00000, 1.00000] & [-1.00000, 1.00000] \\ \hline
+        \textbf{conv1} & [0.00000, 8.67846] & [0.00000, 4.56645] \\ \hline
+        \textbf{conv2} &  [0.00000, 11.26935]  & [0.00000, 6.56817]  \\ \hline
+        \textbf{fc1} & [0.00000, 12.47395] & [0.00000, 6.19761] \\ \hline
+        \textbf{fc2} & [0.00000, 7.16761] & [0.00000, 4.04248] \\ \hline
+        \textbf{fc3} & [-7.48732, 8.60905] & [-7.48732, 7.84135] \\ \hline
+    \end{tabular}
+\end{table}
+
+    \item[2.]你会更倾向于选择绝对值最大值作为scaling factor，还是3-sigma range，为什么？
+    
+    和2.1部分的阐述理由一致，并且激活值的最大值范围和3-sigma值差距更大了，使用3-sigma range的效果和使用最大值范围的差距可能会比量化权重时要更大更明显。
+
+    \item[3.]请仿照2.1的代码，对激活层进行量化。提示：本层输出的scaling factor与浮点数表示的本层输出范围、输入的scaling factor和weight的scaling factor都相关，可以参考课件第21页或者附件中的论文2.1-2.2章。
+
+    补全的代码如下：
+
+\begin{lstlisting}[frame=shadowbox,caption = lab1\_PTQ.ipynb,language=python]
+from typing import List
+
+class NetQuantized(nn.Module):
+    def __init__(self, net_with_weights_quantized: nn.Module, bitwidth_A):
+        super(NetQuantized, self).__init__()
+        
+        net_init = copy_model(net_with_weights_quantized) # 最初的网络copy 过来,用于初始化量化网络
+
+        self.conv1 = net_init.conv1
+        self.pool = net_init.pool
+        self.conv2 = net_init.conv2
+        self.fc1 = net_init.fc1
+        self.fc2 = net_init.fc2
+        self.fc3 = net_init.fc3
+        self.activation_border = 2**(bitwidth_A-1)
+        print(self.activation_border)
+
+        for layer in self.conv1, self.conv2, self.fc1, self.fc2, self.fc3:
+            #逐层遍历,检查量化是否成功
+            def pre_hook(l, x):
+                x = x[0]
+                #异常处理:检查之前的量化是否将所有的数转化进规定的区间
+                if (x < -self.activation_border).any() or (x > (self.activation_border-1)).any():
+                    raise Exception("Input to {} layer is out of bounds for an {}-bit signed integer".format(l.__class__.__name__, bitwidth_A))
+                if (x != x.round()).any():
+                    raise Exception("Input to {} layer has non-integer values".format(l.__class__.__name__))
+
+            layer.register_forward_pre_hook(pre_hook)
+
+        # Calculate the scaling factor for the initial input to the CNN
+        self.input_activations = net_with_weights_quantized.input_activations
+        self.input_scale = NetQuantized.quantize_initial_input(self.input_activations, self.activation_border)
+        #以上2行计算了input activation 的scale和对应的quantization 版本
+        # Calculate the output scaling factors for all the layers of the CNN
+
+        n_w = []
+        activation_scale= [self.input_scale] 
+
+        for layer in self.conv1, self.conv2, self.fc1, self.fc2, self.fc3:
+            # call quantize_activations and add your code here
+
+            #获取权重缩放因子
+            n_w.append(layer.weight.scale) 
+
+            # 计算当前层激活的缩放因子
+            activation_scale.append( NetQuantized.quantize_initial_input(
+            layer.activations, 2*self.activation_border
+            )   )
+
+        #print(activation_scale)
+
+        n = 0
+        for layer in self.conv1, self.conv2, self.fc1, self.fc2, self.fc3:
+            layer.output_scale = NetQuantized.quantize_activations(n_w[n], activation_scale[n], activation_scale[n + 1])
+            n = n + 1
+        
+
+        # 注册前向检查钩子
+        for layer in self.conv1, self.conv2, self.fc1, self.fc2, self.fc3:
+            def pre_hook(l, x):
+                x = x[0]
+                if (x < -self.activation_border).any() or (x > (self.activation_border-1)).any():
+                    raise Exception(f"Input to {l.__class__.__name__} layer is out of bounds")
+                if (x != x.round()).any():
+                    raise Exception(f"Input to {l.__class__.__name__} layer has non-integer values")
+            layer.register_forward_pre_hook(pre_hook)
+
+    #计算输入的scale函数
+    @staticmethod
+    def quantize_initial_input(pixels: np.ndarray, activation_border:int):
+        '''
+        Calculate a scaling factor for the images that are input to the first layer of the CNN.
+
+        Parameters:
+        pixels (ndarray): The values of all the pixels which were part of the input image during training
+
+        Returns:
+        float: A scaling factor that the input should be multiplied by before being fed into the first layer.
+                This value does not need to be an 8-bit integer.
+        '''
+
+        sigma3 = int(np.size(pixels)*0.0027+0.5)
+        sigma3_value = pixels[np.argpartition(pixels,-sigma3)[-sigma3]]
+        max_value = np.max(np.abs(pixels))
+        scale = activation_border/max_value  # you can modify the range here，同样，这个地方的scale和论文定义的是和源代码倒数的关系
+        return scale
+
+    # 逐层激活送入量化
+    @staticmethod
+    def quantize_activations( n_w: float, pre_activation_scale: float, now_activation_scale: float) -> float:
+        '''
+        Calculate a scaling factor to multiply the output of a layer by.
+
+        Parameters:
+        activations (ndarray): The values of all the pixels which have been output by this layer during training
+        n_w (float): The scale by which the weights of this layer were multiplied as part of the "quantize_weights" function you wrote earlier
+        n_initial_input (float): The scale by which the initial input to the neural network was multiplied
+        ns ([(float, float)]): A list of tuples, where each tuple represents the "weight scale" and "output scale" (in that order) for every preceding layer
+        #用一个元组记录已经算好的所有网络的weight scale 和 output scale
+        Returns:
+        float: A scaling factor that the layer output should be multiplied by before being fed into the first layer.
+                This value does not need to be an 8-bit integer.
+        '''
+
+        # ADD YOUR CODE HERE
+        scale = now_activation_scale / (pre_activation_scale * n_w) 
+        return scale
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # You can access the output activation scales like this:
+        #   fc1_output_scale = self.fc1.output_scale
+
+        # 这里其实是对定点数计算的模拟仿真，因此每层的输出均需要手动乘以scaling factor，并限制在规定的表示范围内。
+        # output_scale:不同网络层之间传递整数重新压缩为8bit的scale(在第三周阅读论文中是定点浮点数M)
+        # activation_scale:网络层内数据和真实值差距的scale
+        # weight_scale:权重量化值和真实值差距的scale
+        x = x*self.input_scale 
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1) # 8bit是-128~127
+
+        x = self.pool(F.relu(self.conv1(x)))
+        x = x*self.conv1.output_scale
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x*self.conv2.output_scale
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)     
+
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))   
+        x = x*self.fc1.output_scale
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)  
+
+
+        x = F.relu(self.fc2(x))   
+        x = x*self.fc2.output_scale
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1) 
+
+
+        x = self.fc3(x)*self.fc3.output_scale
+        return x
+
+\end{lstlisting}
+
+得到的模型推理准确率为:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/quan_act_weight.png}
+    \caption{激活值和权重均量化后模型的推理准确率}
+\end{figure}
+
+量化后模型精度和未量化时几乎没有差别，说明了量化方法实现的正确性。
+\end{description}
+\subsection{量化bias}
+在未量化时，模型推理精度为：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/bias_noquan.png}
+    \caption{带有偏置的模型推理准确率}
+\end{figure}
+
+将网络的权重量化但是偏置未量化后，模型的推理精度为：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/bias_quan_weight.png}
+    \caption{带有偏置且量化权重的模型推理准确率}
+\end{figure}
+
+补全量化偏置的代码如下：
+\begin{lstlisting}[frame=shadowbox,caption = lab1\_PTQ.ipynb,language=python]
+# slightly clearer bias bounds (32b signed integer)
+#bias量化后的最大值、最小值
+MIN_32B_SINT = -(2**31) 
+MAX_32B_SINT = (2**31) - 1
+
+class NetQuantizedWithBias(NetQuantized):
+    def __init__(self, net_with_weights_quantized: nn.Module):
+        super(NetQuantizedWithBias, self).__init__(net_with_weights_quantized, bitwidth_A)
+
+        preceding_scales = [(layer.weight.scale, layer.output_scale) for layer in self.children() if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear)][:-1]
+        #print(preceding_scales)
+
+        self.fc3.bias.data = NetQuantizedWithBias.quantized_bias(
+            self.fc3.bias.data,
+            self.fc3.weight.scale,
+            self.input_scale,
+            preceding_scales
+        )
+        
+
+        if (self.fc3.bias.data < MIN_32B_SINT).any() or (self.fc3.bias.data > MAX_32B_SINT).any():
+            raise Exception("Bias has values which are out of bounds for an 32-bit signed integer")
+        if (self.fc3.bias.data != self.fc3.bias.data.round()).any():
+            raise Exception("Bias has non-integer values")
+    
+    @staticmethod
+    def quantized_bias(bias: torch.Tensor, n_w: float, n_initial_input: float, ns: List[Tuple[float, float]]) -> torch.Tensor:
+        '''
+        Quantize the bias so that all values are integers between MIN_32B_SINT and MAX_32B_SINT.
+
+        Parameters:
+        bias (Tensor): The floating point values of the bias
+        n_w (float): The scale by which the weights of this layer were multiplied
+        n_initial_input (float): The scale by which the initial input to the neural network was multiplied
+        ns ([(float, float)]): A list of tuples, where each tuple represents the "weight scale" and "output scale" (in that order) for every preceding layer
+0
+        Returns:
+        Tensor: The bias in quantized form, where every value is an integer between MIN_32B_SINT and MAX_32B_SINT.
+                The "dtype" will still be "float", but the values themselves should all be integers.
+        '''
+
+        # ADD YOUR CODE HERE
+
+        #print(bias)
+        # 计算累积缩放因子：初始输入缩放 × 所有前驱层的输出缩放
+
+        scale = n_initial_input
+        for weight_scale, output_scale in ns:
+            scale *= output_scale
+            scale *= weight_scale
+        
+        # 总缩放因子 = 累积输入缩放 × 当前层权重缩放
+        scale = scale * n_w
+        print(scale)
+
+        # 量化偏置：bias * scale → 四舍五入 → 截断至32位整数范围
+        quan_bias = (bias * scale).round()
+        quan_bias = torch.clamp(quan_bias, min=MIN_32B_SINT, max=MAX_32B_SINT)
+        return quan_bias
+
+net_quantized_with_bias = NetQuantizedWithBias(net_with_bias_with_quantized_weights)
+
+score = test(net_quantized_with_bias, testloader)
+
+\end{lstlisting}
+
+得到的模型精度为：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/bias_quan_bias.png}
+    \caption{量化偏置后的模型精度}
+\end{figure}
+
+模型精度甚至比只量化权重不量化偏置时的精度更高，也说明了量化偏置实现方法的正确性。
+
+\subsection{对比QAT和PTQ两种方法}
+PTQ方法是在模型完成训练后直接对模型的权重、激活值和偏置做量化，而QAT是保持浮点数训练过程，但是会引入量化误差，同时修改了全连接层和卷积层的定义。
+首先在数据集上以FP32精度进行模型训练，得到训练好的baseline模型；然后在baseline模型中插入\textbf{伪节点}，对数据进行量化并立即反量化，从而引入了量化误差。
+部分实现的方法如下
+\begin{lstlisting}[frame=shadowbox,caption = lab1\_QAT.ipynb,language=python]
+def forward(self, input):
+    max_val = quant_max(input)
+    weight = input * self.qmax / max_val
+    q_weight = self.round(weight)
+    q_weight = q_weight * max_val / self.qmax  # 通过这种方式引入量化误差，从而实现QAT
+    return q_weight
+
+...
+
+def forward(self, x):
+act = x
+self._ema(x)
+self.alpha.data = self.max_val.unsqueeze(0)
+act = torch.max(torch.min(x, self.alpha), -self.alpha)
+
+act = act * self.qmax / self.alpha  
+q_act = self.round(act)
+q_act = q_act * self.alpha / self.qmax  # 引入量化误差
+
+return q_act
+\end{lstlisting}
+
+但是观察代码可知，在QAT中定义了一个Torch.round()函数，这是因为在做反向传播时，梯度通过伪量化节点进行传递，模型参数的更新因此包含了量化误差的影响。但是按照正传的公式，由于
+量化后的权重是离散的，导致反向传播时:
+$$
+\frac{\partial Q(W)}{\partial W} = 0
+$$
+
+这样导致梯度无法传播，所以权重无法学习更新。因此采用STE（直通估计器）将梯度通过量化传播，近似假设量化操作的梯度为1，所以：
+$$
+grad(W)=\frac{\partial L}{\partial W} = \frac{\partial L}{\partial Q(W)} 
+$$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{STE.png}
+    \caption{反向传播模型}
+\end{figure}
+
+
+对于PTQ和QAT这两种方法的优缺点，列举如下：
+\begin{description}
+    \item[1.]PTQ
+    
+    训练后量化的方式可以快速部署模型，直接在预训练模型上应用量化，节省时间和计算资源。其次就是硬件的兼容性好，主流推理框架对PTQ优化充分，支持多种硬件加速。
+    但是由于是直接对训练完成后的模型进行量化，对复杂模型可能造成显著精度下降，尤其在低比特量化时非常明显。
+
+    \item[2.]QAT  
+    
+    量化感知训练仍然采用浮点数训练，并且在训练时引入量化误差，使模型参数适应量化后的数值分布，精度损失更小，鲁棒性也更高。但是需要重新训练或微调模型，耗费大量时间和计算资源，计算成本更高，部署的复杂度也更高。
+
+
+\end{description}
+
+\subsection{其他探索——更换网络结构}
+
+首先，我在原先网络的基础上修改了一下，将2层卷积层增加到了4层，并且去除掉了一层全连接层，进行10个epoch的训练，最终模型的精度如下图和表格所示：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/deepernet.png}
+    \caption{网络结构}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/deepernet_1.png}
+    \caption{未量化时的模型精度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/deepernet_2.png}
+    \caption{量化权重时的模型精度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/deepernet_3.png}
+    \caption{量化权重和激活值时的模型精度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/deepernet_4.png}
+    \caption{带权重时的模型精度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/deepernet_5.png}
+    \caption{量化权重时的模型精度}
+\end{figure}
+
+\begin{table}[!ht]
+    \renewcommand{\arraystretch}{1.5}
+    \centering
+
+    \begin{tabular}{|c|c|}
+    \hline
+        \textbf{模型} & \textbf{模型精度 } \\ \hline
+        \textbf{原始模型 } & 68.07\%  \\ \hline
+        \textbf{仅量化权重 } & 67.79\%  \\ \hline
+        \textbf{量化激活值和权重} & 67.73\%  \\ \hline
+        \textbf{带偏置 } & 70.01\%  \\ \hline
+        \textbf{量化偏置 } & 69.79\% \\ \hline
+    \end{tabular}
+\end{table}
+
+然后，我又将网络结构修改为了ResNet，但是由于输入图片尺寸较小，ResNet的深度只有8个卷积层。一开始在实现ResNet时没有加入BatchNorm层，导致模型训练速度
+很慢，同时在量化权重后网络的精度直接降低到了14\%左右。后面将BN层补上后网络性能恢复，其具体结构和训练精度如下图和表格所示：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/resnet.png}
+    \caption{网络结构}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/resnet_1.png}
+    \caption{未量化时的模型精度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/resnet_2.png}
+    \caption{量化权重时的模型精度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/resnet_3.png}
+    \caption{量化权重和激活值时的模型精度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/resnet_4.png}
+    \caption{带权重时的模型精度}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/实验图片/resnet_5.png}
+    \caption{量化权重时的模型精度}
+\end{figure}
+
+\begin{table}[!ht]
+    \renewcommand{\arraystretch}{1.5}
+    \centering
+    \begin{tabular}{|c|c|}
+    \hline
+        \textbf{模型} & \textbf{模型精度 } \\ \hline
+        \textbf{原始模型 } & 77.8\%  \\ \hline
+        \textbf{仅量化权重 } & 77.5\%  \\ \hline
+        \textbf{量化激活值和权重} & 64.81\%  \\ \hline
+        \textbf{带偏置 } & 74.48\%  \\ \hline
+        \textbf{量化偏置 } & 74.62\% \\ \hline
+    \end{tabular}
+\end{table}
+
+此外，我还对ResNet网络进行了QAT训练，在这个训练中能明显感受到QAT的缺陷：训练时间极长，训练计算成本太高，不利于快速部署。大概训练2个epoch的时间
+可以让PTQ后的模型训练10个epoch。
+
+有关这一部分的代码都放在了源代码中，还麻烦助教查看。
+
+
+\section{实验总结}
+
+在本次实验中，通过对卷积神经网络的PTQ、QAT量化方案的实现，成功地将课上论文中提及的量化方法复现，并且对其做了很多作业要求之外的探索。除了我做的更换网络
+结构部分，小组成员也对更换激活函数、低比特量化等不同方向做了探索，对于量化这一部分的理解和掌握得到了很好的提高。也感谢在本次实验中辛苦付出的同组同学，和答疑解惑
+的助教、老师们！
+
+\newpage
+\section{实验源代码}
+\begin{lstlisting}[frame=shadowbox,caption = lab1\_PTQ.ipynb,language=python]
+# %%
+# 本次实验包括后量化的过程，主要在于学习如何对DNN的权重（weight）和激活层（activation）进行量化。
+
+# %%
+# 引用外部软件包
+import torch # pytorch包
+import torchvision # torchvision是pytorch官方提供的工具，包含很多常用数据集的封装等
+import torchvision.transforms as transforms
+import torch.nn as nn # nn 和下面的F均包含了主要的神经网络模块，包括卷积层、全连接层、池化层等等
+import torch.nn.functional as F
+import torch.optim as optim # 优化器
+
+# %%
+# 确保device为gpu，否则会花费过长时间。
+if torch.cuda.is_available():
+    torch.cuda.set_device(0) # 0为选择显卡id
+    device = "cuda"
+    print('using cuda')
+else:
+    device = torch.device('cpu')
+    print('using cpu')
+
+# 设置量化位宽
+bitwidth_A = 8
+bitwidth_W = 8
+
+# %%
+# Load training and test data from the CIFAR10 dataset.
+# torchvision是pytorch官方集成的工具库，包括学界常用的数据集和数据预处理方式。
+transform = transforms.Compose(
+    [transforms.ToTensor(), # 将数据归一化，并转换成tensor的形式
+     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]) # 预处理数据的方式，normalize是将图像进行规则化。
+
+trainset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset', train=True,
+                                        download=True, transform=transform) #定义了训练集，path是训练数据所在地址，指定位置自动下载。
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                          shuffle=True, num_workers=2) #定义数据迭代器，batchsize为一次迭代训练，送进去图像的数量（可以尝试调整，看看会发生什么）。shuffle表示要不要打乱训练图像的排序。
+
+testset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset', train=False,
+                                       download=True, transform=transform)
+testloader = torch.utils.data.DataLoader(testset, batch_size=4,
+                                         shuffle=False, num_workers=2)
+
+# %%
+# Define a simple CNN that classifies CIFAR images.
+# The network provided is similar to LeNet-5, and it has the following architecture:
+
+# **Layer** |     **Type**    | **Input Shape** | **Output Shape** | **Activation**
+#   conv1   |  Convolutional  |     3x32x32     |     6x28x28      |      ReLU 
+#   pool1   |     Max pool    |     6x28x28     |     6x14x14      |      None                
+#   conv2   |  Convolutional  |     6x14x14     |     16x10x10     |      ReLU                
+#   pool2   |     Max pool    |     16x10x10    |     16x5x5       |      None                
+#   fc1     | Fully-connected |       400       |       120        |      ReLU                
+#   fc2     | Fully-connected |       120       |       84         |      ReLU                
+#   fc3     | Fully-connected |       84        |       10         |      None                
+
+# None of the layers in the network have a bias associated with them.
+# This makes them easier to quantize.
+# Towards the end of this assignment, we will add biases to the final layer and quantize it as well.
+
+# %%
+# 网络定义，conv2d是卷积层，linear是全连接层。forward下定义了计算图，显示送进来的图像（x）会怎么处理。
+class Net(nn.Module):
+    #网络结构:2层卷积层、1层最大值池化层、3层全连接层，留意这些参数的内涵
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5, bias=False)
+        self.pool = nn.MaxPool2d(2, 2) # run after each conv (hence the 5x5 FC layer)
+        self.conv2 = nn.Conv2d(6, 16, 5, bias=False)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120, bias=False)
+        self.fc2 = nn.Linear(120, 84, bias=False)
+        self.fc3 = nn.Linear(84, 10, bias=False)
+    #定义前向传播,将tensor数据送入网络之后的计算图
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+net = Net().to(device)
+# 到这里，我们定义好了网络和数据集的使用方式
+
+# %%
+from torch.utils.data import DataLoader
+#将训练集的dataloader送入网络进行训练,每次读取batchsize数量的数据
+def train(model: nn.Module, dataloader: DataLoader):
+    criterion = nn.CrossEntropyLoss() # loss function（交叉熵损失函数）
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) #optimizer，使用SGD优化器训练，第一个参数表示model的所有参数都会参与训练，学习率为0.001，动量为0.9
+
+    for epoch in range(2):  # loop over the dataset multiple times。epoch指遍历所有训练集图像的次数。这里遍历所有训练图像两次
+
+        running_loss = 0.0
+        for i, data in enumerate(dataloader, 0): # dataloader是数据迭代器，从这里每次读出batchsize数量的数据。
+            # get the inputs; data is a list of [inputs, labels]
+            inputs, labels = data
+
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            # zero the parameter gradients
+            optimizer.zero_grad()
+            
+            # forward + backward + optimize
+            outputs = model(inputs) # 将数据送进网络，得到结果
+            loss = criterion(outputs, labels) # 计算结果和标签的交叉熵损失函数
+            loss.backward() # 基于上述损失函数求解梯度
+            optimizer.step() # 更新参数
+
+            # print statistics
+            running_loss += loss.item() # 将loss的值取出来，记录其变化
+            if i % 2000 == 1999:    # print every 2000 mini-batches
+                print('[%d, %5d] loss: %.3f' %
+                    (epoch + 1, i + 1, running_loss / 2000))
+                running_loss = 0.0
+
+    print('Finished Training')
+
+def test(model: nn.Module, dataloader: DataLoader, max_samples=None) -> float:
+    correct = 0
+    total = 0
+    n_inferences = 0
+
+    with torch.no_grad(): # 测试时不用求解梯度，因此可以设置不计算梯度的模式
+        for data in dataloader:
+            images, labels = data
+
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images) # get 1 batch worth of image predictions (i.e. 4 predictions of 10 each)
+            other, predicted = torch.max(outputs.data, 1) # other == values, predicted == indicies
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+            if max_samples:
+                n_inferences += images.shape[0]
+                if n_inferences > max_samples:
+                    break
+    
+    return 100 * correct / total
+
+# %%
+train(net, trainloader) # 进行训练，将网络定义和数据迭代器传给train函数。
+
+# %%
+# Now that the CNN has been trained, let's test it on our test dataset.
+score = test(net, testloader)
+print('Accuracy of the network on the test images: {}%'.format(score))
+
+# %%
+# Define a convenience function which we use to copy CNN's.
+from copy import deepcopy
+
+def copy_model(model: nn.Module) -> nn.Module:
+    result = deepcopy(model)
+
+    # Copy over the extra metadata we've collected which copy.deepcopy doesn't capture
+    if hasattr(model, 'input_activations'):
+        result.input_activations = deepcopy(model.input_activations)
+
+    for result_layer, original_layer in zip(result.children(), model.children()):
+        if isinstance(result_layer, nn.Conv2d) or isinstance(result_layer, nn.Linear):
+            if hasattr(original_layer.weight, 'scale'):
+                result_layer.weight.scale = deepcopy(original_layer.weight.scale)
+            if hasattr(original_layer, 'activations'):
+                result_layer.activations = deepcopy(original_layer.activations)
+            if hasattr(original_layer, 'output_scale'):
+                result_layer.output_scale = deepcopy(original_layer.output_scale)
+
+    return result
+
+# %%
+# Question 1: Visualize Weights
+
+# %%
+## Question 1.1:
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+name = ['conv1', 'conv2', 'fc1', 'fc2', 'fc3']
+n = 0
+
+for layer in net.children(): # 遍历类的成员
+    if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
+        weight = layer.weight.data.cpu().view(-1).numpy()
+        print(name[n] + ": the range is [{:.5f}, {:.5f}]".format(weight.min(), weight.max()))
+
+        # find 3-sigma range (u-3s, u+3s), 该范围能囊括99.73%参数
+        sigma3 = int(np.size(weight)*0.0027+0.5) 
+        sigma3_value = np.abs(weight)[np.argpartition(np.abs(weight), -sigma3)[-sigma3]]
+        print(name[n] + ": the 3-sigma range is [{:.5f}, {:.5f}]".format(max(-sigma3_value, weight.min()), min(sigma3_value,weight.max())))
+
+        plt.hist(weight, bins=50, facecolor="blue", edgecolor="black", alpha=0.7) # 画直方图
+        plt.xlabel("range")
+        plt.ylabel("frequency")
+        plt.title(name[n])
+        plt.show()
+        n += 1
+        
+# You can get a flattened vector of the weights of fc1 like this:
+#   fc1_weights = net.fc1.weight.data.cpu().view(-1)
+
+# %%
+## Question 1.2: Explain which range you would prefer to use if you were to quantize each layer's weights and wanted to strike a balance between the range of values that could be expressed, and your precision.
+
+# %%
+# Question 2: Quantize Weights 首先我们把原来网络的参数copy到net_q2。
+
+net_q2 = copy_model(net)
+
+# %%
+## Question 2.1:
+
+from typing import Tuple
+# 确定scale进行量化
+def quantized_weights(weights: torch.Tensor, bitwidth_W):
+    '''
+    Quantize the weights so that all values are integers between -128 and 127.
+    You may want to use the total range, 3-sigma range, or some other range when
+    deciding just what factors to scale the float32 values by.
+
+    Parameters:
+    weights (Tensor): The unquantized weights
+    #输入数据是尚未量化过的权重
+
+    Returns:
+    #返回数据是一个元组,(quantization result , scale )
+    (Tensor, float): A tuple with the following elements:
+                        * The weights in quantized form, where every value is an integer between -128 and 127.
+                          The "dtype" will still be "float", but the values themselves should all be integers.
+                        * The scaling factor that your weights were multiplied by.
+                          This value does not need to be an 8-bit integer.
+    '''
+
+    # modify the following code to try other range
+
+    W_border = 2**(bitwidth_W-1)
+    w = weights.data.cpu().view(-1).numpy() # 这里将tensor转入numpy只是为了之后的计算
+    sigma3 = int(np.size(w)*0.0027+0.5)
+    sigma3_value = np.abs(w)[np.argpartition(np.abs(w), -sigma3)[-sigma3]] 
+    weights = weights/sigma3_value*W_border
+    quan_weight = weights.round() # 转化为值最接近的整数
+
+    return torch.clamp(quan_weight, min=-W_border, max=W_border-1), W_border/sigma3_value # clamp是切顶函数,会把超过阈值的值自动替换成阈值
+                                                                                          # 我认为原来对scale的定义有问题，应该是反过来才对
+
+
+
+# %%
+def quantize_layer_weights(model: nn.Module, bitwidth_W):
+    for layer in model.children():
+        if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
+            q_layer_data, scale = quantized_weights(layer.weight.data, bitwidth_W)
+            q_layer_data = q_layer_data.to(device)
+
+            layer.weight.data = q_layer_data
+            layer.weight.scale = scale
+            print(scale) # 一共有2个卷积层和3个全连接层，因此会有5个scale
+
+            if (q_layer_data < -2**(bitwidth_W-1)).any() or (q_layer_data > (2**(bitwidth_W-1)-1)).any():
+                raise Exception("Quantized weights of {} layer include values out of bounds for an 8-bit signed integer".format(layer.__class__.__name__))
+            if (q_layer_data != q_layer_data.round()).any():
+                raise Exception("Quantized weights of {} layer include non-integer values".format(layer.__class__.__name__))
+
+quantize_layer_weights(net_q2, bitwidth_W)
+
+
+# %%
+## Question 2.2:
+
+#Record the accuracy change of the network after quantizing its weights. If you’ve done everything correctly, the accuracy change should be negligible.
+
+score = test(net_q2, testloader)
+print('Accuracy of the network after quantizing all weights: {}%'.format(score))
+
+# %%
+# Question 3: Visualize Activations
+
+# Now that we have quantized the weights of the CNN, we must also quantize the activations (inputs and outputs to layers) traveling through it.
+# But before doing so, let's analyze what values the activations take when travelling through the network.
+
+# We provide convenience code which will record the values of every pixel of the outputs and inputs travelling through the neural network.
+# (This is the initial CNN, where not even the weights had yet been quantized).
+# We then profile these values when running on a subset of the training set.
+
+
+# %%
+# hook，顾名思义，其作用是把网络推理时的中间变量勾出来。通过hook函数，我们可以统计中间变量的范围。
+"""
+pytorch中的hook机制:
+Pytorch会自动舍弃图计算中间结果,用hook以获取某些变量的中间结果.要及时删除,避免增加运行负载
+
+Tensor级别：
+register_hook(hook)->Tensor:为Tensor注册一个backward hook 获取变量梯度
+hook遵循格式:hook(grad)->Tensor
+nn.Module对象级别:
+register_forward_hook(hook)
+此时hook可以修改input和output却不影响forward结果,典型场景是提取中间层的输出特征,又不希望修改原有模型定义文件
+格式为hook(layer,input,output)
+"""
+def register_activation_profiling_hooks(model: Net):
+    model.input_activations = np.empty(0)
+    model.conv1.activations = np.empty(0)
+    model.conv2.activations = np.empty(0)
+    model.fc1.activations = np.empty(0)
+    model.fc2.activations = np.empty(0)
+    model.fc3.activations = np.empty(0)
+    
+    model.profile_activations = True
+
+    def conv1_activations_hook(layer, x, y):
+        if model.profile_activations:
+            model.input_activations = np.append(model.input_activations, x[0].cpu().view(-1))
+    model.conv1.register_forward_hook(conv1_activations_hook)#寄存器暂时存下传递到下一层的activatio,下同
+
+    def conv2_activations_hook(layer, x, y):
+        if model.profile_activations:
+            model.conv1.activations = np.append(model.conv1.activations, x[0].cpu().view(-1))
+    model.conv2.register_forward_hook(conv2_activations_hook)
+
+    def fc1_activations_hook(layer, x, y):
+        if model.profile_activations:
+            model.conv2.activations = np.append(model.conv2.activations, x[0].cpu().view(-1))
+    model.fc1.register_forward_hook(fc1_activations_hook)
+    
+
+    def fc2_activations_hook(layer, x, y):
+        if model.profile_activations:
+            model.fc1.activations = np.append(model.fc1.activations, x[0].cpu().view(-1))
+    model.fc2.register_forward_hook(fc2_activations_hook)
+
+    def fc3_activations_hook(layer, x, y):
+        if model.profile_activations:
+            model.fc2.activations = np.append(model.fc2.activations, x[0].cpu().view(-1))
+            model.fc3.activations = np.append(model.fc3.activations, y[0].cpu().view(-1))
+    model.fc3.register_forward_hook(fc3_activations_hook)
+
+
+# %%
+# Use the unquantized model to profile input and output activations on a subset of the training dataset.
+
+net_q3 = copy_model(net)
+register_activation_profiling_hooks(net_q3)#把各个中间层都记录下来
+
+# Run through the training dataset again while profiling the input and output activations this time
+# We don't actually have to perform gradient descent for this, so we can use the "test" function
+test(net_q3, trainloader, max_samples=400) # 跑400次，统计中间变量的数值范围
+net_q3.profile_activations = False
+
+# %%
+## Question 3.1:
+
+# Plot histograms of the input images and the outputs of every convolutional and fully-connected layer. 
+# Record any observations you make about the distribution of the values.
+# ADD YOUR CODE HERE 
+Activation_border = 2**(bitwidth_A-1)
+input_activations = net_q3.input_activations # 输入数据
+conv1_output_activations = net_q3.conv1.activations # 第一层卷积层的输出数据
+conv2_output_activations = net_q3.conv2.activations # 第二层卷积层的输出数据
+fc1_output_activations = net_q3.fc1.activations # 同上类推
+fc2_output_activations = net_q3.fc2.activations
+fc3_output_activations = net_q3.fc3.activations
+
+
+# to plot distributions of activations
+# Plot histograms of the following variables, and calculate their ranges and 3-sigma ranges:
+# 拼接上面的数据成一个group，方便循环遍历
+activation_groups = [
+    (input_activations, "input_activations"),
+    (conv1_output_activations, "conv1_output_activations"),
+    (conv2_output_activations, "conv2_output_activations"),
+    (fc1_output_activations, "fc1_output_activations"),
+    (fc2_output_activations, "fc2_output_activations"),
+    (fc3_output_activations, "fc3_output_activations"),
+]
+
+for activation_data, name in activation_groups: # 遍历类的成员
+    print(name + ": the range is [{:.5f}, {:.5f}]".format(activation_data.min(), activation_data.max()))
+
+    # find 3-sigma range (u-3s, u+3s), 该范围能囊括99.73%参数
+    sigma3 = int(np.size(activation_data)*0.0027+0.5) 
+    sigma3_value = np.abs(activation_data)[np.argpartition(np.abs(activation_data), -sigma3)[-sigma3]]
+    print(name + ": the 3-sigma range is [{:.5f}, {:.5f}]".format(max(-sigma3_value, activation_data.min()), min(sigma3_value,activation_data.max())))
+
+    plt.hist(activation_data, bins=50, facecolor="green", edgecolor="black", alpha=0.7) # 画直方图
+    plt.xlabel("range")
+    plt.ylabel("frequency")
+    plt.title(name+"_distribution")
+    plt.show()
+        
+
+# You can get a flattened vector of the weights of fc1 like this:
+#   fc1_weights = net.fc1.weight.data.cpu().view(-1)
+
+
+# %%
+## Question 3.2:
+
+# Additionally, record the range of the values, as well as their 3-sigma range (the difference between $\mu + 3\sigma$ and $\mu - 3\sigma$).
+# For which layers is the 3-sigma range larger or smaller than the actual range?
+# Then explain which range you would prefer to use if you were to quantize each layer's weights and wanted to strike a balance between the range of values that could be expressed, and your precision.
+# Remember that you are plotting the activations *after* activation functions like ReLU have been applied, which means that you should not be worried if you find that your plots are asymmetric.
+
+# %%
+# Question 4: Quantize Activations
+
+# Complete the `quantize_initial_input` and `quantize_activations` functions which calculate the scaling factors for the initial image which is input to the CNN, and the outputs of each layer, respectively.
+
+# complete the `forward` function for the `NetQuantized` class.
+# You will have to add code here to scale the outputs of each layer, and then to clamp the outputs of each layer to integers between -128 and 127 afterwards.
+
+# %%
+from typing import List
+
+class NetQuantized(nn.Module):
+    def __init__(self, net_with_weights_quantized: nn.Module, bitwidth_A):
+        super(NetQuantized, self).__init__()
+        
+        net_init = copy_model(net_with_weights_quantized) # 最初的网络copy 过来,用于初始化量化网络
+
+        self.conv1 = net_init.conv1
+        self.pool = net_init.pool
+        self.conv2 = net_init.conv2
+        self.fc1 = net_init.fc1
+        self.fc2 = net_init.fc2
+        self.fc3 = net_init.fc3
+        self.activation_border = 2**(bitwidth_A-1)
+        print(self.activation_border)
+
+        for layer in self.conv1, self.conv2, self.fc1, self.fc2, self.fc3:
+            #逐层遍历,检查量化是否成功
+            def pre_hook(l, x):
+                x = x[0]
+                #异常处理:检查之前的量化是否将所有的数转化进规定的区间
+                if (x < -self.activation_border).any() or (x > (self.activation_border-1)).any():
+                    raise Exception("Input to {} layer is out of bounds for an {}-bit signed integer".format(l.__class__.__name__, bitwidth_A))
+                if (x != x.round()).any():
+                    raise Exception("Input to {} layer has non-integer values".format(l.__class__.__name__))
+
+            layer.register_forward_pre_hook(pre_hook)
+
+        # Calculate the scaling factor for the initial input to the CNN
+        self.input_activations = net_with_weights_quantized.input_activations
+        self.input_scale = NetQuantized.quantize_initial_input(self.input_activations, self.activation_border)
+        #以上2行计算了input activation 的scale和对应的quantization 版本
+        # Calculate the output scaling factors for all the layers of the CNN
+
+        n_w = []
+        activation_scale= [self.input_scale] 
+
+        for layer in self.conv1, self.conv2, self.fc1, self.fc2, self.fc3:
+            # call quantize_activations and add your code here
+
+            #获取权重缩放因子
+            n_w.append(layer.weight.scale) 
+
+            # 计算当前层激活的缩放因子
+            activation_scale.append( NetQuantized.quantize_initial_input(
+            layer.activations, 2*self.activation_border
+            )   )
+
+        #print(activation_scale)
+
+        n = 0
+        for layer in self.conv1, self.conv2, self.fc1, self.fc2, self.fc3:
+            layer.output_scale = NetQuantized.quantize_activations(n_w[n], activation_scale[n], activation_scale[n + 1])
+            n = n + 1
+        
+
+        # 注册前向检查钩子
+        for layer in self.conv1, self.conv2, self.fc1, self.fc2, self.fc3:
+            def pre_hook(l, x):
+                x = x[0]
+                if (x < -self.activation_border).any() or (x > (self.activation_border-1)).any():
+                    raise Exception(f"Input to {l.__class__.__name__} layer is out of bounds")
+                if (x != x.round()).any():
+                    raise Exception(f"Input to {l.__class__.__name__} layer has non-integer values")
+            layer.register_forward_pre_hook(pre_hook)
+
+    #计算输入的scale函数
+    @staticmethod
+    def quantize_initial_input(pixels: np.ndarray, activation_border:int):
+        '''
+        Calculate a scaling factor for the images that are input to the first layer of the CNN.
+
+        Parameters:
+        pixels (ndarray): The values of all the pixels which were part of the input image during training
+
+        Returns:
+        float: A scaling factor that the input should be multiplied by before being fed into the first layer.
+               This value does not need to be an 8-bit integer.
+        '''
+
+        sigma3 = int(np.size(pixels)*0.0027+0.5)
+        sigma3_value = pixels[np.argpartition(pixels,-sigma3)[-sigma3]]
+        max_value = np.max(np.abs(pixels))
+        scale = activation_border/max_value  # you can modify the range here，同样，这个地方的scale和论文定义的是和源代码倒数的关系
+        return scale
+
+    # 逐层激活送入量化
+    @staticmethod
+    def quantize_activations( n_w: float, pre_activation_scale: float, now_activation_scale: float) -> float:
+        '''
+        Calculate a scaling factor to multiply the output of a layer by.
+
+        Parameters:
+        activations (ndarray): The values of all the pixels which have been output by this layer during training
+        n_w (float): The scale by which the weights of this layer were multiplied as part of the "quantize_weights" function you wrote earlier
+        n_initial_input (float): The scale by which the initial input to the neural network was multiplied
+        ns ([(float, float)]): A list of tuples, where each tuple represents the "weight scale" and "output scale" (in that order) for every preceding layer
+        #用一个元组记录已经算好的所有网络的weight scale 和 output scale
+        Returns:
+        float: A scaling factor that the layer output should be multiplied by before being fed into the first layer.
+               This value does not need to be an 8-bit integer.
+        '''
+
+        # ADD YOUR CODE HERE
+        scale = now_activation_scale / (pre_activation_scale * n_w) 
+        return scale
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # You can access the output activation scales like this:
+        #   fc1_output_scale = self.fc1.output_scale
+
+        # 这里其实是对定点数计算的模拟仿真，因此每层的输出均需要手动乘以scaling factor，并限制在规定的表示范围内。
+        # output_scale:不同网络层之间传递整数重新压缩为8bit的scale(在第三周阅读论文中是定点浮点数M)
+        # activation_scale:网络层内数据和真实值差距的scale
+        # weight_scale:权重量化值和真实值差距的scale
+        x = x*self.input_scale 
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1) # 8bit是-128~127
+
+        x = self.pool(F.relu(self.conv1(x)))
+        x = x*self.conv1.output_scale
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x*self.conv2.output_scale
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)     
+
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))   
+        x = x*self.fc1.output_scale
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)  
+
+
+        x = F.relu(self.fc2(x))   
+        x = x*self.fc2.output_scale
+        x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1) 
+
+
+        x = self.fc3(x)*self.fc3.output_scale
+        return x
+
+
+# %%
+#Merge the information from net_q2 and net_q3 together
+#weight quantization & activation quantization 
+net_init = copy_model(net_q2)
+net_init.input_activations = deepcopy(net_q3.input_activations)
+for layer_init, layer_q3 in zip(net_init.children(), net_q3.children()):
+    if isinstance(layer_init, nn.Conv2d) or isinstance(layer_init, nn.Linear):
+        layer_init.activations = deepcopy(layer_q3.activations)
+
+net_quantized = NetQuantized(net_init, bitwidth_A)
+
+
+# %%
+# Finally, record the accuracy of your network after both weights and activations have been quantized.
+# If you've done everything right, you should still find almost no accuracy change.
+
+score = test(net_quantized, testloader)
+print('Accuracy of the network after quantizing both weights and activations: {}%'.format(score))
+
+
+# %%
+# Question 5: Quantize Biases 以下为选做内容
+
+# Let us now update our CNN to include a bias in its final layer, *fc3*.
+# We have already included code to create and train a new CNN called `net_with_bias`.
+
+# Consider how a bias affects the equation for an unquantized layer:
+
+# W * In + bias = Out
+
+
+
+# %%
+## Question 5.1:
+
+# Suppose that we again quantized a biased layer with the same scaling factors we used in previous questions: $n_W$, $n_{In}$, and $n_{Out}$.
+# What would we scale bias by in this case?
+# Write an equation in your lab report to describe the output of the quantized layer with a bias.
+
+# Create a new network with a bias on *fc3*.
+
+
+# %%
+class NetWithBias(nn.Module):
+    def __init__(self):
+        super(NetWithBias, self).__init__()
+
+        self.conv1 = nn.Conv2d(3, 6, 5, bias=False)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5, bias=False)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120, bias=False)
+        self.fc2 = nn.Linear(120, 84, bias=False)
+        self.fc3 = nn.Linear(84, 10, bias=True) # 最后一层的网络产生bias,这就是和之前的区别
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+net_with_bias = NetWithBias().to(device)
+
+# %%
+# Train and test the model
+
+# %%
+train(net_with_bias, trainloader)
+
+# %%
+score = test(net_with_bias, testloader)
+print('Accuracy of the network (with a bias) on the test images: {}%'.format(score))
+
+# %%
+register_activation_profiling_hooks(net_with_bias)
+test(net_with_bias, trainloader, max_samples=400)
+net_with_bias.profile_activations = False
+
+# %%
+net_with_bias_with_quantized_weights = copy_model(net_with_bias)
+quantize_layer_weights(net_with_bias_with_quantized_weights, bitwidth_W)
+
+score = test(net_with_bias_with_quantized_weights, testloader)
+print('Accuracy of the network on the test images after all the weights are quantized but the bias isn\'t: {}%'.format(score))
+
+# %%
+# Fill in the `quantized_bias` function in the `NetQuantizedWithBias` class.
+# This function is meant to quantize the bias on the final layer of the CNN.
+# Keep in mind that biases are typically quantized to 32-bits, so your bias values do not all have to be between -128 and 127 (though 32-bits is a bit conservative).
+
+# %%
+# slightly clearer bias bounds (32b signed integer)
+#bias量化后的最大值、最小值
+MIN_32B_SINT = -(2**31) 
+MAX_32B_SINT = (2**31) - 1
+
+# %%
+class NetQuantizedWithBias(NetQuantized):
+    def __init__(self, net_with_weights_quantized: nn.Module):
+        super(NetQuantizedWithBias, self).__init__(net_with_weights_quantized, bitwidth_A)
+
+        preceding_scales = [(layer.weight.scale, layer.output_scale) for layer in self.children() if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear)][:-1]
+        #print(preceding_scales)
+
+        self.fc3.bias.data = NetQuantizedWithBias.quantized_bias(
+            self.fc3.bias.data,
+            self.fc3.weight.scale,
+            self.input_scale,
+            preceding_scales
+        )
+        
+
+        if (self.fc3.bias.data < MIN_32B_SINT).any() or (self.fc3.bias.data > MAX_32B_SINT).any():
+            raise Exception("Bias has values which are out of bounds for an 32-bit signed integer")
+        if (self.fc3.bias.data != self.fc3.bias.data.round()).any():
+            raise Exception("Bias has non-integer values")
+    
+    @staticmethod
+    def quantized_bias(bias: torch.Tensor, n_w: float, n_initial_input: float, ns: List[Tuple[float, float]]) -> torch.Tensor:
+        '''
+        Quantize the bias so that all values are integers between MIN_32B_SINT and MAX_32B_SINT.
+
+        Parameters:
+        bias (Tensor): The floating point values of the bias
+        n_w (float): The scale by which the weights of this layer were multiplied
+        n_initial_input (float): The scale by which the initial input to the neural network was multiplied
+        ns ([(float, float)]): A list of tuples, where each tuple represents the "weight scale" and "output scale" (in that order) for every preceding layer
+0
+        Returns:
+        Tensor: The bias in quantized form, where every value is an integer between MIN_32B_SINT and MAX_32B_SINT.
+                The "dtype" will still be "float", but the values themselves should all be integers.
+        '''
+
+        # ADD YOUR CODE HERE
+
+        #print(bias)
+        # 计算累积缩放因子：初始输入缩放 × 所有前驱层的输出缩放
+
+        scale = n_initial_input
+        for weight_scale, output_scale in ns:
+            scale *= output_scale
+            scale *= weight_scale
+        
+        # 总缩放因子 = 累积输入缩放 × 当前层权重缩放
+        scale = scale * n_w
+        print(scale)
+
+        # 量化偏置：bias * scale → 四舍五入 → 截断至32位整数范围
+        quan_bias = (bias * scale).round()
+        quan_bias = torch.clamp(quan_bias, min=MIN_32B_SINT, max=MAX_32B_SINT)
+        return quan_bias
+
+
+
+
+# %%
+net_quantized_with_bias = NetQuantizedWithBias(net_with_bias_with_quantized_weights)
+
+
+# %%
+## Question 5.3:
+
+# What is your accuracy before and after quantizing CNN with the bias?
+# The accuracy change should ideally be negligible.
+
+# %%
+score = test(net_quantized_with_bias, testloader)
+print('Accuracy of the network on the test images after all the weights and the bias are quantized: {}%'.format(score))
+\end{lstlisting}
+
+
+\newpage
+\begin{lstlisting}[frame=shadowbox,caption = lab1\_QAT.ipynb,language=python]
+# %%
+# 本次实验包括后量化的过程，主要在于学习如何对DNN的权重（weight）和激活层（activation）进行量化。
+
+# %%
+# 引用外部软件包
+import torch # pytorch包
+import torchvision # torchvision是pytorch官方提供的工具，包含很多常用数据集的封装等
+import torchvision.transforms as transforms
+import torch.nn as nn # nn 和下面的F均包含了主要的神经网络模块，包括卷积层、全连接层、池化层等等
+import torch.nn.functional as F
+import torch.optim as optim # 优化器
+
+# %%
+# 确保device为gpu，否则会花费过长时间。
+if torch.cuda.is_available():
+    torch.cuda.set_device(0)
+    device = "cuda"
+else:
+    device = torch.device('cpu')
+
+
+# %%
+# Load training and test data from the CIFAR10 dataset.
+# torchvision是pytorch官方集成的工具库，包括学界常用的数据集和数据预处理方式。
+transform = transforms.Compose(
+    [transforms.ToTensor(), # 将数据归一化，并转换成tensor的形式
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]) # 预处理数据的方式，normalize是将图像进行规则化。
+
+trainset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset/cifar10', train=True,
+                                        download=True, transform=transform) #定义了训练集，path是训练数据所在地址。
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                            shuffle=True, num_workers=2) #定义数据迭代器，batchsize为一次迭代训练，送进去图像的数量（可以尝试调整，看看会发生什么）。shuffle表示要不要打乱训练图像的排序。
+
+testset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset/cifar10', train=False,
+                                        download=True, transform=transform)
+testloader = torch.utils.data.DataLoader(testset, batch_size=4,
+                                            shuffle=False, num_workers=2)
+
+# %%
+# Define a simple CNN that classifies CIFAR images.
+# The network provided is similar to LeNet-5, and it has the following architecture:
+
+# **Layer** |     **Type**    | **Input Shape** | **Output Shape** | **Activation**
+#   conv1   |  Convolutional  |     3x32x32     |     6x28x28      |      ReLU 
+#   pool1   |     Max pool    |     6x28x28     |     6x14x14      |      None                
+#   conv2   |  Convolutional  |     6x14x14     |     16x10x10     |      ReLU                
+#   pool2   |     Max pool    |     16x10x10    |     16x5x5       |      None                
+#   fc1     | Fully-connected |       400       |       120        |      ReLU                
+#   fc2     | Fully-connected |       120       |       84         |      ReLU                
+#   fc3     | Fully-connected |       84        |       10         |      None                
+
+# None of the layers in the network have a bias associated with them.
+# This makes them easier to quantize.
+# Towards the end of this assignment, we will add biases to the final layer and quantize it as well.
+
+# %%
+# 重新定义conv函数与fc函数
+import math
+def TorchRound():
+    """
+    Apply STE to clamp function.
+    """
+    class identity_quant(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx, input):
+            out = torch.round(input)
+            return out
+
+        @staticmethod
+        def backward(ctx, grad_output):
+            return grad_output
+
+    return identity_quant().apply
+
+def quant_max(tensor):
+    """
+    Returns the max value for symmetric quantization.
+    """
+    return torch.abs(tensor.detach()).max() + 1e-8 # 防止除0的情况出现
+
+class quant_weight(nn.Module):
+    """
+    Quantization function for quantize weight with maximum.
+    """
+
+    def __init__(self, k_bits=8):
+        super(quant_weight, self).__init__()
+        self.k_bits = k_bits
+        self.qmax = 2. ** (k_bits -1) - 1.
+        self.round = TorchRound()
+
+    def forward(self, input):
+        max_val = quant_max(input)
+        weight = input * self.qmax / max_val
+        q_weight = self.round(weight)
+        q_weight = q_weight * max_val / self.qmax  # 通过这种方式引入量化误差，从而实现QAT
+        return q_weight
+
+class QuantConv2d(nn.Module):
+    """
+    A convolution layer with quantized weight.
+    """
+
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
+                    padding=0, dilation=1, groups=1, bias=False, k_bits=8): # 默认使用bias=False的情况
+        super(QuantConv2d, self).__init__()
+        self.weight = nn.Parameter(torch.Tensor(out_channels,in_channels,kernel_size,kernel_size))
+        self.stride = stride
+        self.padding = padding
+        self.dilation = dilation
+        self.groups = groups
+        self.in_channels = in_channels
+        self.kernel_size = (kernel_size, kernel_size)
+        self.bias_flag = bias
+        if self.bias_flag:
+            self.bias = nn.Parameter(torch.Tensor(out_channels))
+            nn.init.constant_(self.bias)
+        else:
+            self.register_parameter('bias', None)
+        self.k_bits = k_bits
+        self.quant_weight = quant_weight(k_bits = k_bits)
+        self.output = None
+        nn.init.kaiming_normal_(self.weight) # 初始化参数
+        
+
+    def forward(self, input, order=None):
+        return F.conv2d(input, self.quant_weight(self.weight), self.bias, self.stride, self.padding, self.dilation, self.groups)
+
+class QuantFC(nn.Module):
+    """
+    A Fully Connected layer with quantized weight.
+    """
+
+    def __init__(self, in_features, out_features, bias=False, k_bits=8): # 默认使用bias=False的情况
+        super(QuantFC, self).__init__()
+        self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
+        self.bias_flag = bias
+        if self.bias_flag:
+            self.bias = nn.Parameter(torch.Tensor(out_features))
+        else:
+            self.register_parameter('bias', None)
+        self.k_bits = k_bits
+        self.quant_weight = quant_weight(k_bits = k_bits)
+        nn.init.kaiming_normal_(self.weight) # 初始化参数，何恺明发明
+
+
+    def forward(self, input, order=None):
+        return F.linear(input, self.quant_weight(self.weight), self.bias)
+
+# %%
+class quant_act(nn.Module):
+    """
+    Quantization function for quantize activation with parameterized max scale.
+    """
+    def __init__(self, k_bits=8, decay=0.995):
+        super(quant_act, self).__init__()
+        self.k_bits = k_bits
+        self.qmax = 2. ** (self.k_bits -1) -1.
+        self.round = TorchRound()
+        self.decay = decay #平滑因子，用于EMA，能够更敏感地反映最新的数据变化
+        self.alpha = nn.Parameter(torch.Tensor(10))   #将激活值限制在 [-alpha, alpha] 范围内，避免异常值破坏量化。
+        self.register_buffer('max_val', torch.ones(1))
+
+    def _ema(self, x):   #通过指数移动平均（EMA）跟踪激活值的最大绝对值范围
+        act = x.reshape(x.shape[0], -1)
+        # print(act.shape)
+        max_val = torch.mean(torch.max(act, dim=1)[0])
+
+        self.max_val = (1.0-self.decay) * max_val + self.decay * self.max_val 
+
+    def forward(self, x):
+        act = x
+        self._ema(x)
+        self.alpha.data = self.max_val.unsqueeze(0)
+        act = torch.max(torch.min(x, self.alpha), -self.alpha)
+        
+        act = act * self.qmax / self.alpha  
+        q_act = self.round(act)
+        q_act = q_act * self.alpha / self.qmax  # 引入量化误差
+    
+        return q_act
+
+# %%
+# 网络定义，conv2d是卷积层，linear是全连接层。forward下定义了计算图，显示送进来的图像（x）会怎么处理。
+class Net(nn.Module):
+    #网络结构:2层卷积层、1层最大值池化层、3层全连接层，留意这些参数的内涵
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = QuantConv2d(3, 6, 5, bias=False, k_bits=8) # Weight for 8bit
+        self.pool = nn.MaxPool2d(2, 2) 
+        self.conv2 = QuantConv2d(6, 16, 5, bias=False, k_bits=8)
+        self.fc1 = QuantFC(16 * 5 * 5, 120, bias=False, k_bits=8)
+        self.fc2 = QuantFC(120, 84, bias=False, k_bits=8)
+        self.fc3 = QuantFC(84, 10, bias=False, k_bits=8)
+
+        self.quant_act1 = quant_act(k_bits=8) # activation for 8 bit
+        self.quant_act2 = quant_act(k_bits=8)
+        self.quant_act3 = quant_act(k_bits=8)
+        self.quant_act4 = quant_act(k_bits=8)
+        # self.quant_act5 = quant_act(k_bits=8)
+    #定义前向传播,将tensor数据送入网络之后的计算图
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.quant_act1(x)
+
+        x = self.pool(F.relu(self.conv2(x)))
+        x = self.quant_act2(x)
+
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = self.quant_act3(x)
+
+        x = F.relu(self.fc2(x))
+        x = self.quant_act4(x)
+
+        x = self.fc3(x)
+        # x = self.quant_act5(x)
+        return x
+
+net = Net().to(device)
+# 到这里，我们定义好了网络和数据集的使用方式
+
+# %%
+from torch.utils.data import DataLoader
+#将训练集的dataloader送入网络进行训练,每次读取batchsize数量的数据
+def train(model: nn.Module, dataloader: DataLoader):
+    criterion = nn.CrossEntropyLoss() # loss function（交叉熵损失函数）
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) #optimizer，使用SGD优化器训练，第一个参数表示model的所有参数都会参与训练，学习率为0.001，动量为0.9
+
+    for epoch in range(2):  # loop over the dataset multiple times。epoch指遍历所有训练集图像的次数。这里遍历所有训练图像三次
+
+        running_loss = 0.0
+        for i, data in enumerate(dataloader, 0): # dataloader是数据迭代器，从这里每次读出batchsize数量的数据。
+            # get the inputs; data is a list of [inputs, labels]
+            inputs, labels = data
+
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            # zero the parameter gradients
+            optimizer.zero_grad()
+            
+            # forward + backward + optimize
+            outputs = model(inputs) # 将数据送进网络，得到结果
+            loss = criterion(outputs, labels) # 计算结果和标签的交叉熵损失函数
+            loss.backward() # 基于上述损失函数求解梯度
+            optimizer.step() # 更新参数
+
+            # print statistics
+            running_loss += loss.item() # 将loss的值取出来，记录其变化
+            if i % 2000 == 1999:    # print every 2000 mini-batches
+                print('[%d, %5d] loss: %.3f' %
+                    (epoch + 1, i + 1, running_loss / 2000))
+                running_loss = 0.0
+
+    print('Finished Training')
+
+def test(model: nn.Module, dataloader: DataLoader, max_samples=None) -> float:
+    correct = 0
+    total = 0
+    n_inferences = 0
+
+    with torch.no_grad(): # 测试时不用求解梯度，因此可以设置不计算梯度的模式
+        for data in dataloader:
+            images, labels = data
+
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images) # get 1 batch worth of image predictions (i.e. 4 predictions of 10 each)
+            other, predicted = torch.max(outputs.data, 1) # other == values, predicted == indicies
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+            if max_samples:
+                n_inferences += images.shape[0]
+                if n_inferences > max_samples:
+                    break
+    
+    return 100 * correct / total
+
+# %%
+train(net, trainloader) # 进行训练，将网络定义和数据迭代器传给train函数。
+
+# %%
+# Now that the CNN has been trained, let's test it on our test dataset.
+score = test(net, testloader)
+print('Accuracy of the network on the test images: {}%'.format(score))
+
+# %%
+# Define a convenience function which we use to copy CNN's.
+from copy import deepcopy
+
+def copy_model(model: nn.Module) -> nn.Module:
+    result = deepcopy(model)
+
+    # Copy over the extra metadata we've collected which copy.deepcopy doesn't capture
+    if hasattr(model, 'input_activations'):
+        result.input_activations = deepcopy(model.input_activations)
+
+    for result_layer, original_layer in zip(result.children(), model.children()):
+        if isinstance(result_layer, nn.Conv2d) or isinstance(result_layer, nn.Linear):
+            if hasattr(original_layer.weight, 'scale'):
+                result_layer.weight.scale = deepcopy(original_layer.weight.scale)
+            if hasattr(original_layer, 'activations'):
+                result_layer.activations = deepcopy(original_layer.activations)
+            if hasattr(original_layer, 'output_scale'):
+                result_layer.output_scale = deepcopy(original_layer.output_scale)
+
+    return result
+
+# %%
+# Visualize Weights
+
+# %%
+import matplotlib.pyplot as plt
+import numpy as np
+
+name = ['conv1', 'conv2', 'fc1', 'fc2', 'fc3']
+n = 0
+
+for layer in net.children(): # 遍历类的成员
+    if isinstance(layer, QuantConv2d) or isinstance(layer, QuantFC):
+        weight = layer.weight.data.cpu().view(-1).numpy()
+        print(name[n] + ": the range is [{:.5f}, {:.5f}]".format(weight.min(), weight.max()))
+
+        # find 3-sigma range (u-3s, u+3s), 该范围能囊括99.73%参数
+        sigma3 = int(np.size(weight)*0.0027) 
+        sigma3_value = np.abs(weight)[np.argpartition(np.abs(weight), -sigma3)[-sigma3]]
+        print(name[n] + ": the 3-sigma range is [{:.5f}, {:.5f}]".format(max(-sigma3_value, weight.min()), min(sigma3_value,weight.max())))
+
+        plt.hist(weight, bins=50, facecolor="blue", edgecolor="black", alpha=0.7) # 画直方图
+        plt.xlabel("range")
+        plt.ylabel("frequency")
+        plt.title(name[n])
+        plt.show()
+        n += 1
+        
+# You can get a flattened vector of the weights of fc1 like this:
+#   fc1_weights = net.fc1.weight.data.cpu().view(-1)
+    
+\end{lstlisting}
+
+\begin{lstlisting}[frame=shadowbox,caption = lab1\_PTQ\_deepernet.ipynb,language=python]
+    # %%
+    # 本次实验包括后量化的过程，主要在于学习如何对DNN的权重（weight）和激活层（activation）进行量化。
+    
+    # %%
+    # 引用外部软件包
+    import torch # pytorch包
+    import torchvision # torchvision是pytorch官方提供的工具，包含很多常用数据集的封装等
+    import torchvision.transforms as transforms
+    import torch.nn as nn # nn 和下面的F均包含了主要的神经网络模块，包括卷积层、全连接层、池化层等等
+    import torch.nn.functional as F
+    import torch.optim as optim # 优化器
+    
+    # %%
+    # 确保device为gpu，否则会花费过长时间。
+    if torch.cuda.is_available():
+        torch.cuda.set_device(0) # 0为选择显卡id
+        device = "cuda"
+        print('using cuda')
+    else:
+        device = torch.device('cpu')
+        print('using cpu')
+    
+    # 设置量化位宽
+    bitwidth_A = 8
+    bitwidth_W = 8
+    
+    # %%
+    # Load training and test data from the CIFAR10 dataset.
+    # torchvision是pytorch官方集成的工具库，包括学界常用的数据集和数据预处理方式。
+    transform = transforms.Compose(
+        [transforms.ToTensor(), # 将数据归一化，并转换成tensor的形式
+         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]) # 预处理数据的方式，normalize是将图像进行规则化。
+    
+    trainset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset', train=True,
+                                            download=True, transform=transform) #定义了训练集，path是训练数据所在地址，指定位置自动下载。
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                              shuffle=True, num_workers=2) #定义数据迭代器，batchsize为一次迭代训练，送进去图像的数量（可以尝试调整，看看会发生什么）。shuffle表示要不要打乱训练图像的排序。
+    
+    testset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset', train=False,
+                                           download=True, transform=transform)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=4,
+                                             shuffle=False, num_workers=2)
+    
+    # %%
+    # Define a simple CNN that classifies CIFAR images.
+    # The net has the following architecture:
+    
+    # **Layer** |     **Type**    | **Input Shape** | **Output Shape** | **Activation**
+    #   conv1   |  Convolutional  |     3x32x32     |     16x32x32     |      ReLU 
+    #   conv2   |  Convolutional  |     16x32x32    |     16x32x32     |      ReLU  
+    #   pool1   |     Max pool    |     16x32x32    |     16x16x16     |      None                
+    #   conv3   |  Convolutional  |     16x16x16    |     32x16x16     |      ReLU      
+    #   conv4   |  Convolutional  |     32x16x16    |     32x16x16     |      ReLU            
+    #   pool2   |     Max pool    |     32x16x16    |     32x8x8       |      None                
+    #   fc1     | Fully-connected |     32x8x8      |       128        |      ReLU
+    #   fc2     | Fully-connected |       128       |       10         |      ReLU                
+    
+    # None of the layers in the network have a bias associated with them.
+    # This makes them easier to quantize.
+    # Towards the end of this assignment, we will add biases to the final layer and quantize it as well.
+    
+    # %%
+    # 网络定义，conv2d是卷积层，linear是全连接层。forward下定义了计算图，显示送进来的图像（x）会怎么处理。
+    class Net(nn.Module):
+        #网络结构:4层卷积层、2层最大值池化层、4层全连接层，留意这些参数的内涵
+        def __init__(self):
+            super(Net, self).__init__()
+            self.conv1 = nn.Conv2d(3, 16, 3, padding='same', bias=False)
+            self.conv2 = nn.Conv2d(16, 16, 3, padding='same', bias=False)
+            self.pool = nn.MaxPool2d(2, 2) # run after each conv (hence the 3x3 FC layer)
+            self.conv3 = nn.Conv2d(16, 32, 3, padding='same', bias=False)
+            self.conv4 = nn.Conv2d(32, 32, 3, padding='same', bias=False)
+            self.pool2 = nn.AvgPool2d(2,2)
+            self.fc1 = nn.Linear(32 * 8 * 8, 128, bias=False)
+            self.fc2 = nn.Linear(128, 10, bias=False)
+        #定义前向传播,将tensor数据送入网络之后的计算图
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            x = F.relu(self.conv1(x))
+            x = F.relu(self.conv2(x))
+            x = self.pool(x)
+            x = F.relu(self.conv3(x))
+            x = F.relu(self.conv4(x))
+            x = self.pool(x)
+            x = x.view(-1, 32 * 8 * 8)
+            x = F.relu(self.fc1(x))
+            x = self.fc2(x)
+            return x
+    
+    net = Net().to(device)
+    # 到这里，我们定义好了网络和数据集的使用方式
+    
+    # %%
+    from torch.utils.data import DataLoader
+    #将训练集的dataloader送入网络进行训练,每次读取batchsize数量的数据
+    def train(model: nn.Module, dataloader: DataLoader):
+        criterion = nn.CrossEntropyLoss() # loss function（交叉熵损失函数）
+        optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) #optimizer，使用SGD优化器训练，第一个参数表示model的所有参数都会参与训练，学习率为0.001，动量为0.9
+    
+        for epoch in range(10):  # loop over the dataset multiple times。epoch指遍历所有训练集图像的次数。这里遍历所有训练图像两次
+    
+            running_loss = 0.0
+            for i, data in enumerate(dataloader, 0): # dataloader是数据迭代器，从这里每次读出batchsize数量的数据。
+                # get the inputs; data is a list of [inputs, labels]
+                inputs, labels = data
+    
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+    
+                # zero the parameter gradients
+                optimizer.zero_grad()
+                
+                # forward + backward + optimize
+                outputs = model(inputs) # 将数据送进网络，得到结果
+                loss = criterion(outputs, labels) # 计算结果和标签的交叉熵损失函数
+                loss.backward() # 基于上述损失函数求解梯度
+                optimizer.step() # 更新参数
+    
+                # print statistics
+                running_loss += loss.item() # 将loss的值取出来，记录其变化
+                if i % 2000 == 1999:    # print every 2000 mini-batches
+                    print('[%d, %5d] loss: %.3f' %
+                        (epoch + 1, i + 1, running_loss / 2000))
+                    running_loss = 0.0
+    
+        print('Finished Training')
+    
+    def test(model: nn.Module, dataloader: DataLoader, max_samples=None) -> float:
+        correct = 0
+        total = 0
+        n_inferences = 0
+    
+        with torch.no_grad(): # 测试时不用求解梯度，因此可以设置不计算梯度的模式
+            for data in dataloader:
+                images, labels = data
+    
+                images = images.to(device)
+                labels = labels.to(device)
+    
+                outputs = model(images) # get 1 batch worth of image predictions (i.e. 4 predictions of 10 each)
+                other, predicted = torch.max(outputs.data, 1) # other == values, predicted == indicies
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+    
+                if max_samples:
+                    n_inferences += images.shape[0]
+                    if n_inferences > max_samples:
+                        break
+        
+        return 100 * correct / total
+    
+    # %%
+    train(net, trainloader) # 进行训练，将网络定义和数据迭代器传给train函数。
+    
+    # %%
+    # Now that the CNN has been trained, let's test it on our test dataset.
+    score = test(net, testloader)
+    print('Accuracy of the network on the test images: {}%'.format(score))
+    
+    # %%
+    # Define a convenience function which we use to copy CNN's.
+    from copy import deepcopy
+    
+    def copy_model(model: nn.Module) -> nn.Module:
+        result = deepcopy(model)
+    
+        # Copy over the extra metadata we've collected which copy.deepcopy doesn't capture
+        if hasattr(model, 'input_activations'):
+            result.input_activations = deepcopy(model.input_activations)
+    
+        for result_layer, original_layer in zip(result.children(), model.children()):
+            if isinstance(result_layer, nn.Conv2d) or isinstance(result_layer, nn.Linear):
+                if hasattr(original_layer.weight, 'scale'):
+                    result_layer.weight.scale = deepcopy(original_layer.weight.scale)
+                if hasattr(original_layer, 'activations'):
+                    result_layer.activations = deepcopy(original_layer.activations)
+                if hasattr(original_layer, 'output_scale'):
+                    result_layer.output_scale = deepcopy(original_layer.output_scale)
+    
+        return result
+    
+    # %%
+    # Question 1: Visualize Weights
+    
+    # %%
+    ## Question 1.1:
+    
+    import matplotlib.pyplot as plt
+    import numpy as np
+    
+    name = ['conv1', 'conv2', 'conv3', 'conv4', 'fc1', 'fc2']
+    n = 0
+    
+    for layer in net.children(): # 遍历类的成员
+        if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
+            weight = layer.weight.data.cpu().view(-1).numpy()
+            print(name[n] + ": the range is [{:.5f}, {:.5f}]".format(weight.min(), weight.max()))
+    
+            # find 3-sigma range (u-3s, u+3s), 该范围能囊括99.73%参数
+            sigma3 = int(np.size(weight)*0.0027+0.5) 
+            sigma3_value = np.abs(weight)[np.argpartition(np.abs(weight), -sigma3)[-sigma3]]
+            print(name[n] + ": the 3-sigma range is [{:.5f}, {:.5f}]".format(max(-sigma3_value, weight.min()), min(sigma3_value,weight.max())))
+    
+            plt.hist(weight, bins=50, facecolor="blue", edgecolor="black", alpha=0.7) # 画直方图
+            plt.xlabel("range")
+            plt.ylabel("frequency")
+            plt.title(name[n])
+            plt.show()
+            n += 1
+            
+    # You can get a flattened vector of the weights of fc1 like this:
+    #   fc1_weights = net.fc1.weight.data.cpu().view(-1)
+    
+    # %%
+    ## Question 1.2: Explain which range you would prefer to use if you were to quantize each layer's weights and wanted to strike a balance between the range of values that could be expressed, and your precision.
+    
+    # %%
+    # Question 2: Quantize Weights 首先我们把原来网络的参数copy到net_q2。
+    
+    net_q2 = copy_model(net)
+    
+    # %%
+    ## Question 2.1:
+    
+    from typing import Tuple
+    # 确定scale进行量化
+    def quantized_weights(weights: torch.Tensor, bitwidth_W):
+        '''
+        Quantize the weights so that all values are integers between -128 and 127.
+        You may want to use the total range, 3-sigma range, or some other range when
+        deciding just what factors to scale the float32 values by.
+    
+        Parameters:
+        weights (Tensor): The unquantized weights
+        #输入数据是尚未量化过的权重
+    
+        Returns:
+        #返回数据是一个元组,(quantization result , scale )
+        (Tensor, float): A tuple with the following elements:
+                            * The weights in quantized form, where every value is an integer between -128 and 127.
+                              The "dtype" will still be "float", but the values themselves should all be integers.
+                            * The scaling factor that your weights were multiplied by.
+                              This value does not need to be an 8-bit integer.
+        '''
+    
+        # modify the following code to try other range
+    
+        W_border = 2**(bitwidth_W-1)
+        w = weights.data.cpu().view(-1).numpy() # 这里将tensor转入numpy只是为了之后的计算
+        sigma3 = int(np.size(w)*0.0027+0.5)
+        sigma3_value = np.abs(w)[np.argpartition(np.abs(w), -sigma3)[-sigma3]] 
+        weights = weights/sigma3_value*W_border
+        quan_weight = weights.round() # 转化为值最接近的整数
+    
+        return torch.clamp(quan_weight, min=-W_border, max=W_border-1), W_border/sigma3_value # clamp是切顶函数,会把超过阈值的值自动替换成阈值
+                                                                                              # 我认为原来对scale的定义有问题，应该是反过来才对
+    
+    
+    
+    # %%
+    def quantize_layer_weights(model: nn.Module, bitwidth_W):
+        for layer in model.children():
+            if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
+                q_layer_data, scale = quantized_weights(layer.weight.data, bitwidth_W)
+                q_layer_data = q_layer_data.to(device)
+    
+                layer.weight.data = q_layer_data
+                layer.weight.scale = scale
+                print(scale) # 一共有4个卷积层和2个全连接层，因此会有6个scale
+    
+                if (q_layer_data < -2**(bitwidth_W-1)).any() or (q_layer_data > (2**(bitwidth_W-1)-1)).any():
+                    raise Exception("Quantized weights of {} layer include values out of bounds for an 8-bit signed integer".format(layer.__class__.__name__))
+                if (q_layer_data != q_layer_data.round()).any():
+                    raise Exception("Quantized weights of {} layer include non-integer values".format(layer.__class__.__name__))
+    
+    quantize_layer_weights(net_q2, bitwidth_W)
+    
+    
+    # %%
+    ## Question 2.2:
+    
+    #Record the accuracy change of the network after quantizing its weights. If you’ve done everything correctly, the accuracy change should be negligible.
+    
+    score = test(net_q2, testloader)
+    print('Accuracy of the network after quantizing all weights: {}%'.format(score))
+    
+    # %%
+    # Question 3: Visualize Activations
+    
+    # Now that we have quantized the weights of the CNN, we must also quantize the activations (inputs and outputs to layers) traveling through it.
+    # But before doing so, let's analyze what values the activations take when travelling through the network.
+    
+    # We provide convenience code which will record the values of every pixel of the outputs and inputs travelling through the neural network.
+    # (This is the initial CNN, where not even the weights had yet been quantized).
+    # We then profile these values when running on a subset of the training set.
+    
+    
+    # %%
+    # hook，顾名思义，其作用是把网络推理时的中间变量勾出来。通过hook函数，我们可以统计中间变量的范围。
+    """
+    pytorch中的hook机制:
+    Pytorch会自动舍弃图计算中间结果,用hook以获取某些变量的中间结果.要及时删除,避免增加运行负载
+    
+    Tensor级别：
+    register_hook(hook)->Tensor:为Tensor注册一个backward hook 获取变量梯度
+    hook遵循格式:hook(grad)->Tensor
+    nn.Module对象级别:
+    register_forward_hook(hook)
+    此时hook可以修改input和output却不影响forward结果,典型场景是提取中间层的输出特征,又不希望修改原有模型定义文件
+    格式为hook(layer,input,output)
+    """
+    def register_activation_profiling_hooks(model: Net):
+        model.input_activations = np.empty(0)
+        model.conv1.activations = np.empty(0)
+        model.conv2.activations = np.empty(0)
+        model.conv3.activations = np.empty(0)
+        model.conv4.activations = np.empty(0)
+        model.fc1.activations = np.empty(0)
+        model.fc2.activations = np.empty(0)
+        #model.fc3.activations = np.empty(0)
+        
+        model.profile_activations = True
+    
+        def conv1_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.input_activations = np.append(model.input_activations, x[0].cpu().view(-1))
+        model.conv1.register_forward_hook(conv1_activations_hook)#寄存器暂时存下传递到下一层的activatio,下同
+    
+        def conv2_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv1.activations = np.append(model.conv1.activations, x[0].cpu().view(-1))
+        model.conv2.register_forward_hook(conv2_activations_hook)
+    
+        def conv3_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv2.activations = np.append(model.conv2.activations, x[0].cpu().view(-1))
+        model.conv3.register_forward_hook(conv3_activations_hook)
+    
+        def conv4_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv3.activations = np.append(model.conv3.activations, x[0].cpu().view(-1))
+        model.conv4.register_forward_hook(conv4_activations_hook)
+    
+        def fc1_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv4.activations = np.append(model.conv4.activations, x[0].cpu().view(-1))
+        model.fc1.register_forward_hook(fc1_activations_hook)
+        
+    
+        def fc2_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.fc1.activations = np.append(model.fc1.activations, x[0].cpu().view(-1))
+                model.fc2.activations = np.append(model.fc2.activations, y[0].cpu().view(-1))
+        model.fc2.register_forward_hook(fc2_activations_hook)
+    
+        #def fc3_activations_hook(layer, x, y):
+        #    if model.profile_activations:
+        #        model.fc2.activations = np.append(model.fc2.activations, x[0].cpu().view(-1))
+        #        model.fc3.activations = np.append(model.fc3.activations, y[0].cpu().view(-1))
+        #model.fc3.register_forward_hook(fc3_activations_hook)
+    
+    
+    # %%
+    # Use the unquantized model to profile input and output activations on a subset of the training dataset.
+    
+    net_q3 = copy_model(net)
+    register_activation_profiling_hooks(net_q3)#把各个中间层都记录下来
+    
+    # Run through the training dataset again while profiling the input and output activations this time
+    # We don't actually have to perform gradient descent for this, so we can use the "test" function
+    test(net_q3, trainloader, max_samples=400) # 跑400次，统计中间变量的数值范围
+    net_q3.profile_activations = False
+    
+    # %%
+    ## Question 3.1:
+    
+    # Plot histograms of the input images and the outputs of every convolutional and fully-connected layer. 
+    # Record any observations you make about the distribution of the values.
+    # ADD YOUR CODE HERE 
+    Activation_border = 2**(bitwidth_A-1)
+    input_activations = net_q3.input_activations # 输入数据
+    conv1_output_activations = net_q3.conv1.activations # 第一层卷积层的输出数据
+    conv2_output_activations = net_q3.conv2.activations # 第二层卷积层的输出数据
+    conv3_output_activations = net_q3.conv3.activations # 第三层卷积层的输出数据
+    conv4_output_activations = net_q3.conv4.activations # 第四层卷积层的输出数据
+    fc1_output_activations = net_q3.fc1.activations # 同上类推
+    fc2_output_activations = net_q3.fc2.activations
+    #fc3_output_activations = net_q3.fc3.activations
+    
+    #print(conv1_output_activations)
+    
+    # to plot distributions of activations
+    # Plot histograms of the following variables, and calculate their ranges and 3-sigma ranges:
+    # 拼接上面的数据成一个group，方便循环遍历
+    activation_groups = [
+        (input_activations, "input_activations"),
+        (conv1_output_activations, "conv1_output_activations"),
+        (conv2_output_activations, "conv2_output_activations"),
+        (conv3_output_activations, "conv3_output_activations"),
+        (conv4_output_activations, "conv4_output_activations"),
+        (fc1_output_activations, "fc1_output_activations"),
+        (fc2_output_activations, "fc2_output_activations"),
+    ]
+    
+    for activation_data, name in activation_groups: # 遍历类的成员
+        print(name + ": the range is [{:.5f}, {:.5f}]".format(activation_data.min(), activation_data.max()))
+    
+        # find 3-sigma range (u-3s, u+3s), 该范围能囊括99.73%参数
+        sigma3 = int(np.size(activation_data)*0.0027+0.5) 
+        sigma3_value = np.abs(activation_data)[np.argpartition(np.abs(activation_data), -sigma3)[-sigma3]]
+        print(name + ": the 3-sigma range is [{:.5f}, {:.5f}]".format(max(-sigma3_value, activation_data.min()), min(sigma3_value,activation_data.max())))
+    
+        plt.hist(activation_data, bins=50, facecolor="green", edgecolor="black", alpha=0.7) # 画直方图
+        plt.xlabel("range")
+        plt.ylabel("frequency")
+        plt.title(name+"_distribution")
+        plt.show()
+            
+    
+    # You can get a flattened vector of the weights of fc1 like this:
+    #   fc1_weights = net.fc1.weight.data.cpu().view(-1)
+    
+    
+    # %%
+    ## Question 3.2:
+    
+    # Additionally, record the range of the values, as well as their 3-sigma range (the difference between $\mu + 3\sigma$ and $\mu - 3\sigma$).
+    # For which layers is the 3-sigma range larger or smaller than the actual range?
+    # Then explain which range you would prefer to use if you were to quantize each layer's weights and wanted to strike a balance between the range of values that could be expressed, and your precision.
+    # Remember that you are plotting the activations *after* activation functions like ReLU have been applied, which means that you should not be worried if you find that your plots are asymmetric.
+    
+    # %%
+    # Question 4: Quantize Activations
+    
+    # Complete the `quantize_initial_input` and `quantize_activations` functions which calculate the scaling factors for the initial image which is input to the CNN, and the outputs of each layer, respectively.
+    
+    # complete the `forward` function for the `NetQuantized` class.
+    # You will have to add code here to scale the outputs of each layer, and then to clamp the outputs of each layer to integers between -128 and 127 afterwards.
+    
+    # %%
+    from typing import List
+    
+    class NetQuantized(nn.Module):
+        def __init__(self, net_with_weights_quantized: nn.Module, bitwidth_A):
+            super(NetQuantized, self).__init__()
+            
+            net_init = copy_model(net_with_weights_quantized) # 最初的网络copy 过来,用于初始化量化网络
+    
+            self.conv1 = net_init.conv1
+            self.conv2 = net_init.conv2
+            self.pool = net_init.pool
+            self.conv3 = net_init.conv3
+            self.conv4 = net_init.conv4
+            self.fc1 = net_init.fc1
+            self.fc2 = net_init.fc2
+            
+            #self.fc3 = net_init.fc3
+    
+            self.activation_border = 2**(bitwidth_A-1)
+            #print(self.activation_border)
+    
+            for layer in self.conv1, self.conv2, self.conv3, self.conv4, self.fc1, self.fc2:
+                #逐层遍历,检查量化是否成功
+                def pre_hook(l, x):
+                    x = x[0]
+                    #异常处理:检查之前的量化是否将所有的数转化进规定的区间
+                    if (x < -self.activation_border).any() or (x > (self.activation_border-1)).any():
+                        raise Exception("Input to {} layer is out of bounds for an {}-bit signed integer".format(l.__class__.__name__, bitwidth_A))
+                    if (x != x.round()).any():
+                        raise Exception("Input to {} layer has non-integer values".format(l.__class__.__name__))
+    
+                layer.register_forward_pre_hook(pre_hook)
+    
+            # Calculate the scaling factor for the initial input to the CNN
+            self.input_activations = net_with_weights_quantized.input_activations
+            self.input_scale = NetQuantized.quantize_initial_input(self.input_activations, self.activation_border)
+            #以上2行计算了input activation 的scale和对应的quantization 版本
+            # Calculate the output scaling factors for all the layers of the CNN
+    
+            n_w = []
+            activation_scale= [self.input_scale] 
+    
+            for layer in self.conv1, self.conv2, self.conv3, self.conv4, self.fc1, self.fc2:
+                # call quantize_activations and add your code here
+    
+                #获取权重缩放因子
+                n_w.append(layer.weight.scale) 
+    
+                # 计算当前层激活的缩放因子
+                activation_scale.append( NetQuantized.quantize_initial_input(
+                layer.activations, self.activation_border
+                )   )
+    
+            #print(activation_scale)
+    
+            n = 0
+            for layer in self.conv1, self.conv2, self.conv3, self.conv4, self.fc1, self.fc2:
+                layer.output_scale = NetQuantized.quantize_activations(n_w[n], activation_scale[n], activation_scale[n + 1])
+                n = n + 1
+            
+    
+            # 注册前向检查钩子
+            for layer in self.conv1, self.conv2, self.conv3, self.conv4, self.fc1, self.fc2:
+                def pre_hook(l, x):
+                    x = x[0]
+                    if (x < -self.activation_border).any() or (x > (self.activation_border-1)).any():
+                        raise Exception(f"Input to {l.__class__.__name__} layer is out of bounds")
+                    if (x != x.round()).any():
+                        raise Exception(f"Input to {l.__class__.__name__} layer has non-integer values")
+                layer.register_forward_pre_hook(pre_hook)
+    
+        #计算输入的scale函数
+        @staticmethod
+        def quantize_initial_input(pixels: np.ndarray, activation_border:int):
+            '''
+            Calculate a scaling factor for the images that are input to the first layer of the CNN.
+    
+            Parameters:
+            pixels (ndarray): The values of all the pixels which were part of the input image during training
+    
+            Returns:
+            float: A scaling factor that the input should be multiplied by before being fed into the first layer.
+                   This value does not need to be an 8-bit integer.
+            '''
+    
+            sigma3 = int(np.size(pixels)*0.0027+0.5)
+            sigma3_value = pixels[np.argpartition(pixels,-sigma3)[-sigma3]]
+            max_value = np.max(np.abs(pixels))
+            scale = activation_border/max_value  # you can modify the range here，同样，这个地方的scale和论文定义的是和源代码倒数的关系
+            return scale
+    
+        # 逐层激活送入量化
+        @staticmethod
+        def quantize_activations( n_w: float, pre_activation_scale: float, now_activation_scale: float) -> float:
+            '''
+            Calculate a scaling factor to multiply the output of a layer by.
+    
+            Parameters:
+            activations (ndarray): The values of all the pixels which have been output by this layer during training
+            n_w (float): The scale by which the weights of this layer were multiplied as part of the "quantize_weights" function you wrote earlier
+            n_initial_input (float): The scale by which the initial input to the neural network was multiplied
+            ns ([(float, float)]): A list of tuples, where each tuple represents the "weight scale" and "output scale" (in that order) for every preceding layer
+            #用一个元组记录已经算好的所有网络的weight scale 和 output scale
+            Returns:
+            float: A scaling factor that the layer output should be multiplied by before being fed into the first layer.
+                   This value does not need to be an 8-bit integer.
+            '''
+    
+            # ADD YOUR CODE HERE
+            scale = now_activation_scale / (pre_activation_scale * n_w) 
+            return scale
+    
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            # You can access the output activation scales like this:
+            #   fc1_output_scale = self.fc1.output_scale
+    
+            # 这里其实是对定点数计算的模拟仿真，因此每层的输出均需要手动乘以scaling factor，并限制在规定的表示范围内。
+            # output_scale:不同网络层之间传递整数重新压缩为8bit的scale(在第三周阅读论文中是定点浮点数M)
+            # activation_scale:网络层内数据和真实值差距的scale
+            # weight_scale:权重量化值和真实值差距的scale
+            x = x*self.input_scale 
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1) # 8bit是-128~127
+    
+            x = F.relu(self.conv1(x))
+            x = x*self.conv1.output_scale
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+    
+            x = self.pool(F.relu(self.conv2(x)))
+            x = x*self.conv2.output_scale
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+    
+            x = F.relu(self.conv3(x))
+            x = x*self.conv3.output_scale
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+    
+            x = self.pool(F.relu(self.conv4(x)))
+            x = x*self.conv4.output_scale
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+    
+            x = x.view(-1, 32 * 8 * 8)
+            x = F.relu(self.fc1(x))   
+            x = x*self.fc1.output_scale
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)  
+    
+            #x = F.relu(self.fc2(x))   
+            #x = x*self.fc2.output_scale
+            #x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1) 
+    
+            x = self.fc2(x)*self.fc2.output_scale
+            return x
+    
+    
+    # %%
+    #Merge the information from net_q2 and net_q3 together
+    #weight quantization & activation quantization 
+    net_init = copy_model(net_q2)
+    net_init.input_activations = deepcopy(net_q3.input_activations)
+    for layer_init, layer_q3 in zip(net_init.children(), net_q3.children()):
+        if isinstance(layer_init, nn.Conv2d) or isinstance(layer_init, nn.Linear):
+            layer_init.activations = deepcopy(layer_q3.activations)
+    
+    net_quantized = NetQuantized(net_init, bitwidth_A)
+    
+    
+    # %%
+    # Finally, record the accuracy of your network after both weights and activations have been quantized.
+    # If you've done everything right, you should still find almost no accuracy change.
+    
+    score = test(net_quantized, testloader)
+    print('Accuracy of the network after quantizing both weights and activations: {}%'.format(score))
+    
+    
+    # %%
+    # Question 5: Quantize Biases 以下为选做内容
+    
+    # Let us now update our CNN to include a bias in its final layer, *fc3*.
+    # We have already included code to create and train a new CNN called `net_with_bias`.
+    
+    # Consider how a bias affects the equation for an unquantized layer:
+    
+    # W * In + bias = Out
+    
+    
+    
+    # %%
+    ## Question 5.1:
+    
+    # Suppose that we again quantized a biased layer with the same scaling factors we used in previous questions: $n_W$, $n_{In}$, and $n_{Out}$.
+    # What would we scale bias by in this case?
+    # Write an equation in your lab report to describe the output of the quantized layer with a bias.
+    
+    # Create a new network with a bias on *fc3*.
+    
+    
+    # %%
+    class NetWithBias(nn.Module):
+        def __init__(self):
+            super(NetWithBias, self).__init__()
+            self.conv1 = nn.Conv2d(3, 16, 3, padding='same', bias=False)
+            self.conv2 = nn.Conv2d(16, 16, 3, padding='same', bias=False)
+            self.pool = nn.MaxPool2d(2, 2) 
+            self.conv3 = nn.Conv2d(16, 32, 3, padding='same', bias=False)
+            self.conv4 = nn.Conv2d(32, 32, 3, padding='same', bias=False)
+            self.fc1 = nn.Linear(32 * 8 * 8, 128, bias=True)
+            self.fc2 = nn.Linear(128, 10, bias=True)
+    
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            x = F.relu(self.conv1(x))
+            x = F.relu(self.conv2(x))
+            x = self.pool(x)
+            x = F.relu(self.conv3(x))
+            x = F.relu(self.conv4(x))
+            x = self.pool(x)
+            x = x.view(-1, 32 * 8 * 8)
+            x = F.relu(self.fc1(x))
+            x = self.fc2(x)
+            return x
+    
+    net_with_bias = NetWithBias().to(device)
+    
+    # %%
+    # Train and test the model
+    
+    # %%
+    train(net_with_bias, trainloader)
+    
+    # %%
+    score = test(net_with_bias, testloader)
+    print('Accuracy of the network (with a bias) on the test images: {}%'.format(score))
+    
+    # %%
+    register_activation_profiling_hooks(net_with_bias)
+    test(net_with_bias, trainloader, max_samples=400)
+    net_with_bias.profile_activations = False
+    
+    # %%
+    net_with_bias_with_quantized_weights = copy_model(net_with_bias)
+    quantize_layer_weights(net_with_bias_with_quantized_weights, bitwidth_W)
+    
+    score = test(net_with_bias_with_quantized_weights, testloader)
+    print('Accuracy of the network on the test images after all the weights are quantized but the bias isn\'t: {}%'.format(score))
+    
+    # %%
+    # Fill in the `quantized_bias` function in the `NetQuantizedWithBias` class.
+    # This function is meant to quantize the bias on the final layer of the CNN.
+    # Keep in mind that biases are typically quantized to 32-bits, so your bias values do not all have to be between -128 and 127 (though 32-bits is a bit conservative).
+    
+    # %%
+    # slightly clearer bias bounds (32b signed integer)
+    #bias量化后的最大值、最小值
+    MIN_32B_SINT = -(2**31) 
+    MAX_32B_SINT = (2**31) - 1
+    
+    # %%
+    class NetQuantizedWithBias(NetQuantized):
+        def __init__(self, net_with_weights_quantized: nn.Module):
+            super(NetQuantizedWithBias, self).__init__(net_with_weights_quantized, bitwidth_A)
+    
+            preceding_scales_fc2 = [(layer.weight.scale, layer.output_scale) for layer in self.children() if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear)][:-1]
+            preceding_scales_fc1 = preceding_scales_fc2[0:4]
+            #print(preceding_scales_fc1)
+    
+            self.fc1.bias.data = NetQuantizedWithBias.quantized_bias(
+                self.fc1.bias.data,
+                self.fc1.weight.scale,
+                self.input_scale,
+                preceding_scales_fc1
+            )
+            #print(self.fc1.bias.data)
+            
+            self.fc2.bias.data = NetQuantizedWithBias.quantized_bias(
+                self.fc2.bias.data,
+                self.fc2.weight.scale,
+                self.input_scale,
+                preceding_scales_fc2
+            )
+            #print(self.fc2.bias.data)
+    
+            if (self.fc1.bias.data < MIN_32B_SINT).any() or (self.fc1.bias.data > MAX_32B_SINT).any():
+                raise Exception("Bias has values which are out of bounds for an 32-bit signed integer")
+            if (self.fc1.bias.data != self.fc1.bias.data.round()).any():
+                raise Exception("Bias has non-integer values")
+            if (self.fc2.bias.data < MIN_32B_SINT).any() or (self.fc2.bias.data > MAX_32B_SINT).any():
+                raise Exception("Bias has values which are out of bounds for an 32-bit signed integer")
+            if (self.fc2.bias.data != self.fc2.bias.data.round()).any():
+                raise Exception("Bias has non-integer values")
+        
+        @staticmethod
+        def quantized_bias(bias: torch.Tensor, n_w: float, n_initial_input: float, ns: List[Tuple[float, float]]) -> torch.Tensor:
+            '''
+            Quantize the bias so that all values are integers between MIN_32B_SINT and MAX_32B_SINT.
+    
+            Parameters:
+            bias (Tensor): The floating point values of the bias
+            n_w (float): The scale by which the weights of this layer were multiplied
+            n_initial_input (float): The scale by which the initial input to the neural network was multiplied
+            ns ([(float, float)]): A list of tuples, where each tuple represents the "weight scale" and "output scale" (in that order) for every preceding layer
+    0
+            Returns:
+            Tensor: The bias in quantized form, where every value is an integer between MIN_32B_SINT and MAX_32B_SINT.
+                    The "dtype" will still be "float", but the values themselves should all be integers.
+            '''
+    
+            # ADD YOUR CODE HERE
+    
+            #print(bias)
+            # 计算累积缩放因子：初始输入缩放 × 所有前驱层的输出缩放
+    
+            scale = n_initial_input
+            for weight_scale, output_scale in ns:
+                scale *= output_scale
+                scale *= weight_scale
+            
+            # 总缩放因子 = 累积输入缩放 × 当前层权重缩放
+            scale = scale * n_w
+            print(scale)
+    
+            # 量化偏置：bias * scale → 四舍五入 → 截断至32位整数范围
+            quan_bias = (bias * scale).round()
+            quan_bias = torch.clamp(quan_bias, min=MIN_32B_SINT, max=MAX_32B_SINT)
+            return quan_bias
+    
+    
+    
+    
+    # %%
+    net_quantized_with_bias = NetQuantizedWithBias(net_with_bias_with_quantized_weights)
+    
+    
+    # %%
+    ## Question 5.3:
+    
+    # What is your accuracy before and after quantizing CNN with the bias?
+    # The accuracy change should ideally be negligible.
+    
+    # %%
+    score = test(net_quantized_with_bias, testloader)
+    print('Accuracy of the network on the test images after all the weights and the bias are quantized: {}%'.format(score))
+\end{lstlisting}
+
+\begin{lstlisting}[frame=shadowbox,caption = lab1\_PTQ\_resnet.ipynb,language=python]
+    # %%
+    # 本次实验包括后量化的过程，主要在于学习如何对DNN的权重（weight）和激活层（activation）进行量化。
+    
+    # %%
+    # 引用外部软件包
+    import torch # pytorch包
+    import torchvision # torchvision是pytorch官方提供的工具，包含很多常用数据集的封装等
+    import torchvision.transforms as transforms
+    import torch.nn as nn # nn 和下面的F均包含了主要的神经网络模块，包括卷积层、全连接层、池化层等等
+    import torch.nn.functional as F
+    import torch.optim as optim # 优化器
+    
+    # %%
+    # 确保device为gpu，否则会花费过长时间。
+    if torch.cuda.is_available():
+        torch.cuda.set_device(0) # 0为选择显卡id
+        device = "cuda"
+        print('using cuda')
+    else:
+        device = torch.device('cpu')
+        print('using cpu')
+    
+    # 设置量化位宽
+    bitwidth_A = 8
+    bitwidth_W = 8
+    
+    # %%
+    # Load training and test data from the CIFAR10 dataset.
+    # torchvision是pytorch官方集成的工具库，包括学界常用的数据集和数据预处理方式。
+    transform = transforms.Compose(
+        [transforms.ToTensor(), # 将数据归一化，并转换成tensor的形式
+         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]) # 预处理数据的方式，normalize是将图像进行规则化。
+    
+    trainset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset', train=True,
+                                            download=True, transform=transform) #定义了训练集，path是训练数据所在地址，指定位置自动下载。
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                              shuffle=True, num_workers=2) #定义数据迭代器，batchsize为一次迭代训练，送进去图像的数量（可以尝试调整，看看会发生什么）。shuffle表示要不要打乱训练图像的排序。
+    
+    testset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset', train=False,
+                                           download=True, transform=transform)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=4,
+                                             shuffle=False, num_workers=2)
+    
+    # %%
+    # Define a CNN that classifies CIFAR images.
+    # The Resnet has the following architecture:
+    
+    # **Layer** |     **Type**    | **Input Shape** | **Output Shape** | **Activation**
+    #   conv1   |  Convolutional  |      3x32x32    |     64x32x32     |      ReLU 
+    #   pool1   |     Max pool    |     64x32x32    |     64x16x16     |      None                
+    #   conv2   |  Convolutional  |     64x16x16    |     64x16x16     |      ReLU  
+    #   conv3   |  Convolutional  |     64x16x16    |     64x16x16     |      ReLU      
+    #   conv4   |  Convolutional  |     64x16x16    |     64x16x16     |      ReLU          
+    #   conv5   |  Convolutional  |     64x16x16    |     128x8x8      |      ReLU      
+    #   conv6   |  Convolutional  |     128x8x8     |     128x8x8      |      ReLU     
+    #   conv7   |  Convolutional  |     128x8x8     |     128x8x8      |      ReLU      
+    #   conv8   |  Convolutional  |     64x16x16    |     128x8x8      |      ReLU          
+    #   pool2   |     Avg pool    |     128x8x8     |     128x4x4      |      None                
+    #   fc1     | Fully-connected |     128x4x4     |       128        |      ReLU
+    #   fc2     | Fully-connected |       128       |       10         |      ReLU                
+    
+    # None of the layers in the network have a bias associated with them.
+    # This makes them easier to quantize.
+    # Towards the end of this assignment, we will add biases to the final layer and quantize it as well.
+    
+    # %%
+    # 网络定义，conv2d是卷积层，linear是全连接层。forward下定义了计算图，显示送进来的图像（x）会怎么处理。
+    class Net(nn.Module):    #网络结构:8层卷积层、2层池化层、2层全连接层，留意这些参数的内涵
+        def __init__(self):
+            super(Net, self).__init__()
+            self.conv1 = nn.Conv2d(3, 64, 3, padding='same', bias=False)
+            self.bn1 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.pool = nn.MaxPool2d(2, 2) # run after each conv (hence the 3x3 FC layer)   16x16
+            self.conv2 = nn.Conv2d(64, 64, 3, padding='same', bias=False)
+            self.bn2 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.conv3 = nn.Conv2d(64, 64, 3, padding='same', bias=False)
+            self.bn3 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.conv4 = nn.Conv2d(64, 64, 3, padding='same', bias=False)
+            self.bn4 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.conv5 = nn.Conv2d(64, 64, 3, padding='same', bias=False)
+            self.bn5 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.conv6 = nn.Conv2d(64, 128, 3, padding=1, stride = 2, bias=False)    #8x8
+            self.bn6 = nn.BatchNorm2d(128, momentum= 0.1)
+            self.conv7 = nn.Conv2d(128, 128, 3, padding='same', bias=False)
+            self.bn7 = nn.BatchNorm2d(128, momentum= 0.1)
+            self.conv8 = nn.Conv2d(64, 128, 1, stride = 2, bias=False)
+            self.bn8 = nn.BatchNorm2d(128, momentum= 0.1)
+            self.pool2 = nn.AvgPool2d(2,2)
+            self.fc1 = nn.Linear(128 * 4 * 4, 128, bias=False)
+            self.fc2 = nn.Linear(128, 10, bias=False)
+        #定义前向传播,将tensor数据送入网络之后的计算图
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            x = F.relu(self.conv1(x))
+            x = self.bn1(x)
+            x = self.pool(x)
+    
+            temp = x
+            x = F.relu(self.conv2(x))
+            x = self.bn2(x)
+            x = F.relu(self.conv3(x))
+            x = self.bn3(x)
+            x = x + temp
+    
+            temp = x
+            x = F.relu(self.conv4(x))
+            x = self.bn4(x)
+            x = F.relu(self.conv5(x))
+            x = self.bn5(x)
+            x = x + temp
+    
+            temp = x
+            x = F.relu(self.conv6(x))
+            x = self.bn6(x)
+            x = F.relu(self.conv7(x))
+            x = self.bn7(x)
+            temp = F.relu(self.conv8(temp))
+            temp = self.bn8(temp)
+            x = x + temp
+    
+            x = self.pool2(x)
+    
+            x = x.view(-1, 128 * 4 * 4)
+            x = F.relu(self.fc1(x))
+            x = self.fc2(x)
+            
+            return x
+    
+    net = Net().to(device)
+    # 到这里，我们定义好了网络和数据集的使用方式
+    
+    # %%
+    from torch.utils.data import DataLoader
+    #将训练集的dataloader送入网络进行训练,每次读取batchsize数量的数据
+    def train(model: nn.Module, dataloader: DataLoader):
+        criterion = nn.CrossEntropyLoss() # loss function（交叉熵损失函数）
+        optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) #optimizer，使用SGD优化器训练，第一个参数表示model的所有参数都会参与训练，学习率为0.001，动量为0.9
+    
+        for epoch in range(3):  # loop over the dataset multiple times。epoch指遍历所有训练集图像的次数。这里遍历所有训练图像两次
+    
+            running_loss = 0.0
+            for i, data in enumerate(dataloader, 0): # dataloader是数据迭代器，从这里每次读出batchsize数量的数据。
+                # get the inputs; data is a list of [inputs, labels]
+                inputs, labels = data
+    
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+    
+                # zero the parameter gradients
+                optimizer.zero_grad()
+                
+                # forward + backward + optimize
+                outputs = model(inputs) # 将数据送进网络，得到结果
+                loss = criterion(outputs, labels) # 计算结果和标签的交叉熵损失函数
+                loss.backward() # 基于上述损失函数求解梯度
+                optimizer.step() # 更新参数
+    
+                # print statistics
+                running_loss += loss.item() # 将loss的值取出来，记录其变化
+                if i % 2000 == 1999:    # print every 2000 mini-batches
+                    print('[%d, %5d] loss: %.3f' %
+                        (epoch + 1, i + 1, running_loss / 2000))
+                    running_loss = 0.0
+    
+        print('Finished Training')
+    
+    def test(model: nn.Module, dataloader: DataLoader, max_samples=None) -> float:
+        correct = 0
+        total = 0
+        n_inferences = 0
+    
+        with torch.no_grad(): # 测试时不用求解梯度，因此可以设置不计算梯度的模式
+            for data in dataloader:
+                images, labels = data
+    
+                images = images.to(device)
+                labels = labels.to(device)
+    
+                outputs = model(images) # get 1 batch worth of image predictions (i.e. 4 predictions of 10 each)
+                other, predicted = torch.max(outputs.data, 1) # other == values, predicted == indicies
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+    
+                if max_samples:
+                    n_inferences += images.shape[0]
+                    if n_inferences > max_samples:
+                        break
+        
+        return 100 * correct / total
+    
+    # %%
+    train(net, trainloader) # 进行训练，将网络定义和数据迭代器传给train函数。
+    
+    # %%
+    # Now that the CNN has been trained, let's test it on our test dataset.
+    score = test(net, testloader)
+    print('Accuracy of the network on the test images: {}%'.format(score))
+    
+    # %%
+    # Define a convenience function which we use to copy CNN's.
+    from copy import deepcopy
+    
+    def copy_model(model: nn.Module) -> nn.Module:
+        result = deepcopy(model)
+    
+        # Copy over the extra metadata we've collected which copy.deepcopy doesn't capture
+        if hasattr(model, 'input_activations'):
+            result.input_activations = deepcopy(model.input_activations)
+    
+        for result_layer, original_layer in zip(result.children(), model.children()):
+            if isinstance(result_layer, nn.Conv2d) or isinstance(result_layer, nn.Linear):
+                if hasattr(original_layer.weight, 'scale'):
+                    result_layer.weight.scale = deepcopy(original_layer.weight.scale)
+                if hasattr(original_layer, 'activations'):
+                    result_layer.activations = deepcopy(original_layer.activations)
+                if hasattr(original_layer, 'output_scale'):
+                    result_layer.output_scale = deepcopy(original_layer.output_scale)
+    
+        return result
+    
+    # %%
+    # Question 1: Visualize Weights
+    
+    # %%
+    ## Question 1.1:
+    
+    import matplotlib.pyplot as plt
+    import numpy as np
+    
+    name = ['conv1', 'conv2', 'conv3', 'conv4', 'conv5', 'conv6', 'conv7', 'conv8', 'fc1', 'fc2']
+    n = 0
+    
+    for layer in net.children(): # 遍历类的成员
+        if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
+            weight = layer.weight.data.cpu().view(-1).numpy()
+            print(name[n] + ": the range is [{:.5f}, {:.5f}]".format(weight.min(), weight.max()))
+    
+            # find 3-sigma range (u-3s, u+3s), 该范围能囊括99.73%参数
+            sigma3 = int(np.size(weight)*0.0027+0.5) 
+            sigma3_value = np.abs(weight)[np.argpartition(np.abs(weight), -sigma3)[-sigma3]]
+            print(name[n] + ": the 3-sigma range is [{:.5f}, {:.5f}]".format(max(-sigma3_value, weight.min()), min(sigma3_value,weight.max())))
+    
+            plt.hist(weight, bins=50, facecolor="blue", edgecolor="black", alpha=0.7) # 画直方图
+            plt.xlabel("range")
+            plt.ylabel("frequency")
+            plt.title(name[n])
+            plt.show()
+            n += 1
+            
+    # You can get a flattened vector of the weights of fc1 like this:
+    #   fc1_weights = net.fc1.weight.data.cpu().view(-1)
+    
+    # %%
+    ## Question 1.2: Explain which range you would prefer to use if you were to quantize each layer's weights and wanted to strike a balance between the range of values that could be expressed, and your precision.
+    
+    # %%
+    # Question 2: Quantize Weights 首先我们把原来网络的参数copy到net_q2。
+    
+    net_q2 = copy_model(net)
+    
+    # %%
+    ## Question 2.1:
+    
+    from typing import Tuple
+    # 确定scale进行量化
+    def quantized_weights(weights: torch.Tensor, bitwidth_W):
+        '''
+        Quantize the weights so that all values are integers between -128 and 127.
+        You may want to use the total range, 3-sigma range, or some other range when
+        deciding just what factors to scale the float32 values by.
+    
+        Parameters:
+        weights (Tensor): The unquantized weights
+        #输入数据是尚未量化过的权重
+    
+        Returns:
+        #返回数据是一个元组,(quantization result , scale )
+        (Tensor, float): A tuple with the following elements:
+                            * The weights in quantized form, where every value is an integer between -128 and 127.
+                              The "dtype" will still be "float", but the values themselves should all be integers.
+                            * The scaling factor that your weights were multiplied by.
+                              This value does not need to be an 8-bit integer.
+        '''
+    
+        # modify the following code to try other range
+    
+        W_border = 2**(bitwidth_W-1)
+        w = weights.data.cpu().view(-1).numpy() # 这里将tensor转入numpy只是为了之后的计算
+        with open('test.txt', 'w') as f:
+            for item in w:     # 打开test.txt   如果文件不存在，创建该文件。
+              f.write(str(item)+'\n')  # 把变量var写入test.txt。这里var必须是str格式，如果不是，则可以转一下。
+        sigma3 = int(np.size(w)*0.0027+0.5)
+        sigma3_value = np.abs(w)[np.argpartition(np.abs(w), -sigma3)[-sigma3]] 
+        max_value = np.nanmax(np.abs(w))
+        #print(max_value)
+        weights = weights/sigma3_value*W_border
+        quan_weight = weights.round() # 转化为值最接近的整数
+        #print(quan_weight)
+    
+        return torch.clamp(quan_weight, min=-W_border, max=W_border-1), W_border/sigma3_value # clamp是切顶函数,会把超过阈值的值自动替换成阈值
+                                                                                              # 我认为原来对scale的定义有问题，应该是反过来才对
+    
+    
+    
+    # %%
+    def quantize_layer_weights(model: nn.Module, bitwidth_W):
+        for layer in model.children():
+            if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
+                q_layer_data, scale = quantized_weights(layer.weight.data, bitwidth_W)
+                q_layer_data = q_layer_data.to(device)
+    
+                layer.weight.data = q_layer_data
+                layer.weight.scale = scale
+                #print(layer.weight.data) # 一共有8个卷积层和2个全连接层，因此会有10个scale
+    
+                if (q_layer_data < -2**(bitwidth_W-1)).any() or (q_layer_data > (2**(bitwidth_W-1)-1)).any():
+                    raise Exception("Quantized weights of {} layer include values out of bounds for an 8-bit signed integer".format(layer.__class__.__name__))
+                if (q_layer_data != q_layer_data.round()).any():
+                    raise Exception("Quantized weights of {} layer include non-integer values".format(layer.__class__.__name__))
+    
+    quantize_layer_weights(net_q2, bitwidth_W)
+    
+    
+    # %%
+    ## Question 2.2:
+    
+    #Record the accuracy change of the network after quantizing its weights. If you’ve done everything correctly, the accuracy change should be negligible.
+    
+    score = test(net_q2, testloader)
+    print('Accuracy of the network after quantizing all weights: {}%'.format(score))
+    
+    # %%
+    # Question 3: Visualize Activations
+    
+    # Now that we have quantized the weights of the CNN, we must also quantize the activations (inputs and outputs to layers) traveling through it.
+    # But before doing so, let's analyze what values the activations take when travelling through the network.
+    
+    # We provide convenience code which will record the values of every pixel of the outputs and inputs travelling through the neural network.
+    # (This is the initial CNN, where not even the weights had yet been quantized).
+    # We then profile these values when running on a subset of the training set.
+    
+    
+    # %%
+    # hook，顾名思义，其作用是把网络推理时的中间变量勾出来。通过hook函数，我们可以统计中间变量的范围。
+    """
+    pytorch中的hook机制:
+    Pytorch会自动舍弃图计算中间结果,用hook以获取某些变量的中间结果.要及时删除,避免增加运行负载
+    
+    Tensor级别：
+    register_hook(hook)->Tensor:为Tensor注册一个backward hook 获取变量梯度
+    hook遵循格式:hook(grad)->Tensor
+    nn.Module对象级别:
+    register_forward_hook(hook)
+    此时hook可以修改input和output却不影响forward结果,典型场景是提取中间层的输出特征,又不希望修改原有模型定义文件
+    格式为hook(layer,input,output)
+    """
+    def register_activation_profiling_hooks(model: Net):
+        model.input_activations = np.empty(0)
+        model.conv1.activations = np.empty(0)
+        model.conv2.activations = np.empty(0)
+        model.conv3.activations = np.empty(0)
+        model.conv4.activations = np.empty(0)
+        model.conv5.activations = np.empty(0)
+        model.conv6.activations = np.empty(0)
+        model.conv7.activations = np.empty(0)
+        model.conv8.activations = np.empty(0)
+        model.bn1.activations = np.empty(0)
+        model.bn2.activations = np.empty(0)
+        model.bn3.activations = np.empty(0)
+        model.bn4.activations = np.empty(0)
+        model.bn5.activations = np.empty(0)
+        model.bn6.activations = np.empty(0)
+        model.bn7.activations = np.empty(0)
+        model.bn8.activations = np.empty(0)
+        model.fc1.activations = np.empty(0)
+        model.fc2.activations = np.empty(0)
+        
+        model.profile_activations = True
+    
+        def conv1_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.input_activations = np.append(model.input_activations, x[0].cpu().view(-1))
+        model.conv1.register_forward_hook(conv1_activations_hook)#寄存器暂时存下传递到下一层的activatio,下同
+    
+    
+        def conv2_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv1.activations = np.append(model.conv1.activations, x[0].cpu().view(-1))
+        model.conv2.register_forward_hook(conv2_activations_hook)
+    
+        def conv3_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv2.activations = np.append(model.conv2.activations, x[0].cpu().view(-1))
+        model.conv3.register_forward_hook(conv3_activations_hook)
+    
+        def conv4_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv3.activations = np.append(model.conv3.activations, x[0].cpu().view(-1))
+        model.conv4.register_forward_hook(conv4_activations_hook)
+    
+        def conv5_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv4.activations = np.append(model.conv4.activations, x[0].cpu().view(-1))
+        model.conv5.register_forward_hook(conv5_activations_hook)#寄存器暂时存下传递到下一层的activatio,下同
+    
+        def conv6_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv5.activations = np.append(model.conv5.activations, x[0].cpu().view(-1))
+        model.conv6.register_forward_hook(conv6_activations_hook)
+    
+        def conv7_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv6.activations = np.append(model.conv6.activations, x[0].cpu().view(-1))
+        model.conv7.register_forward_hook(conv7_activations_hook)
+    
+        def conv8_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv7.activations = np.append(model.conv7.activations, x[0].cpu().view(-1))
+        model.conv8.register_forward_hook(conv8_activations_hook)
+    
+        def fc1_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.conv8.activations = np.append(model.conv8.activations, x[0].cpu().view(-1))
+        model.fc1.register_forward_hook(fc1_activations_hook)
+        
+    
+        def fc2_activations_hook(layer, x, y):
+            if model.profile_activations:
+                model.fc1.activations = np.append(model.fc1.activations, x[0].cpu().view(-1))
+                model.fc2.activations = np.append(model.fc2.activations, y[0].cpu().view(-1))
+        model.fc2.register_forward_hook(fc2_activations_hook)
+    
+    
+    # %%
+    # Use the unquantized model to profile input and output activations on a subset of the training dataset.
+    
+    net_q3 = copy_model(net)
+    register_activation_profiling_hooks(net_q3)#把各个中间层都记录下来
+    
+    # Run through the training dataset again while profiling the input and output activations this time
+    # We don't actually have to perform gradient descent for this, so we can use the "test" function
+    test(net_q3, trainloader, max_samples=400) # 跑400次，统计中间变量的数值范围
+    net_q3.profile_activations = False
+    
+    # %%
+    ## Question 3.1:
+    
+    # Plot histograms of the input images and the outputs of every convolutional and fully-connected layer. 
+    # Record any observations you make about the distribution of the values.
+    # ADD YOUR CODE HERE 
+    Activation_border = 2**(bitwidth_A-1)
+    input_activations = net_q3.input_activations # 输入数据
+    conv1_output_activations = net_q3.bn1.activations # 第一层卷积层的输出数据
+    conv2_output_activations = net_q3.bn2.activations # 第二层卷积层的输出数据
+    conv3_output_activations = net_q3.bn3.activations # 第三层卷积层的输出数据
+    conv4_output_activations = net_q3.bn4.activations # 第四层卷积层的输出数据
+    conv5_output_activations = net_q3.bn5.activations # 第一层卷积层的输出数据
+    conv6_output_activations = net_q3.bn6.activations # 第二层卷积层的输出数据
+    conv7_output_activations = net_q3.bn7.activations # 第三层卷积层的输出数据
+    conv8_output_activations = net_q3.bn8.activations # 第四层卷积层的输出数据
+    fc1_output_activations = net_q3.fc1.activations # 同上类推
+    fc2_output_activations = net_q3.fc2.activations
+    
+    # to plot distributions of activations
+    # Plot histograms of the following variables, and calculate their ranges and 3-sigma ranges:
+    # 拼接上面的数据成一个group，方便循环遍历
+    activation_groups = [
+        (input_activations, "input_activations"),
+        (conv1_output_activations, "conv1_output_activations"),
+        (conv2_output_activations, "conv2_output_activations"),
+        (conv3_output_activations, "conv3_output_activations"),
+        (conv4_output_activations, "conv4_output_activations"),
+        (conv5_output_activations, "conv5_output_activations"),
+        (conv6_output_activations, "conv6_output_activations"),
+        (conv7_output_activations, "conv7_output_activations"),
+        (conv8_output_activations, "conv8_output_activations"),
+        (fc1_output_activations, "fc1_output_activations"),
+        (fc2_output_activations, "fc2_output_activations"),
+    ]
+    
+    for activation_data, name in activation_groups: # 遍历类的成员
+        print(name + ": the range is [{:.5f}, {:.5f}]".format(activation_data.min(), activation_data.max()))
+    
+        # find 3-sigma range (u-3s, u+3s), 该范围能囊括99.73%参数
+        sigma3 = int(np.size(activation_data)*0.0027+0.5) 
+        sigma3_value = np.abs(activation_data)[np.argpartition(np.abs(activation_data), -sigma3)[-sigma3]]
+        print(name + ": the 3-sigma range is [{:.5f}, {:.5f}]".format(max(-sigma3_value, activation_data.min()), min(sigma3_value,activation_data.max())))
+    
+        plt.hist(activation_data, bins=50, facecolor="green", edgecolor="black", alpha=0.7) # 画直方图
+        plt.xlabel("range")
+        plt.ylabel("frequency")
+        plt.title(name+"_distribution")
+        plt.show()
+            
+    
+    # You can get a flattened vector of the weights of fc1 like this:
+    #   fc1_weights = net.fc1.weight.data.cpu().view(-1)
+    
+    
+    # %%
+    ## Question 3.2:
+    
+    # Additionally, record the range of the values, as well as their 3-sigma range (the difference between $\mu + 3\sigma$ and $\mu - 3\sigma$).
+    # For which layers is the 3-sigma range larger or smaller than the actual range?
+    # Then explain which range you would prefer to use if you were to quantize each layer's weights and wanted to strike a balance between the range of values that could be expressed, and your precision.
+    # Remember that you are plotting the activations *after* activation functions like ReLU have been applied, which means that you should not be worried if you find that your plots are asymmetric.
+    
+    # %%
+    # Question 4: Quantize Activations
+    
+    # Complete the `quantize_initial_input` and `quantize_activations` functions which calculate the scaling factors for the initial image which is input to the CNN, and the outputs of each layer, respectively.
+    
+    # complete the `forward` function for the `NetQuantized` class.
+    # You will have to add code here to scale the outputs of each layer, and then to clamp the outputs of each layer to integers between -128 and 127 afterwards.
+    
+    # %%
+    from typing import List
+    
+    class NetQuantized(nn.Module):
+        def __init__(self, net_with_weights_quantized: nn.Module, bitwidth_A):
+            super(NetQuantized, self).__init__()
+            
+            net_init = copy_model(net_with_weights_quantized) # 最初的网络copy 过来,用于初始化量化网络
+    
+            self.conv1 = net_init.conv1
+            self.bn1 = net_init.bn1
+            self.conv2 = net_init.conv2
+            self.bn2 = net_init.bn2
+            self.pool = net_init.pool
+            self.conv3 = net_init.conv3
+            self.bn3 = net_init.bn3
+            self.conv4 = net_init.conv4
+            self.bn4 = net_init.bn4
+            self.conv5 = net_init.conv5
+            self.bn5 = net_init.bn5
+            self.conv6 = net_init.conv6
+            self.bn6 = net_init.bn6
+            self.conv7 = net_init.conv7
+            self.bn7 = net_init.bn7
+            self.conv8 = net_init.conv8
+            self.bn8 = net_init.bn8
+            self.pool2 = net_init.pool2
+            self.fc1 = net_init.fc1
+            self.fc2 = net_init.fc2
+            
+    
+            self.activation_border = 2**(bitwidth_A-1)
+            #print(self.activation_border)
+    
+            for layer in self.conv1, self.conv2, self.conv3, self.conv4, self.conv5, self.conv6, self.conv7, self.conv8, self.fc1, self.fc2:
+                #逐层遍历,检查量化是否成功
+                def pre_hook(l, x):
+                    x = x[0]
+                    #异常处理:检查之前的量化是否将所有的数转化进规定的区间
+                    if (x < -self.activation_border).any() or (x > (self.activation_border-1)).any():
+                        raise Exception("Input to {} layer is out of bounds for an {}-bit signed integer".format(l.__class__.__name__, bitwidth_A))
+                    if (x != x.round()).any():
+                        raise Exception("Input to {} layer has non-integer values".format(l.__class__.__name__))
+    
+                layer.register_forward_pre_hook(pre_hook)
+    
+            # Calculate the scaling factor for the initial input to the CNN
+            self.input_activations = net_with_weights_quantized.input_activations
+            self.input_scale = NetQuantized.quantize_initial_input(self.input_activations, self.activation_border)
+            #以上2行计算了input activation 的scale和对应的quantization 版本
+            # Calculate the output scaling factors for all the layers of the CNN
+    
+            n_w = []
+            activation_scale= [self.input_scale] 
+    
+            for layer in self.conv1, self.conv2, self.conv3, self.conv4, self.conv5, self.conv6, self.conv7, self.conv8, self.fc1, self.fc2:
+                # call quantize_activations and add your code here
+    
+                #获取权重缩放因子
+                n_w.append(layer.weight.scale) 
+    
+                # 计算当前层激活的缩放因子
+                activation_scale.append( NetQuantized.quantize_initial_input(
+                layer.activations, self.activation_border
+                )   )
+    
+            #print(activation_scale)
+    
+            n = 0
+            for layer in self.conv1, self.conv2, self.conv3, self.conv4, self.conv5, self.conv6, self.conv7, self.conv8, self.fc1, self.fc2:
+                layer.output_scale = NetQuantized.quantize_activations(n_w[n], activation_scale[n], activation_scale[n + 1])
+                n = n + 1
+            
+    
+            # 注册前向检查钩子
+            for layer in self.conv1, self.conv2, self.conv3, self.conv4, self.conv5, self.conv6, self.conv7, self.conv8, self.fc1, self.fc2:
+                def pre_hook(l, x):
+                    x = x[0]
+                    if (x < -self.activation_border).any() or (x > (self.activation_border-1)).any():
+                        raise Exception(f"Input to {l.__class__.__name__} layer is out of bounds")
+                    if (x != x.round()).any():
+                        raise Exception(f"Input to {l.__class__.__name__} layer has non-integer values")
+                layer.register_forward_pre_hook(pre_hook)
+    
+        #计算输入的scale函数
+        @staticmethod
+        def quantize_initial_input(pixels: np.ndarray, activation_border:int):
+            '''
+            Calculate a scaling factor for the images that are input to the first layer of the CNN.
+    
+            Parameters:
+            pixels (ndarray): The values of all the pixels which were part of the input image during training
+    
+            Returns:
+            float: A scaling factor that the input should be multiplied by before being fed into the first layer.
+                   This value does not need to be an 8-bit integer.
+            '''
+    
+            sigma3 = int(np.size(pixels)*0.0027+0.5)
+            sigma3_value = pixels[np.argpartition(pixels,-sigma3)[-sigma3]]
+            max_value = np.max(np.abs(pixels))
+            scale = activation_border/max_value  # you can modify the range here，同样，这个地方的scale和论文定义的是和源代码倒数的关系
+            return scale
+    
+        # 逐层激活送入量化
+        @staticmethod
+        def quantize_activations( n_w: float, pre_activation_scale: float, now_activation_scale: float) -> float:
+            '''
+            Calculate a scaling factor to multiply the output of a layer by.
+    
+            Parameters:
+            activations (ndarray): The values of all the pixels which have been output by this layer during training
+            n_w (float): The scale by which the weights of this layer were multiplied as part of the "quantize_weights" function you wrote earlier
+            n_initial_input (float): The scale by which the initial input to the neural network was multiplied
+            ns ([(float, float)]): A list of tuples, where each tuple represents the "weight scale" and "output scale" (in that order) for every preceding layer
+            #用一个元组记录已经算好的所有网络的weight scale 和 output scale
+            Returns:
+            float: A scaling factor that the layer output should be multiplied by before being fed into the first layer.
+                   This value does not need to be an 8-bit integer.
+            '''
+    
+            # ADD YOUR CODE HERE
+            scale = now_activation_scale / (pre_activation_scale * n_w) 
+            return scale
+    
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            # You can access the output activation scales like this:
+            #   fc1_output_scale = self.fc1.output_scale
+    
+            # 这里其实是对定点数计算的模拟仿真，因此每层的输出均需要手动乘以scaling factor，并限制在规定的表示范围内。
+            # output_scale:不同网络层之间传递整数重新压缩为8bit的scale(在第三周阅读论文中是定点浮点数M)
+            # activation_scale:网络层内数据和真实值差距的scale
+            # weight_scale:权重量化值和真实值差距的scale
+            x = x*self.input_scale 
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1) # 8bit是-128~127
+    
+            x = F.relu(self.conv1(x))
+            x = x*self.conv1.output_scale
+            x = self.bn1(x)
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+    
+            x = self.pool(x)
+    
+            temp = x
+    
+            x = F.relu(self.conv2(x))
+            x = x*self.conv2.output_scale
+            x = self.bn2(x)
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+            
+    
+            x = F.relu(self.conv3(x))
+            x = x*self.conv3.output_scale
+            x = self.bn3(x)
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+            temp = torch.clamp(temp.round(), min=-self.activation_border, max=self.activation_border-1)
+            x = x + temp
+            
+            temp = x
+    
+            x = F.relu(self.conv4(x))
+            x = x*self.conv4.output_scale        
+            x = self.bn4(x)
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+    
+            x = F.relu(self.conv5(x))
+            x = x*self.conv5.output_scale
+            x = self.bn5(x)
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+            temp = torch.clamp(temp.round(), min=-self.activation_border, max=self.activation_border-1)
+            x = x + temp
+    
+            temp = x
+            
+            x = F.relu(self.conv6(x))
+            x = x*self.conv6.output_scale
+            x = self.bn6(x)
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+    
+            x = F.relu(self.conv7(x))
+            x = x*self.conv7.output_scale
+            x = self.bn7(x)
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+            temp = torch.clamp(temp.round(), min=-self.activation_border, max=self.activation_border-1)
+    
+            temp = F.relu(self.conv8(temp))
+            temp = temp*self.conv8.output_scale
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+            temp = self.bn8(temp)
+            temp = torch.clamp(temp.round(), min=-self.activation_border, max=self.activation_border-1)
+            x = x + temp
+    
+            x = self.pool2(x)
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)
+    
+            x = x.view(-1, 128 * 4 * 4)
+            x = F.relu(self.fc1(x))   
+            x = x*self.fc1.output_scale
+            x = torch.clamp(x.round(), min=-self.activation_border, max=self.activation_border-1)  
+            
+            x = self.fc2(x)*self.fc2.output_scale
+            return x
+    
+    
+    # %%
+    #Merge the information from net_q2 and net_q3 together
+    #weight quantization & activation quantization 
+    net_init = copy_model(net_q2)
+    net_init.input_activations = deepcopy(net_q3.input_activations)
+    for layer_init, layer_q3 in zip(net_init.children(), net_q3.children()):
+        if isinstance(layer_init, nn.Conv2d) or isinstance(layer_init, nn.Linear):
+            layer_init.activations = deepcopy(layer_q3.activations)
+    
+    net_quantized = NetQuantized(net_init, bitwidth_A)
+    
+    
+    # %%
+    # Finally, record the accuracy of your network after both weights and activations have been quantized.
+    # If you've done everything right, you should still find almost no accuracy change.
+    
+    score = test(net_quantized, testloader)
+    print('Accuracy of the network after quantizing both weights and activations: {}%'.format(score))
+    
+    
+    # %%
+    # Question 5: Quantize Biases 以下为选做内容
+    
+    # Let us now update our CNN to include a bias in its final layer, *fc3*.
+    # We have already included code to create and train a new CNN called `net_with_bias`.
+    
+    # Consider how a bias affects the equation for an unquantized layer:
+    
+    # W * In + bias = Out
+    
+    
+    
+    # %%
+    ## Question 5.1:
+    
+    # Suppose that we again quantized a biased layer with the same scaling factors we used in previous questions: $n_W$, $n_{In}$, and $n_{Out}$.
+    # What would we scale bias by in this case?
+    # Write an equation in your lab report to describe the output of the quantized layer with a bias.
+    
+    # Create a new network with a bias on *fc3*.
+    
+    
+    # %%
+    class NetWithBias(nn.Module):
+        def __init__(self):
+            super(NetWithBias, self).__init__()
+            self.conv1 = nn.Conv2d(3, 64, 3, padding='same', bias=False)
+            self.bn1 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.pool = nn.MaxPool2d(2, 2) # run after each conv (hence the 3x3 FC layer)   16x16
+            self.conv2 = nn.Conv2d(64, 64, 3, padding='same', bias=False)
+            self.bn2 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.conv3 = nn.Conv2d(64, 64, 3, padding='same', bias=False)
+            self.bn3 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.conv4 = nn.Conv2d(64, 64, 3, padding='same', bias=False)
+            self.bn4 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.conv5 = nn.Conv2d(64, 64, 3, padding='same', bias=False)
+            self.bn5 = nn.BatchNorm2d(64, momentum= 0.1)
+            self.conv6 = nn.Conv2d(64, 128, 3, padding=1, stride = 2, bias=False)    #8x8
+            self.bn6 = nn.BatchNorm2d(128, momentum= 0.1)
+            self.conv7 = nn.Conv2d(128, 128, 3, padding='same', bias=False)
+            self.bn7 = nn.BatchNorm2d(128, momentum= 0.1)
+            self.conv8 = nn.Conv2d(64, 128, 1, stride = 2, bias=False)
+            self.bn8 = nn.BatchNorm2d(128, momentum= 0.1)
+            self.pool2 = nn.AvgPool2d(2,2)
+            self.fc1 = nn.Linear(128 * 4 * 4, 128, bias=False)
+            self.fc2 = nn.Linear(128, 10, bias=True)
+        #定义前向传播,将tensor数据送入网络之后的计算图
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            x = F.relu(self.conv1(x))
+            x = self.bn1(x)
+            x = self.pool(x)
+    
+            temp = x
+            x = F.relu(self.conv2(x))
+            x = self.bn2(x)
+            x = F.relu(self.conv3(x))
+            x = self.bn3(x)
+            x = x + temp
+    
+            temp = x
+            x = F.relu(self.conv4(x))
+            x = self.bn4(x)
+            x = F.relu(self.conv5(x))
+            x = self.bn5(x)
+            x = x + temp
+    
+            temp = x
+            x = F.relu(self.conv6(x))
+            x = self.bn6(x)
+            x = F.relu(self.conv7(x))
+            x = self.bn7(x)
+            temp = F.relu(self.conv8(temp))
+            temp = self.bn8(temp)
+            x = x + temp
+    
+            x = self.pool2(x)
+    
+            x = x.view(-1, 128 * 4 * 4)
+            x = F.relu(self.fc1(x))
+            x = self.fc2(x)
+            
+            return x
+    
+    net_with_bias = NetWithBias().to(device)
+    
+    # %%
+    # Train and test the model
+    
+    # %%
+    train(net_with_bias, trainloader)
+    
+    # %%
+    score = test(net_with_bias, testloader)
+    print('Accuracy of the network (with a bias) on the test images: {}%'.format(score))
+    
+    # %%
+    register_activation_profiling_hooks(net_with_bias)
+    test(net_with_bias, trainloader, max_samples=400)
+    net_with_bias.profile_activations = False
+    
+    # %%
+    net_with_bias_with_quantized_weights = copy_model(net_with_bias)
+    quantize_layer_weights(net_with_bias_with_quantized_weights, bitwidth_W)
+    
+    score = test(net_with_bias_with_quantized_weights, testloader)
+    print('Accuracy of the network on the test images after all the weights are quantized but the bias isn\'t: {}%'.format(score))
+    
+    # %%
+    # Fill in the `quantized_bias` function in the `NetQuantizedWithBias` class.
+    # This function is meant to quantize the bias on the final layer of the CNN.
+    # Keep in mind that biases are typically quantized to 32-bits, so your bias values do not all have to be between -128 and 127 (though 32-bits is a bit conservative).
+    
+    # %%
+    # slightly clearer bias bounds (32b signed integer)
+    #bias量化后的最大值、最小值
+    MIN_32B_SINT = -(2**31) 
+    MAX_32B_SINT = (2**31) - 1
+    
+    # %%
+    class NetQuantizedWithBias(NetQuantized):
+        def __init__(self, net_with_weights_quantized: nn.Module):
+            super(NetQuantizedWithBias, self).__init__(net_with_weights_quantized, bitwidth_A)
+    
+            preceding_scales_fc2 = [(layer.weight.scale, layer.output_scale) for layer in self.children() if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear)][:-1]
+            #preceding_scales_fc1 = preceding_scales_fc2[0:4]
+            #print(preceding_scales_fc1)
+    
+            #self.fc1.bias.data = NetQuantizedWithBias.quantized_bias(
+                #self.fc1.bias.data,
+                #self.fc1.weight.scale,
+                #self.input_scale,
+                #preceding_scales_fc1
+            #)
+            #print(self.fc1.bias.data)
+            
+            self.fc2.bias.data = NetQuantizedWithBias.quantized_bias(
+                self.fc2.bias.data,
+                self.fc2.weight.scale,
+                self.input_scale,
+                preceding_scales_fc2
+            )
+            #print(self.fc2.bias.data)
+    
+            #if (self.fc1.bias.data < MIN_32B_SINT).any() or (self.fc1.bias.data > MAX_32B_SINT).any():
+                #raise Exception("Bias has values which are out of bounds for an 32-bit signed integer")
+            #if (self.fc1.bias.data != self.fc1.bias.data.round()).any():
+                #raise Exception("Bias has non-integer values")
+            if (self.fc2.bias.data < MIN_32B_SINT).any() or (self.fc2.bias.data > MAX_32B_SINT).any():
+                raise Exception("Bias has values which are out of bounds for an 32-bit signed integer")
+            if (self.fc2.bias.data != self.fc2.bias.data.round()).any():
+                raise Exception("Bias has non-integer values")
+        
+        @staticmethod
+        def quantized_bias(bias: torch.Tensor, n_w: float, n_initial_input: float, ns: List[Tuple[float, float]]) -> torch.Tensor:
+            '''
+            Quantize the bias so that all values are integers between MIN_32B_SINT and MAX_32B_SINT.
+    
+            Parameters:
+            bias (Tensor): The floating point values of the bias
+            n_w (float): The scale by which the weights of this layer were multiplied
+            n_initial_input (float): The scale by which the initial input to the neural network was multiplied
+            ns ([(float, float)]): A list of tuples, where each tuple represents the "weight scale" and "output scale" (in that order) for every preceding layer
+    0
+            Returns:
+            Tensor: The bias in quantized form, where every value is an integer between MIN_32B_SINT and MAX_32B_SINT.
+                    The "dtype" will still be "float", but the values themselves should all be integers.
+            '''
+    
+            # ADD YOUR CODE HERE
+    
+            #print(bias)
+            # 计算累积缩放因子：初始输入缩放 × 所有前驱层的输出缩放
+    
+            scale = n_initial_input
+            for weight_scale, output_scale in ns:
+                scale *= output_scale
+                scale *= weight_scale
+            
+            # 总缩放因子 = 累积输入缩放 × 当前层权重缩放
+            scale = scale * n_w
+            print(scale)
+    
+            # 量化偏置：bias * scale → 四舍五入 → 截断至32位整数范围
+            quan_bias = (bias * scale).round()
+            quan_bias = torch.clamp(quan_bias, min=MIN_32B_SINT, max=MAX_32B_SINT)
+            return quan_bias
+    
+    
+    
+    
+    # %%
+    net_quantized_with_bias = NetQuantizedWithBias(net_with_bias_with_quantized_weights)
+    
+    
+    # %%
+    ## Question 5.3:
+    
+    # What is your accuracy before and after quantizing CNN with the bias?
+    # The accuracy change should ideally be negligible.
+    
+    # %%
+    score = test(net_quantized_with_bias, testloader)
+    print('Accuracy of the network on the test images after all the weights and the bias are quantized: {}%'.format(score))
+        
+\end{lstlisting}
+
+\begin{lstlisting}[frame=shadowbox,caption = lab1\_QAT\_ResNet.ipynb,language=python]
+    # %%
+    # 本次实验包括后量化的过程，主要在于学习如何对DNN的权重（weight）和激活层（activation）进行量化。
+    
+    # %%
+    # 引用外部软件包
+    import torch # pytorch包
+    import torchvision # torchvision是pytorch官方提供的工具，包含很多常用数据集的封装等
+    import torchvision.transforms as transforms
+    import torch.nn as nn # nn 和下面的F均包含了主要的神经网络模块，包括卷积层、全连接层、池化层等等
+    import torch.nn.functional as F
+    import torch.optim as optim # 优化器
+    
+    # %%
+    # 确保device为gpu，否则会花费过长时间。
+    if torch.cuda.is_available():
+        torch.cuda.set_device(0)
+        device = "cuda"
+    else:
+        device = torch.device('cpu')
+    
+    
+    # %%
+    # Load training and test data from the CIFAR10 dataset.
+    # torchvision是pytorch官方集成的工具库，包括学界常用的数据集和数据预处理方式。
+    transform = transforms.Compose(
+        [transforms.ToTensor(), # 将数据归一化，并转换成tensor的形式
+         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]) # 预处理数据的方式，normalize是将图像进行规则化。
+    
+    trainset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset/cifar10', train=True,
+                                            download=True, transform=transform) #定义了训练集，path是训练数据所在地址。
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                              shuffle=True, num_workers=2) #定义数据迭代器，batchsize为一次迭代训练，送进去图像的数量（可以尝试调整，看看会发生什么）。shuffle表示要不要打乱训练图像的排序。
+    
+    testset = torchvision.datasets.CIFAR10(root='C:/Users/skyhappy/Desktop/学校的破事/作业/数字系统设计/lab1/dataset/cifar10', train=False,
+                                           download=True, transform=transform)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=4,
+                                             shuffle=False, num_workers=2)
+    
+    # %%
+    # Define a simple CNN that classifies CIFAR images.
+    # The network provided is similar to LeNet-5, and it has the following architecture:
+    
+    # **Layer** |     **Type**    | **Input Shape** | **Output Shape** | **Activation**
+    #   conv1   |  Convolutional  |     3x32x32     |     6x28x28      |      ReLU 
+    #   pool1   |     Max pool    |     6x28x28     |     6x14x14      |      None                
+    #   conv2   |  Convolutional  |     6x14x14     |     16x10x10     |      ReLU                
+    #   pool2   |     Max pool    |     16x10x10    |     16x5x5       |      None                
+    #   fc1     | Fully-connected |       400       |       120        |      ReLU                
+    #   fc2     | Fully-connected |       120       |       84         |      ReLU                
+    #   fc3     | Fully-connected |       84        |       10         |      None                
+    
+    # None of the layers in the network have a bias associated with them.
+    # This makes them easier to quantize.
+    # Towards the end of this assignment, we will add biases to the final layer and quantize it as well.
+    
+    # %%
+    # 重新定义conv函数与fc函数
+    import math
+    def TorchRound():
+        """
+        Apply STE to clamp function.
+        """
+        class identity_quant(torch.autograd.Function):
+            @staticmethod
+            def forward(ctx, input):
+                out = torch.round(input)
+                return out
+    
+            @staticmethod
+            def backward(ctx, grad_output):
+                return grad_output
+    
+        return identity_quant().apply
+    
+    def quant_max(tensor):
+        """
+        Returns the max value for symmetric quantization.
+        """
+        return torch.abs(tensor.detach()).max() + 1e-8 # 防止除0的情况出现
+    
+    class quant_weight(nn.Module):
+        """
+        Quantization function for quantize weight with maximum.
+        """
+    
+        def __init__(self, k_bits=8):
+            super(quant_weight, self).__init__()
+            self.k_bits = k_bits
+            self.qmax = 2. ** (k_bits -1) - 1.
+            self.round = TorchRound()
+    
+        def forward(self, input):
+            max_val = quant_max(input)
+            weight = input * self.qmax / max_val
+            q_weight = self.round(weight)
+            q_weight = q_weight * max_val / self.qmax  # 通过这种方式引入量化误差，从而实现QAT
+            #q_weight = self.round(q_weight)
+            return q_weight
+    
+    class QuantConv2d(nn.Module):
+        """
+        A convolution layer with quantized weight.
+        """
+    
+        def __init__(self, in_channels, out_channels, kernel_size, stride=1,
+                        padding=0, dilation=1, groups=1, bias=False, k_bits=8): # 默认使用bias=False的情况
+            super(QuantConv2d, self).__init__()
+            self.weight = nn.Parameter(torch.Tensor(out_channels,in_channels,kernel_size,kernel_size))
+            self.stride = stride
+            self.padding = padding
+            self.dilation = dilation
+            self.groups = groups
+            self.in_channels = in_channels
+            self.kernel_size = (kernel_size, kernel_size)
+            self.bias_flag = bias
+            if self.bias_flag:
+                self.bias = nn.Parameter(torch.Tensor(out_channels))
+                nn.init.constant_(self.bias)
+            else:
+                self.register_parameter('bias', None)
+            self.k_bits = k_bits
+            self.quant_weight = quant_weight(k_bits = k_bits)
+            self.output = None
+            nn.init.kaiming_normal_(self.weight) # 初始化参数
+            
+    
+        def forward(self, input, order=None):
+            return F.conv2d(input, self.quant_weight(self.weight), self.bias, self.stride, self.padding, self.dilation, self.groups)
+    
+    class QuantFC(nn.Module):
+        """
+        A Fully Connected layer with quantized weight.
+        """
+    
+        def __init__(self, in_features, out_features, bias=False, k_bits=8): # 默认使用bias=False的情况
+            super(QuantFC, self).__init__()
+            self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
+            self.bias_flag = bias
+            if self.bias_flag:
+                self.bias = nn.Parameter(torch.Tensor(out_features))
+            else:
+                self.register_parameter('bias', None)
+            self.k_bits = k_bits
+            self.quant_weight = quant_weight(k_bits = k_bits)
+            nn.init.kaiming_normal_(self.weight) # 初始化参数，何恺明发明
+    
+    
+        def forward(self, input, order=None):
+            return F.linear(input, self.quant_weight(self.weight), self.bias)
+    
+    # %%
+    class quant_act(nn.Module):
+        """
+        Quantization function for quantize activation with parameterized max scale.
+        """
+        def __init__(self, k_bits=8, decay=0.995):
+            super(quant_act, self).__init__()
+            self.k_bits = k_bits
+            self.qmax = 2. ** (self.k_bits -1) -1.
+            self.round = TorchRound()
+            self.decay = decay #平滑因子，用于EMA，能够更敏感地反映最新的数据变化
+            self.alpha = nn.Parameter(torch.Tensor(10))   #将激活值限制在 [-alpha, alpha] 范围内，避免异常值破坏量化。
+            self.register_buffer('max_val', torch.ones(1))
+    
+        def _ema(self, x):   #通过指数移动平均（EMA）跟踪激活值的最大绝对值范围
+            act = x.reshape(x.shape[0], -1)
+            # print(act.shape)
+            max_val = torch.mean(torch.max(act, dim=1)[0])
+    
+            self.max_val = (1.0-self.decay) * max_val + self.decay * self.max_val 
+    
+        def forward(self, x):
+            act = x
+            self._ema(x)
+            self.alpha.data = self.max_val.unsqueeze(0)
+            act = torch.max(torch.min(x, self.alpha), -self.alpha)
+            
+            act = act * self.qmax / self.alpha  
+            q_act = self.round(act)
+            q_act = q_act * self.alpha / self.qmax  # 引入量化误差
+            #q_act = self.round(q_act)
+        
+            return q_act
+    
+    # %%
+    # 网络定义，conv2d是卷积层，linear是全连接层。forward下定义了计算图，显示送进来的图像（x）会怎么处理。
+    class Net(nn.Module):
+        #网络结构:2层卷积层、1层最大值池化层、3层全连接层，留意这些参数的内涵
+        def __init__(self):
+            super(Net, self).__init__()
+            self.conv1 = QuantConv2d(3, 64, 3, padding='same', bias=False)
+            self.pool = nn.MaxPool2d(2, 2) # run after each conv (hence the 3x3 FC layer)   16x16
+            self.conv2 = QuantConv2d(64, 64, 3, padding='same', bias=False)
+            self.conv3 = QuantConv2d(64, 64, 3, padding='same', bias=False)
+            self.conv4 = QuantConv2d(64, 64, 3, padding='same', bias=False)
+            self.conv5 = QuantConv2d(64, 64, 3, padding='same', bias=False)
+            self.conv6 = QuantConv2d(64, 128, 3, padding=1, stride = 2, bias=False)    #8x8
+            self.conv7 = QuantConv2d(128, 128, 3, padding='same', bias=False)
+            self.conv8 = QuantConv2d(64, 128, 1, stride = 2, bias=False)
+            self.pool2 = nn.AvgPool2d(2,2)
+            self.fc1 = QuantFC(128 * 4 * 4, 128, bias=False)
+            self.fc2 = QuantFC(128, 10, bias=False)
+    
+            self.quant_act1 = quant_act(k_bits=8) # activation for 8 bit
+            self.quant_act2 = quant_act(k_bits=8)
+            self.quant_act3 = quant_act(k_bits=8)
+            self.quant_act4 = quant_act(k_bits=8)
+            self.quant_act5 = quant_act(k_bits=8)
+            self.quant_act6 = quant_act(k_bits=8)
+            self.quant_act7 = quant_act(k_bits=8)
+            self.quant_act8 = quant_act(k_bits=8)
+            self.quant_act9 = quant_act(k_bits=8)
+            
+        #定义前向传播,将tensor数据送入网络之后的计算图
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            x = F.relu(self.conv1(x))
+            x = self.pool(x)
+            x = self.quant_act1(x)
+    
+            temp = x
+            x = F.relu(self.conv2(x))
+            temp = self.quant_act2(temp)
+            x = self.quant_act2(x)
+            x = F.relu(self.conv3(x))
+            temp = self.quant_act3(temp)
+            x = self.quant_act3(x)
+            x = x + temp
+            
+    
+            temp = x
+            x = F.relu(self.conv4(x))
+            temp = self.quant_act4(temp)
+            x = self.quant_act4(x)
+            x = F.relu(self.conv5(x))
+            temp = self.quant_act5(temp)
+            x = self.quant_act5(x)
+            x = x + temp
+    
+            temp = x
+            x = F.relu(self.conv6(x))
+            temp = self.quant_act6(temp)
+            x = self.quant_act6(x)
+            x = F.relu(self.conv7(x))
+            temp = self.quant_act7(temp)
+            x = self.quant_act7(x)
+            temp = F.relu(self.conv8(temp))
+            temp = self.quant_act8(temp)
+            x = self.quant_act8(x)
+            x = x + temp
+    
+            x = self.pool2(x)
+    
+            x = x.view(-1, 128 * 4 * 4)
+            x = F.relu(self.fc1(x))
+            x = self.quant_act9(x)
+            x = self.fc2(x)
+            
+            return x
+        
+    net = Net().to(device)
+    # 到这里，我们定义好了网络和数据集的使用方式
+    
+    # %%
+    from torch.utils.data import DataLoader
+    #将训练集的dataloader送入网络进行训练,每次读取batchsize数量的数据
+    def train(model: nn.Module, dataloader: DataLoader):
+        criterion = nn.CrossEntropyLoss() # loss function（交叉熵损失函数）
+        optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) #optimizer，使用SGD优化器训练，第一个参数表示model的所有参数都会参与训练，学习率为0.001，动量为0.9
+    
+        for epoch in range(2):  # loop over the dataset multiple times。epoch指遍历所有训练集图像的次数。这里遍历所有训练图像三次
+    
+            running_loss = 0.0
+            for i, data in enumerate(dataloader, 0): # dataloader是数据迭代器，从这里每次读出batchsize数量的数据。
+                # get the inputs; data is a list of [inputs, labels]
+                inputs, labels = data
+    
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+    
+                # zero the parameter gradients
+                optimizer.zero_grad()
+                
+                # forward + backward + optimize
+                outputs = model(inputs) # 将数据送进网络，得到结果
+                loss = criterion(outputs, labels) # 计算结果和标签的交叉熵损失函数
+                loss.backward() # 基于上述损失函数求解梯度
+                optimizer.step() # 更新参数
+    
+                # print statistics
+                running_loss += loss.item() # 将loss的值取出来，记录其变化
+                if i % 2000 == 1999:    # print every 2000 mini-batches
+                    print('[%d, %5d] loss: %.3f' %
+                        (epoch + 1, i + 1, running_loss / 2000))
+                    running_loss = 0.0
+    
+        print('Finished Training')
+    
+    def test(model: nn.Module, dataloader: DataLoader, max_samples=None) -> float:
+        correct = 0
+        total = 0
+        n_inferences = 0
+    
+        with torch.no_grad(): # 测试时不用求解梯度，因此可以设置不计算梯度的模式
+            for data in dataloader:
+                images, labels = data
+    
+                images = images.to(device)
+                labels = labels.to(device)
+    
+                outputs = model(images) # get 1 batch worth of image predictions (i.e. 4 predictions of 10 each)
+                other, predicted = torch.max(outputs.data, 1) # other == values, predicted == indicies
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+    
+                if max_samples:
+                    n_inferences += images.shape[0]
+                    if n_inferences > max_samples:
+                        break
+        
+        return 100 * correct / total
+    
+    # %%
+    train(net, trainloader) # 进行训练，将网络定义和数据迭代器传给train函数。
+    
+    # %%
+    # Now that the CNN has been trained, let's test it on our test dataset.
+    score = test(net, testloader)
+    print('Accuracy of the network on the test images: {}%'.format(score))
+    
+    # %%
+    # Define a convenience function which we use to copy CNN's.
+    from copy import deepcopy
+    
+    def copy_model(model: nn.Module) -> nn.Module:
+        result = deepcopy(model)
+    
+        # Copy over the extra metadata we've collected which copy.deepcopy doesn't capture
+        if hasattr(model, 'input_activations'):
+            result.input_activations = deepcopy(model.input_activations)
+    
+        for result_layer, original_layer in zip(result.children(), model.children()):
+            if isinstance(result_layer, nn.Conv2d) or isinstance(result_layer, nn.Linear):
+                if hasattr(original_layer.weight, 'scale'):
+                    result_layer.weight.scale = deepcopy(original_layer.weight.scale)
+                if hasattr(original_layer, 'activations'):
+                    result_layer.activations = deepcopy(original_layer.activations)
+                if hasattr(original_layer, 'output_scale'):
+                    result_layer.output_scale = deepcopy(original_layer.output_scale)
+    
+        return result
+    
+    # %%
+    # Visualize Weights
+    
+    # %%
+    import matplotlib.pyplot as plt
+    import numpy as np
+    
+    name = ['conv1', 'conv2', 'conv3', 'conv4', 'conv5', 'conv6', 'conv7', 'conv8', 'fc1', 'fc2']
+    n = 0
+    
+    for layer in net.children(): # 遍历类的成员
+        if isinstance(layer, QuantConv2d) or isinstance(layer, QuantFC):
+            weight = layer.weight.data.cpu().view(-1).numpy()
+            print(name[n] + ": the range is [{:.5f}, {:.5f}]".format(weight.min(), weight.max()))
+    
+            # find 3-sigma range (u-3s, u+3s), 该范围能囊括99.73%参数
+            sigma3 = int(np.size(weight)*0.0027) 
+            sigma3_value = np.abs(weight)[np.argpartition(np.abs(weight), -sigma3)[-sigma3]]
+            print(name[n] + ": the 3-sigma range is [{:.5f}, {:.5f}]".format(max(-sigma3_value, weight.min()), min(sigma3_value,weight.max())))
+    
+            plt.hist(weight, bins=50, facecolor="blue", edgecolor="black", alpha=0.7) # 画直方图
+            plt.xlabel("range")
+            plt.ylabel("frequency")
+            plt.title(name[n])
+            plt.show()
+            n += 1
+            
+    # You can get a flattened vector of the weights of fc1 like this:
+    #   fc1_weights = net.fc1.weight.data.cpu().view(-1)
+    
+    # %%
+    score = test(net, testloader)
+    print('Accuracy of the quantized network on the test images: {}%'.format(score))
+    
+        
+\end{lstlisting}
+\end{document}
