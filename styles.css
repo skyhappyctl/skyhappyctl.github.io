@@ -88,11 +88,45 @@ h3 { font-size: var(--font-size-entry); font-weight: 600; line-height: 1.65; mar
 .paper-links span { color: var(--muted); padding-inline: 7px; }
 .paper-details > :last-child { margin-bottom: 0; }
 
+/* 个人博客：突出个人微信公众号，文章仍使用简洁的单栏学术列表。 */
+.blog-identity { margin-bottom: 10px; }
+.blog-identity h3 { font-size: var(--font-size-entry); font-weight: 600; margin-bottom: 2px; }
+.blog-platform { color: var(--muted); font-size: var(--font-size-meta); margin-bottom: 0; }
+.reading-intro { color: var(--muted); font-size: var(--font-size-detail); margin-bottom: 18px; }
+.reading-entry { overflow-wrap: anywhere; }
+.reading-entry + .reading-entry { margin-top: 22px; }
+.reading-entry h3 { margin-bottom: 6px; }
+.reading-paper-title { font-size: var(--font-size-detail); line-height: 1.7; margin-bottom: 6px; }
+.reading-meta { font-size: var(--font-size-meta); color: var(--muted); line-height: 1.8; }
+.reading-meta > span { padding-inline: 4px; }
+.reading-post-link { white-space: nowrap; }
+.reading-entry > :last-child { margin-bottom: 0; }
+
 /* 科研与实习：项目概述 + 分项工作，保持简洁的单栏列表。 */
 .project + .project { margin-top: 26px; }
 .project p { font-size: var(--font-size-body); margin-bottom: 4px; }
 .project .project-tags { font-size: var(--font-size-small); color: var(--muted); }
 .project .note { font-size: var(--font-size-meta); margin-top: 4px; }
+
+/* 科研与实习配图：技术示意图完整显示，不裁剪；点击打开原尺寸图片。 */
+.project-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin: 18px auto; }
+.project-gallery.is-single { max-width: 400px; grid-template-columns: minmax(0, 1fr); }
+/* 抵消列表缩进，让分项说明下的图片相对整列正文居中。 */
+.highlight-figures { margin-inline-start: -1.3em; }
+.highlight-figures .project-gallery.is-single { max-width: 560px; }
+.project-figure { margin: 0; min-width: 0; }
+/* 横向信号/训练曲线单独占一行，避免与另一张图并排时缩得太小。 */
+.project-figure.is-wide { grid-column: 1 / -1; width: 100%; max-width: 720px; margin-inline: auto; }
+.project-image-link { display: block; }
+.project-image-link img { width: 100%; height: auto; border: 1px solid var(--border); background: white; }
+.project-figure figcaption { text-align: center; margin-top: 8px; font-size: var(--font-size-small); line-height: 1.7; color: var(--muted); }
+@media (max-width: 600px) {
+  .project-gallery { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+}
+@media print {
+  .project-figure { break-inside: avoid; }
+  .project-image-hint { display: none; }
+}
 
 /* 技能、获奖、其他经历与联系。 */
 .skill-list { margin: 0; font-size: var(--font-size-detail); }
@@ -150,13 +184,17 @@ h3 { font-size: var(--font-size-entry); font-weight: 600; line-height: 1.65; mar
   .honor { grid-template-columns: 55px minmax(0, 1fr); gap: 12px; font-size: var(--font-size-detail); }
   .hero.no-portrait .intro { margin-top: 16px; }
 }
+/* 极窄屏幕：五个导航入口分两行，避免英文名称互相重叠。 */
+@media (max-width: 380px) {
+  .site-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 8px; }
+}
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 @media print {
   .site-header, .hero-links, .back-top, .skip-link { display: none; }
   .container { width: 100%; }
   .hero { padding-block: 15px 20px; }
   .section { padding-block: 18px; }
-  .project, .publication, .honor { break-inside: avoid; }
+  .project, .publication, .reading-entry, .honor { break-inside: avoid; }
 }
 
 /* 新版简历：教育日期、科研/实习时间，以及可展开的课程与学生工作。 */

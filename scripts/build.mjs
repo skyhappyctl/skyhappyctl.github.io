@@ -46,10 +46,27 @@ for (const publication of profile.publications) {
   addAsset(publication.image, images);
   addAsset(publication.pdf, [".pdf"], true);
 }
+// Only explicitly referenced local images may be published for research/internships.
+function addExperienceImages(entry, kind) {
+  if (entry.images !== undefined && !Array.isArray(entry.images)) {
+    throw new Error(`${kind} images must be an array.`);
+  }
+  for (const figure of entry.images || []) {
+    if (!figure || typeof figure.src !== "string" || !figure.src) {
+      throw new Error(`Each ${kind.toLowerCase()} image must reference a local public image.`);
+    }
+    addAsset(figure.src, images);
+  }
+}
 // Local project links can point only to public images or PDFs, not private HTML/files.
 for (const project of profile.projects) {
+  addExperienceImages(project, "Project");
   if (project.url && !/^https?:\/\//i.test(project.url)) addAsset(project.url, [...images, ".pdf"]);
 }
+if (profile.internships !== undefined && !Array.isArray(profile.internships)) {
+  throw new Error("Internships must be an array.");
+}
+for (const internship of profile.internships || []) addExperienceImages(internship, "Internship");
 
 async function assertNoLinks(base, rel, requireFile = true) {
   const absolute = resolve(base, rel);

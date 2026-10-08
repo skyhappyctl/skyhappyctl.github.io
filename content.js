@@ -114,7 +114,12 @@ window.PROFILE = {
       {
         "zh": "人工智能赋能的数字集成电路设计",
         "en": "AI-Empowered Digital Integrated Circuit Design"
-      }
+      },
+      {
+        "zh": "IC设计与方法",
+        "en": "IC Design and Method"
+      },
+
     ]
   },
   interests: [
@@ -148,10 +153,6 @@ window.PROFILE = {
       "summary": {
         "zh": "利用片上光衍射与复数调制，将高维视觉输入映射为低维特征，用于图像压缩、分类和视频动作识别。",
         "en": "On-chip optical diffraction and complex-valued modulation embed high-dimensional visual inputs into compact features for image compression, classification, and action recognition."
-      },
-      "note": {
-        "zh": "简历链接指向 Research Square 预印本。",
-        "en": "The supplied CV links to the Research Square preprint."
       }
     },
     {
@@ -172,26 +173,6 @@ window.PROFILE = {
         "zh": "围绕晶圆级芯片集群研究混合并行训练映射与片上容错路由。",
         "en": "Studies hybrid-parallel training mapping and on-chip fault-tolerant routing for wafer-scale chip clusters."
       }
-    },
-    {
-      "title": {
-        "zh": "大模型训练在晶圆级芯片集群上的混合并行切分策略",
-        "en": "Hybrid-Parallel Partitioning Strategies for Large-Model Training on Wafer-Scale Chip Clusters"
-      },
-      "status": {
-        "zh": "研究工作",
-        "en": "Research work"
-      }
-    },
-    {
-      "title": {
-        "zh": "针对晶圆级芯片系统 2D-Mesh/Torus 拓扑的片上容错路由算法AEDPRA设计",
-        "en": "On-Chip Fault-Tolerant Routing for 2D-Mesh/Torus Wafer-Scale Chip System Topologies"
-      },
-      "status": {
-        "zh": "研究工作",
-        "en": "Research work"
-      },
     }
   ],
 
@@ -201,6 +182,36 @@ window.PROFILE = {
         "zh": "基于晶圆级芯片系统的大模型训练架构",
         "en": "LLM training architecture for wafer-scale chip systems"
       },
+      "images": [
+        {
+          "src": "assets/wafer-parallel-mapping.webp",
+          "afterHighlight": 0,
+          "width": 1386,
+          "height": 660,
+          "alt": {
+            "zh": "晶圆级训练系统的混合并行策略与拓扑映射示意",
+            "en": "Hybrid-parallel strategy mapping onto wafer-scale network and scale-up/scale-out planes"
+          },
+          "caption": {
+            "zh": "混合并行策略与晶圆级拓扑映射",
+            "en": "Hybrid-parallel mapping and wafer-scale topology"
+          }
+        },
+        {
+          "src": "assets/wafer-fault-tolerant-routing.webp",
+          "afterHighlight": 1,
+          "width": 2274,
+          "height": 1246,
+          "alt": {
+            "zh": "2D-Torus 故障链路下的候选路径、路由树与路径示意",
+            "en": "Candidate paths, routing tree and fault-tolerant paths in a 2D-Torus network"
+          },
+          "caption": {
+            "zh": "2D-Torus 片上容错路由示意",
+            "en": "Fault-tolerant routing in a 2D-Torus network"
+          }
+        }
+      ],
       "date": {
         "zh": "2025.09 – 至今",
         "en": "Sep 2025 – present"
@@ -314,6 +325,21 @@ window.PROFILE = {
         "zh": "卷积神经网络的乘加法器",
         "en": "Multiply–accumulate units for convolutional neural networks"
       },
+      "images": [
+        {
+          "src": "assets/cnn-mac-pe-architectures.webp",
+          "width": 542,
+          "height": 558,
+          "alt": {
+            "zh": "MAC 与加法树 PE 在补码、原码及带偏置补码下的结构对比",
+            "en": "MAC-based and adder-tree processing elements using two's-complement, sign-magnitude and biased representations"
+          },
+          "caption": {
+            "zh": "MAC 与加法树 PE 的结构对比",
+            "en": "Comparison of MAC-based and adder-tree PE architectures"
+          }
+        }
+      ],
       "date": {
         "zh": "2024.10 – 2026.02",
         "en": "Oct 2024 – Feb 2026"
@@ -365,6 +391,22 @@ window.PROFILE = {
         "zh": "16 bit、10 GHz 算法可重构数模转换器（DAC）",
         "en": "16-bit, 10 GHz algorithmically reconfigurable DAC"
       },
+      "images": [
+        {
+          "src": "assets/dac-reconfigurable-layout.webp",
+          "afterHighlight": 0,
+          "width": 791,
+          "height": 1247,
+          "alt": {
+            "zh": "可重构 DAC 芯片版图，标注电流源阵列、锁存器阵列、时钟树、并串转换器阵列、SRAM 阵列与输出位置",
+            "en": "Reconfigurable DAC chip layout showing current-source, latch, serializer and SRAM arrays, clock distribution, and output locations"
+          },
+          "caption": {
+            "zh": "可重构 DAC 版图与主要模块分布示意",
+            "en": "Reconfigurable DAC layout and major functional blocks"
+          }
+        }
+      ],
       "date": {
         "zh": "2024.12 – 2026.02",
         "en": "Dec 2024 – Feb 2026"
@@ -379,10 +421,6 @@ window.PROFILE = {
         "SerDes",
         "CTLE"
       ],
-      "note": {
-        "zh": "16 bit、10 GHz 为简历列出的项目设计目标，不表示已验证的实测性能。",
-        "en": "16-bit and 10 GHz are the project design targets listed in the CV, not verified measured performance."
-      },
       "highlights": [
         {
           "label": {
@@ -481,6 +519,66 @@ window.PROFILE = {
         "zh": "基于 PPG 的健康检测指环",
         "en": "PPG-based health-monitoring ring"
       },
+      "images": [
+        {
+          "src": "assets/shokz-ppg-linear-array.webp",
+          "afterHighlight": 0,
+          "width": 832,
+          "height": 792,
+          "alt": {
+            "zh": "直线型 PPG 阵列、IMU 电路与 PCB 布局示意",
+            "en": "Linear PPG array, IMU circuit and PCB layouts"
+          },
+          "caption": {
+            "zh": "直线型 PPG 阵列与 IMU 电路 / PCB 布局",
+            "en": "Linear PPG array and IMU circuit / PCB layouts"
+          }
+        },
+        {
+          "src": "assets/shokz-ppg-asymmetric-array.webp",
+          "afterHighlight": 0,
+          "width": 818,
+          "height": 936,
+          "alt": {
+            "zh": "非对称型 PPG 阵列原理图与 PCB 布局示意",
+            "en": "Asymmetric PPG array schematic and PCB layouts"
+          },
+          "caption": {
+            "zh": "非对称型 PPG 阵列与 PCB 布局",
+            "en": "Asymmetric PPG array and PCB layouts"
+          }
+        },
+        {
+          "src": "assets/shokz-ppg-signal-analysis.webp",
+          "afterHighlight": 1,
+          "width": 1504,
+          "height": 586,
+          "alt": {
+            "zh": "红外通道 PPG 原始波形、滤波后波形、小波变换波形与质量评分示例",
+            "en": "Infrared-channel PPG waveforms before and after filtering, wavelet-transform waveforms and example quality scores"
+          },
+          "caption": {
+            "zh": "PPG 红外通道波形、滤波与小波分析示例",
+            "en": "Infrared PPG waveforms, filtering and wavelet analysis"
+          },
+          "fullWidth": true
+        },
+        {
+          "src": "assets/shokz-ppg-classifier-training.webp",
+          "afterHighlight": 1,
+          "width": 1528,
+          "height": 544,
+          "alt": {
+            "zh": "分类模型的训练与验证损失曲线、训练与验证准确率曲线",
+            "en": "Training and validation loss and accuracy curves for the classification model"
+          },
+          "caption": {
+            "zh": "分类模型的训练与验证曲线（Loss / Accuracy）",
+            "en": "Classifier training and validation curves (loss / accuracy)"
+          },
+          "fullWidth": true
+        }
+      ],
       "date": {
         "zh": "2025.06 – 2025.08",
         "en": "Jun – Aug 2025"
@@ -550,13 +648,15 @@ window.PROFILE = {
     },
     {
       "title": {
-        "zh": "深度学习与算子",
+        "zh": "深度学习与算子开发",
         "en": "Deep learning & kernels"
       },
       "items": [
         "PyTorch",
         "Triton",
-        "CUDA"
+        "CUDA",
+        "Nsight Compute",
+        "Nsight System"
       ]
     },
     {
@@ -567,7 +667,9 @@ window.PROFILE = {
       "items": [
         "Cadence",
         "Vivado",
-        "Lumerical"
+        "Lumerical",
+        "Verilator",
+        "OpenSTA"
       ]
     },
     {
@@ -740,6 +842,34 @@ window.PROFILE = {
     "en": "Beyond research, I contribute to student organizations, arts activities, and practical programs. ",
   },
   service: [
+        {
+      "title": {
+        "zh": "深微硕 6 班",
+        "en": "Shenzhen  Microelectronics Master class 6"
+      },
+      "date": {
+        "zh": "2026.09 – 2027.09",
+        "en": "Sep 2026 – Sep 2027"
+      },
+      "description": {
+        "zh": "学生助理",
+        "en": "Student Assistant"
+      }
+    },
+        {
+      "title": {
+        "zh": "深微硕 6 班",
+        "en": "Shenzhen  Microelectronics Master class 6"
+      },
+      "date": {
+        "zh": "2026.09 – 2027.09",
+        "en": "Sep 2026 – Sep 2027"
+      },
+      "description": {
+        "zh": "宣传委员",
+        "en": "Publicity representative"
+      }
+    },
       {
       "title": {
         "zh": "数据与信息学院研究生会",
@@ -926,12 +1056,16 @@ window.PROFILE = {
 
   // 10 联系与页脚说明
   contactIntro: {
-    "zh": "欢迎交流大模型训推系统、分布式训练、AI Infra 与软硬件协同优化相关的研究或工作机会。",
-    "en": "I welcome research and career opportunities in large-model training and inference systems, distributed training, AI infrastructure, and hardware–software co-design."
+    "zh": "欢迎交流大模型训推系统、分布式训练、AI Infra 与软硬件协同优化相关的研究或工作机会。我的邮箱是：",
+    "en": "I welcome research and career opportunities in large-model training and inference systems, distributed training, AI infrastructure, and hardware–software co-design. My E-mail is:"
   },
 
   // 11 模块标题：修改后同步更新导航和公开简历
   sectionTitles: {
+    "reading": {
+      "zh": "个人博客",
+      "en": "Blog"
+    },
     "about": {
       "zh": "研究兴趣",
       "en": "Research interests"
@@ -968,6 +1102,7 @@ window.PROFILE = {
 
   // 12 模块显示开关：true 显示，false 隐藏
   sections: {
+    "reading": true,
     "about": true,
     "publications": true,
     "projects": true,
@@ -980,6 +1115,10 @@ window.PROFILE = {
 
   // 13 按钮与辅助文字
   labels: {
+    "readPost": {
+      "zh": "阅读全文",
+      "en": "Read article"
+    },
     "education": {
       "zh": "教育背景",
       "en": "Education"
@@ -999,6 +1138,10 @@ window.PROFILE = {
     "downloadResume": {
       "zh": "下载简历",
       "en": "Download CV"
+    },
+    "viewImage": {
+      "zh": "点击图片查看大图",
+      "en": "Click image to view full size"
     },
     "viewResume": {
       "zh": "查看简历",
@@ -1050,4 +1193,46 @@ window.PROFILE = {
     }
   },
 
+  // 14 个人博客：我的个人微信公众号与文章索引
+  // 保留 reading 字段和 #reading 锚点，兼容现有文章数据与旧链接。
+  // 改公众号名称请编辑 blog；新增文章请复制 reading 中的一组对象。
+  blog: {
+    name: "不想早起的skyhappy",
+    platform: {
+      zh: "我的个人微信公众号",
+      en: "My personal WeChat blog"
+    }
+  },
+  readingIntro: {
+    "zh": "我在自己的微信公众号记录论文解读、技术分享与学习思考。这里收录部分文章，点击标题或“阅读全文”可查看原文。",
+    "en": "I write about papers, share technique and learning reflections on my personal WeChat blog. Selected posts are listed below; open a title or “Read article” to read the original post in Chinese."
+  },
+  reading: [
+    {
+      "title": {
+        "zh": "人间至味是论文 | ALISA@ISCA2024",
+        "en": "Blog post | ALISA @ ISCA 2024"
+      },
+      "paper": "ALISA: Accelerating Large Language Model Inference via Sparsity-Aware KV Caching",
+      "venue": "ISCA 2024",
+      "source": {
+        "zh": "微信公众号 · 不想早起的skyhappy",
+        "en": "WeChat · 不想早起的skyhappy"
+      },
+      "url": "https://mp.weixin.qq.com/s/juFBepg8MsHCoggFb72XRw"
+    },
+    {
+      "title": {
+        "zh": "人间至味是论文 | Cambricon-LLM@MICRO2024",
+        "en": "Blog post | Cambricon-LLM @ MICRO 2024"
+      },
+      "paper": "Cambricon-LLM: A Chiplet-Based Hybrid Architecture for On-Device Inference of 70B LLM",
+      "venue": "MICRO 2024",
+      "source": {
+        "zh": "微信公众号 · 不想早起的skyhappy",
+        "en": "WeChat · 不想早起的skyhappy"
+      },
+      "url": "https://mp.weixin.qq.com/s/bE3KzOqpPsLJsVGHPM7vTg"
+    }
+  ],
 };
