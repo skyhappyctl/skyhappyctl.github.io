@@ -18,7 +18,7 @@ index.html                    页面入口与搜索摘要
 content.js                    姓名、简介、论文、项目等可编辑内容
 app.js                        页面结构与语言切换
 styles.css                    白底、蓝色链接、响应式布局
-resume.html                   可打印网页简历，与主页共用 content.js
+resume.html                   旧简历链接兼容入口，自动打开个人简历 PDF
 assets/                       本人照片、公开版 PDF、本人论文配图、开源字体
 scripts/build.mjs             无需安装依赖的公开文件构建
 .github/workflows/pages.yml   GitHub Pages 自动发布
@@ -31,7 +31,7 @@ scripts/build.mjs             无需安装依赖的公开文件构建
 
 主页已按 2026 年 9 月版「个人简历-陈天乐.pdf」更新：清华大学集成电路学院硕士、AI Infra／晶圆级大模型训练系统、科研与实习等经历。硕士毕业及未来任职结束时间标注为预计／计划。论文区区分 Research Square 预印本、本科毕业论文和未注明发表状态的研究工作。
 
-**下载的 PDF 是用户上传的原件，其中包含手机号；网页正文不展示手机号。需要脱敏时，请替换 PDF。** 主页和可打印网页简历共用 `content.js`，但 PDF 原件独立维护。
+**下载的 PDF 是用户上传的原件，其中包含手机号；网页正文不展示手机号。需要脱敏时，请替换 PDF。** “查看简历”和“下载简历”均使用 `assets/个人简历-陈天乐.pdf` 原件；旧 `resume.html` 地址自动打开同一 PDF。PDF 独立维护，修改主页文字不会改变 PDF。
 
 仓库配置已准备不代表网站已发布；只有成功部署后 GitHub Pages 给出的地址才是正式网址。
 
@@ -43,7 +43,7 @@ GitHub 会自动运行 `node scripts/build.mjs`，无需 `npm install`。本地�
 
 ## 字体
 
-标题采用思源宋体，正文采用思源黑体。随网站打包的 WOFF2 字体子集保留 400–600 的真实字重，覆盖常用汉字和页面已有字符；不请求第三方字体服务。字体入口是 `styles.css` 的 `--font-heading` 和 `--font-body`，许可见 `assets/fonts/`。
+标题与正文采用统一的衬线字体：英文使用系统 Georgia（后备 Times New Roman），中文使用随网站打包的思源宋体。字号层级为姓名 28px、章节标题 20px、正文与项目标题 15px、辅助信息 12–14px；手机上姓名为 26px，正文仍保留 15px。中文行高 1.85，英文 1.7。所有字体和字号入口集中在 `styles.css` 顶部变量，不请求第三方字体服务。中文 WOFF2 子集保留 400–600 的真实字重，许可见 `assets/fonts/`。
 
 ## 来源
 

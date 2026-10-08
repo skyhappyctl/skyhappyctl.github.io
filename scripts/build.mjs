@@ -1,6 +1,6 @@
 /** Dependency-free GitHub Pages build. Copies only public, referenced files.
  * Run: node scripts/build.mjs
- * No parent folders, original CVs, browser data, or entire-directory copies.
+ * No parent folders, unreferenced original documents, browser data, or entire-directory copies.
  */
 import { readFile, mkdir, readdir, lstat, copyFile } from "node:fs/promises";
 import { resolve, relative, dirname, extname, sep } from "node:path";
@@ -40,7 +40,7 @@ const images = [".webp", ".png", ".jpg", ".jpeg", ".svg", ".gif"];
 addAsset(profile.portrait, images);
 addAsset(profile.resume?.pdf, [".pdf"]);
 if (profile.resume?.page !== "resume.html") {
-  throw new Error("The printable CV page must be resume.html.");
+  throw new Error("The CV compatibility page must be resume.html.");
 }
 for (const publication of profile.publications) {
   addAsset(publication.image, images);

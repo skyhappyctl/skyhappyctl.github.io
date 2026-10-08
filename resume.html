@@ -3,128 +3,46 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>陈天乐 Tianle Chen · 公开简历</title>
+  <meta name="robots" content="noindex">
+  <title>陈天乐 · 个人简历 PDF</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <script>
-    if (location.protocol !== "file:") {
-      const sheet = document.createElement("link");
-      sheet.rel = "stylesheet";
-      sheet.href = "assets/fonts/fonts.css";
-      document.head.appendChild(sheet);
-    }
-  </script>
   <link rel="stylesheet" href="styles.css">
   <style>
-    body { background: #f7f9fb; }
-    .toolbar { max-width: 900px; margin: 22px auto; padding: 0 26px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; font-size: 12px; }
-    .toolbar button { border: 1px solid var(--border); background: white; color: var(--link); border-radius: 3px; padding: 8px 13px; cursor: pointer; }
-    .resume { max-width: 900px; margin: 0 auto 40px; padding: 42px 52px; background: white; }
-    .resume h1 { font-size: 32px; margin-bottom: 8px; }
-    .resume .second-name { font-size: 22px; color: var(--muted); margin-left: 16px; }
-    .resume .affiliation { margin-bottom: 6px; }
-    .resume .summary { font-size: 13px; margin-top: 14px; }
-    .resume section { margin-top: 24px; }
-    .resume h2 { font-size: 19px; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 12px; }
-    .resume h3 { font-size: 13px; margin-bottom: 3px; }
-    .resume p, .resume li, .resume .skill-list { font-size: 12px; line-height: 1.8; }
-    .resume .entry + .entry { margin-top: 14px; }
-    .resume .entry p { margin-bottom: 4px; }
-    .resume .experience-points { margin: 6px 0; }
-    .resume .experience-points li { margin-bottom: 3px; font-size: 12px; }
-    .resume .entry-meta { font-size: 11px; color: var(--muted); }
-    .resume .course-list, .resume .note { font-size: 10px; color: var(--muted); }
-    .resume .honor { font-size: 11px; }
-    .resume .honor h3, .resume .honor p { font-size: 11px; }
-    .resume .note { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 24px; }
-    @media (max-width: 600px) {
-      .resume { margin: 0 12px 25px; padding: 26px 20px; }
-      .resume .second-name { display: block; margin: 6px 0 0; font-size: 19px; }
-      .toolbar { padding: 0 22px; }
-    }
-    @page { size: A4; margin: 14mm; }
-    @media print {
-      body { background: white; }
-      .toolbar { display: none; }
-      .resume { max-width: none; margin: 0; padding: 0; }
-      .resume h1 { font-size: 25px; }
-      .resume .second-name { font-size: 18px; }
-      .resume .summary { font-size: 10px; line-height: 1.65; }
-      .resume section { margin-top: 15px; }
-      .resume h2 { font-size: 13px; margin-bottom: 8px; break-after: avoid; }
-      .resume h3 { font-size: 10px; }
-      .resume p, .resume li, .resume .skill-list { font-size: 9px; line-height: 1.6; }
-      .resume .experience-points li { font-size: 9px; line-height: 1.6; }
-      .resume .entry-meta, .resume .honor h3, .resume .honor p { font-size: 8.5px; }
-      .resume .entry + .entry { margin-top: 9px; }
-      .resume .entry, .resume .honor, .resume .skill-row { break-inside: avoid; }
-      .resume .course-list, .resume .note { font-size: 8px; }
-      .resume a { color: inherit; text-decoration: none; overflow-wrap: anywhere; }
-    }
+    .resume-redirect { margin-block: 48px; }
+    .resume-redirect h1 { font-size: 26px; }
+    .resume-actions { display: flex; flex-wrap: wrap; gap: 12px 24px; }
   </style>
 </head>
 <body>
-  <nav class="toolbar" aria-label="简历操作 / Résumé controls">
-    <a href="index.html" id="resume-back">← 返回个人主页</a>
-    <a href="assets/个人简历-陈天乐.pdf" download id="resume-download">下载原版 PDF</a>
-    <button type="button" id="resume-print">打印 / 保存为 PDF</button>
-    <button type="button" id="resume-language" aria-label="Switch to English">EN</button>
-  </nav>
-  <main class="resume" id="resume-content"></main>
-  <noscript><main class="no-script"><h1>陈天乐 · Tianle Chen</h1><p>请启用 JavaScript 查看与主页同步的简历，或下载上方 PDF 原件。Enable JavaScript to view the résumé or download the original PDF above.</p></main></noscript>
-  <!-- 简历正文与主页共用 content.js，无需重复修改文字。PDF 原件仍单独维护。 -->
+  <main class="container resume-redirect">
+    <h1>陈天乐 · 个人简历</h1>
+    <p id="resume-status" role="status">正在打开你的原版个人简历 PDF；如果未自动打开，请使用下方链接。</p>
+    <p class="resume-actions">
+      <a id="resume-open" href="assets/个人简历-陈天乐.pdf">查看个人简历 PDF</a>
+      <a id="resume-download" href="assets/个人简历-陈天乐.pdf" download>下载个人简历</a>
+      <a href="index.html">返回个人主页</a>
+    </p>
+    <noscript><p>浏览器未启用 JavaScript，请点击“查看个人简历 PDF”。</p></noscript>
+  </main>
+  <!-- 兼容以前的 resume.html 链接；不再根据主页文字生成另一份简历。
+       PDF 地址取自 content.js 的 resume.pdf。若更换文件名，请同步更新上方无脚本备用链接。 -->
   <script src="content.js"></script>
   <script>
     (() => {
       "use strict";
-      const p = window.PROFILE;
-      let lang = "zh";
-      try { if (localStorage.getItem("tianle-language") === "en") lang = "en"; } catch { /* 默认中文。 */ }
-      const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-      const raw = value => value && typeof value === "object" ? value[lang] ?? value.zh ?? value.en ?? "" : value ?? "";
-      const text = value => escape(raw(value));
-      const safeURL = value => {
-        const url = String(value ?? "").trim();
-        if (!url || /[\u0000-\u0020\u007f\\]/.test(url) || url.startsWith("//")) return "";
-        if (/^[a-z][a-z\d+.-]*:/i.test(url) && !/^(https?:\/\/|mailto:)/i.test(url)) return "";
-        return url;
-      };
-      const link = (href, title) => safeURL(href) ? `<a href="${escape(safeURL(href))}" target="_blank" rel="noopener noreferrer">${title}</a>` : title;
-      const section = (key, body) => p.sections[key] === false ? "" : `<section><h2>${text(p.sectionTitles[key])}</h2>${body}</section>`;
-      const highlights = item => {
-        const points = Array.isArray(item.highlights) ? item.highlights.filter(point => point && raw(point.text)) : [];
-        return points.length ? `<ul class="experience-points">${points.map(point => `<li>${raw(point.label) ? `<strong>${text(point.label)}${lang === "zh" ? "：" : ": "}</strong>` : ""}${text(point.text)}</li>`).join("")}</ul>` : "";
-      };
-      const entries = (items, isInternship = false) => `<ul class="plain-list">${items.map(item => `<li class="entry"><h3>${text(item.title)}</h3><p class="entry-meta">${[isInternship ? item.company : null,item.date].filter(Boolean).map(text).join(" · ")}</p><p>${text(item.description)}</p>${highlights(item)}${item.note ? `<p class="entry-meta">${text(item.note)}</p>` : ""}</li>`).join("")}</ul>`;
-      function render() {
-        document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
-        document.title = `${raw(p.name)} · ${lang === "zh" ? "公开简历" : "Résumé"}`;
-        document.getElementById("resume-back").textContent = lang === "zh" ? "← 返回个人主页" : "← Back to home";
-        const download = document.getElementById("resume-download");
-        const pdf = safeURL(p.resume.pdf);
-        if (pdf) download.setAttribute("href",pdf); else download.removeAttribute("href");
-        download.textContent = lang === "zh" ? "下载原版 PDF" : "Download original PDF";
-        document.getElementById("resume-print").textContent = lang === "zh" ? "打印 / 保存为 PDF" : "Print / Save as PDF";
-        const toggle = document.getElementById("resume-language");
-        toggle.textContent = lang === "zh" ? "EN" : "中文";
-        toggle.setAttribute("aria-label",lang === "zh" ? "Switch to English" : "切换到中文");
-        const papers = p.publications.map(item => {
-          const meta = [item.venue,item.status,item.date].filter(value => raw(value)).map(text).join(" · ");
-          return `<li class="entry"><h3>${link(item.doi,text(item.title))}</h3>${item.authors ? `<p>${escape(item.authors)}</p>` : ""}${meta ? `<p class="entry-meta">${meta}</p>` : ""}${item.summary ? `<p>${text(item.summary)}</p>` : ""}${item.note ? `<p class="entry-meta">${text(item.note)}</p>` : ""}</li>`;
-        }).join("");
-        const skills = `<dl class="skill-list">${p.skills.map(item => `<div class="skill-row"><dt>${text(item.title)}</dt><dd>${item.items.map(escape).join(" · ")}</dd></div>`).join("")}</dl>`;
-        const honors = `<ul class="plain-list honors">${p.honors.map(item => `<li class="honor"><span class="honor-year">${escape(item.year)}</span><div><h3>${text(item.title)}</h3><p>${text(item.detail)}</p></div></li>`).join("")}</ul>`;
-        document.getElementById("resume-content").innerHTML = `<header><h1>${text(p.name)}<span class="second-name">${escape(p.name[lang === "zh" ? "en" : "zh"])}</span></h1><p class="affiliation">${text(p.affiliation)}</p>${link(`mailto:${p.email}`,escape(p.email))}<p class="summary">${text(p.intro)}</p></header>
-          <section><h2>${text(p.labels.education)}</h2>${entries(p.education.entries)}<p>${text(p.education.gpa)}</p><p class="course-list">${text(p.labels.courses)}：${(p.education.courses || []).map(text).join(" · ")}</p></section>
-          ${section("projects",entries(p.projects))}${section("internships",entries(p.internships || [],true))}${section("publications",`<ul class="plain-list">${papers}</ul>`)}${section("skills",skills)}${section("beyond",honors)}${section("service",entries(p.service || []))}
-          <p class="note">${text(p.footerNote)} ${lang === "zh" ? "此网页简历不展示手机号；可下载的原版 PDF 保持你上传的内容。" : "This web résumé omits the phone number. The downloadable original PDF retains your uploaded content."}</p>`;
+      try {
+        const pdf = window.PROFILE?.resume?.pdf;
+        // 与构建公开清单一致：仅允许 assets/ 下的本地 PDF，禁止外部跳转和路径穿越。
+        if (typeof pdf !== "string" || !/^assets\/[\p{L}\p{N}_./-]+\.pdf$/iu.test(pdf) || pdf.split("/").includes("..")) {
+          throw new Error("Invalid local resume PDF path.");
+        }
+        const url = new URL(pdf, document.baseURI).href;
+        document.getElementById("resume-open").href = url;
+        document.getElementById("resume-download").href = url;
+        window.location.replace(url);
+      } catch {
+        document.getElementById("resume-status").textContent = "无法自动打开简历，请使用下方 PDF 链接查看或下载。";
       }
-      document.getElementById("resume-language").addEventListener("click",() => {
-        lang = lang === "zh" ? "en" : "zh";
-        try { localStorage.setItem("tianle-language",lang); } catch { /* 仍可切换。 */ }
-        render();
-      });
-      document.getElementById("resume-print").addEventListener("click",() => window.print());
-      render();
     })();
   </script>
 </body>

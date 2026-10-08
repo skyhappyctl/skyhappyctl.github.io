@@ -1,7 +1,8 @@
 /*
  * 网站内容修改入口（UTF-8）。zh = 中文，en = 英文。
  * 根据 assets/个人简历-陈天乐.pdf（2026 年 9 月版）更新。
- * 主页与 resume.html 共用此文件；手机号不在网页中展示。
+ * 此文件维护主页文字；个人简历 PDF 独立维护，resume.html 仅兼容跳转。
+ * 网页正文不展示手机号；原版 PDF 仍包含其原有信息。
  * 页面保持一份简洁个人主页，不提供学术 / 求职展示视角。
  * 详细说明见「网站修改指南.md」。
  */
@@ -25,14 +26,14 @@ window.PROFILE = {
 
   // 02 首页简介：中英文介绍与研究方向
   intro: {
-    "zh": "我是陈天乐，本科毕业于清华大学电子工程系，现于清华大学集成电路学院尹首一—胡杨课题组攻读集成电路工程硕士。我的研究聚焦晶圆级芯片大模型训推系统与 AI Infra，围绕晶圆级芯片系统开展混合并行映射、自动映射算法、片上容错路由与仿真器开发。",
+    "zh": "本科毕业于清华大学电子工程系，现于清华大学集成电路学院尹首一—胡杨课题组攻读集成电路工程硕士。我的研究聚焦晶圆级芯片大模型训推系统与AI Infra，围绕晶圆级芯片系统开展混合并行映射、自动映射算法、片上容错路由与仿真器开发。",
     "en": "I'm Tianle Chen, a master's student in Electronic Information (Integrated Circuit Engineering) at Tsinghua University's School of Integrated Circuits, in the group of Shouyi Yin and Yang Hu. I received my undergraduate degree from Tsinghua's Department of Electronic Engineering. My research focuses on large-model training systems and AI infrastructure, including hybrid-parallel mapping, automated mapping algorithms, on-chip fault-tolerant routing, and simulation for wafer-scale chip systems."
   },
 
   // 03 研究兴趣与教育：两段教育经历、GPA 和课程
   about: {
-    "zh": "我具备 Python / C++ / Triton、深度学习、数字电路与系统架构的交叉背景，关注大模型训练与推理效率、算子优化、通信开销和系统能效，希望通过软硬件协同设计改进大模型计算系统。",
-    "en": "My background spans Python, C++, Triton, deep learning, digital circuits, and system architecture. I am interested in efficient large-model training and inference, operator optimization, communication overhead, and system energy efficiency through hardware–software co-design."
+    "zh": "我具备深度学习、数字电路与系统架构的交叉背景，关注大模型训练与推理效率、算子优化、通信开销和系统能效，希望通过软硬件协同设计改进大模型训推系统。",
+    "en": "My background spans deep learning, digital circuits, and system architecture. I am interested in efficient large-model training and inference, operator optimization, communication overhead, and system energy efficiency through hardware–software co-design."
   },
   education: {
     "entries": [
@@ -118,7 +119,7 @@ window.PROFILE = {
   },
   interests: [
     "AI Infra",
-    "Large-Model Training",
+    "LLM Training/Inference",
     "Wafer-Scale Systems",
     "Hardware–Software Co-design"
   ],
@@ -180,34 +181,25 @@ window.PROFILE = {
       "status": {
         "zh": "研究工作",
         "en": "Research work"
-      },
-      "note": {
-        "zh": "简历列出的研究工作，未注明投稿或发表状态。",
-        "en": "Listed as research work in the supplied CV; submission and publication status are not specified."
       }
     },
     {
       "title": {
-        "zh": "针对晶圆级芯片 2D-Mesh/Torus 拓扑的片上容错路由算法设计",
-        "en": "On-Chip Fault-Tolerant Routing for 2D-Mesh/Torus Wafer-Scale Chip Topologies"
+        "zh": "针对晶圆级芯片系统 2D-Mesh/Torus 拓扑的片上容错路由算法AEDPRA设计",
+        "en": "On-Chip Fault-Tolerant Routing for 2D-Mesh/Torus Wafer-Scale Chip System Topologies"
       },
       "status": {
         "zh": "研究工作",
         "en": "Research work"
       },
-      "note": {
-        "zh": "简历列出的研究工作，未注明投稿或发表状态。",
-        "en": "Listed as research work in the supplied CV; submission and publication status are not specified."
-      }
     }
   ],
 
-  // 05 科研经历：标题、日期、description（概述）、highlights（分项贡献）与 tags（技术）
   projects: [
     {
       "title": {
         "zh": "基于晶圆级芯片系统的大模型训练架构",
-        "en": "Large-model training architecture for wafer-scale chip systems"
+        "en": "LLM training architecture for wafer-scale chip systems"
       },
       "date": {
         "zh": "2025.09 – 至今",
@@ -215,7 +207,7 @@ window.PROFILE = {
       },
       "description": {
         "zh": "面向晶圆级芯片上的大模型训练，围绕并行策略映射、片上网络容错与系统仿真展开研究，关注计算与通信开销对训练效率的影响。",
-        "en": "Investigate large-model training on wafer-scale chip systems through parallel-strategy mapping, on-chip network fault tolerance, and system simulation, with a focus on how computation and communication overhead affect training efficiency."
+        "en": "Investigate LLM training on wafer-scale chip systems through parallel-strategy mapping, on-chip network fault tolerance, and system simulation, with a focus on how computation and communication overhead affect training efficiency."
       },
       "tags": [
         "Hybrid Parallelism",
@@ -240,8 +232,8 @@ window.PROFILE = {
             "en": "Fault-tolerant on-chip routing"
           },
           "text": {
-            "zh": "针对 2D-Torus 与 2D-Mesh 拓扑，设计弧增强型确定性路径路由算法（ADPR），研究片上通信中的容错路由问题。",
-            "en": "Design arc-enhanced deterministic path routing (ADPR) for 2D-Torus and 2D-Mesh topologies to investigate fault-tolerant communication within the chip network."
+            "zh": "针对 2D-Torus 与 2D-Mesh 拓扑，设计弧增强型确定性路径路由算法（AEDPRA），研究片上通信中的容错路由问题。",
+            "en": "Design arc-enhanced deterministic path routing (AEDPRA) for 2D-Torus and 2D-Mesh topologies to investigate fault-tolerant communication within the chip network."
           }
         },
         {
@@ -468,8 +460,8 @@ window.PROFILE = {
         },
         {
           "label": {
-            "zh": "AI4RTL 评测框架",
-            "en": "AI4RTL evaluation framework"
+            "zh": "AI4RTL 的Benchmark评测框架",
+            "en": "AI4RTL Benchmark evaluation framework"
           },
           "text": {
             "zh": "搭建端到端 AI4RTL Benchmark 工作框架，面向 AI 辅助 RTL 设计的实验与评测，组织相关工作流程。",
@@ -744,18 +736,46 @@ window.PROFILE = {
 
   // 09 学生工作：简述与完整经历，未来结束时间标注为计划
   beyond: {
-    "zh": "在科研之外，我也参与学生工作、文艺活动与实践组织，曾担任电子工程系学生会文艺部负责人、交响乐队宣传中心负责人和赴澳大利亚海外实践支队长。",
-    "en": "Beyond research, I contribute to student organizations, arts activities, and practical programs. My roles have included leading arts activities in the Electronic Engineering student union, coordinating symphony-orchestra publicity, and leading an overseas-practice team to Australia."
+    "zh": "在科研之外，我积极参与院校学生工作、文艺活动与实践组织。",
+    "en": "Beyond research, I contribute to student organizations, arts activities, and practical programs. ",
   },
   service: [
+      {
+      "title": {
+        "zh": "数据与信息学院研究生会",
+        "en": "School of Data and Information Graduate Student Union"
+      },
+      "date": {
+        "zh": "2026.09 – 2027.09",
+        "en": "Sep 2026 – Sep 2027"
+      },
+      "description": {
+        "zh": "实践部成员",
+        "en": "Practice department member"
+      }
+    },
+        {
+      "title": {
+        "zh": "清华大学深圳国际研究生院学生艺术团",
+        "en": "Tsinghua Shenzhen International Graduate School Student Art Troupe"
+      },
+      "date": {
+        "zh": "2026.09 – 2027.09",
+        "en": "Sep 2026 – Sep 2027"
+      },
+      "description": {
+        "zh": "演出部成员",
+        "en": "Performance department member"
+      }
+    },
     {
       "title": {
         "zh": "集成电路学院研究生会",
         "en": "School of Integrated Circuits Graduate Student Union"
       },
       "date": {
-        "zh": "2026.08 – 2028.08（计划）",
-        "en": "Aug 2026 – Aug 2028 (planned)"
+        "zh": "2026.09 – 2027.09",
+        "en": "Sep 2026 – Sep 2027"
       },
       "description": {
         "zh": "宣传部成员",
@@ -908,10 +928,6 @@ window.PROFILE = {
   contactIntro: {
     "zh": "欢迎交流大模型训推系统、分布式训练、AI Infra 与软硬件协同优化相关的研究或工作机会。",
     "en": "I welcome research and career opportunities in large-model training and inference systems, distributed training, AI infrastructure, and hardware–software co-design."
-  },
-  footerNote: {
-    "zh": "内容依据 2026 年 9 月版「个人简历-陈天乐」整理；硕士毕业与未来任职结束时间为预计／计划。",
-    "en": "Updated from the September 2026 CV. Future graduation and service end dates are expected or planned."
   },
 
   // 11 模块标题：修改后同步更新导航和公开简历
